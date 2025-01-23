@@ -18,13 +18,11 @@ export function LogoWithText({
   className,
 }: LogoWithTextProps) {
   return (
-    <div
-      className={cn(className, "flex items-center gap-2 text-2xl sm:text-3xl")}
-    >
+    <div className={cn(className, "flex items-center gap-2")}>
       <Logo h={h} />
       <div className="relative">
-        {text}
-        <div className="items-end absolute right-0 bottom-[-15] sm:bottom-[-18] text-[8px] md:text-[10px] text-muted-foreground">
+        <div className="text-2xl sm:text-3xl">{text}</div>
+        <div className="items-end absolute right-0 bottom-[-5px] sm:bottom-[-8px] text-[8px] md:text-[10px] text-muted-foreground">
           {school}
         </div>
       </div>

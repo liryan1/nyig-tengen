@@ -20,6 +20,8 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../ui/input";
 import { useSignupMutation } from "@/lib/rtk/slices/auth";
+import toast from "react-hot-toast";
+import { logStack } from "@/lib/error";
 
 export const signUpSchema = z.object({
   name: z.string().min(3, {
@@ -56,12 +58,27 @@ export function SignUpForm() {
   });
 
   const onSubmit: SubmitHandler<TSignUpForm> = async (data) => {
-    await signup(data).unwrap();
-    await signIn("credentials", {
-      email: data.email,
-      password: data.password,
-      redirect: false,
-    });
+    try {
+      await signup(data).unwrap();
+      toast.success("Signup successful!");
+      const response = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+      if (response?.error) {
+        form.setError("root", { message: response.error });
+        toast.error("Login failed");
+      }
+      if (response?.ok) {
+        toast.success("Login successful");
+      }
+      router.push("/");
+    } catch (error) {
+      logStack(error);
+      toast.error("An unknown issue has occurred");
+    }
+
     router.push("/");
   };
 
