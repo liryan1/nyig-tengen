@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { BookCheckIcon } from "lucide-react";
+import { BookCheckIcon, CrownIcon } from "lucide-react";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { authOptions } from "../api/auth/authOptions";
@@ -28,6 +28,7 @@ export default async function Home() {
         <div className="flex items-center justify-center gap-2 text-xl">
           <MdWavingHand className="text-blue-600 h-5 w-5" />
           Welcome, {session.user.name}
+          {session?.user.role === "ADMIN" && <CrownIcon className="h-5 w-5" />}
           <MdWavingHand className="text-blue-600 h-5 w-5" />
         </div>
       )}

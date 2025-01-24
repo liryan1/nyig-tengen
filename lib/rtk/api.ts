@@ -3,6 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 export const BASE_URL: string = "/api";
 
 export const POSTS_TAG = "Posts";
+export const POST_TAG = "Post"; // single post
 export const COMMENTS_TAG = "Comments";
 export const LIKES_TAG = "Likes";
 export const AUTH_TAG = "Auth";
@@ -15,10 +16,5 @@ const baseQuery = fetchBaseQuery({
 export const apiSlice = createApi({
   baseQuery: baseQuery,
   endpoints: () => ({}), // Endpoints are injected in features
-  tagTypes: [
-    POSTS_TAG,
-    COMMENTS_TAG,
-    LIKES_TAG,
-    AUTH_TAG,
-  ],
+  tagTypes: [POST_TAG, POSTS_TAG, COMMENTS_TAG, LIKES_TAG, AUTH_TAG],
 });

@@ -2,30 +2,18 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 
-type Params = { params: Promise<{ postId: string }> }
+type Params = { params: Promise<{ slug: string }> };
 
 export async function PATCH(request: Request, { params }: Params) {
   try {
-    const { postId } = await params;
-
-    const existingPost = await db.post.findUnique({
-      where: { id: postId },
-      select: { views: true },
-    });
-    if (!existingPost) {
-      return new NextResponse("Post not found", { status: 404 });
-    }
+    const { slug } = await params;
 
     await db.post.update({
-      where: { id: postId },
+      where: { slug },
       data: {
         views: {
           increment: 1,
         },
-      },
-      select: {
-        id: true,
-        views: true,
       },
     });
 

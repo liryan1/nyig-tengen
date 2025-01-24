@@ -1,5 +1,5 @@
 import { Post } from "@prisma/client";
-import { apiSlice, POSTS_TAG } from "../api";
+import { apiSlice, POST_TAG, POSTS_TAG } from "../api";
 
 interface Posts {
   page: number;
@@ -10,8 +10,8 @@ interface Posts {
 }
 
 export interface PostResponse extends Post {
-  author: {id: string, name: string}
-  likes: {id: string, postId?: string, userId?: string}[]
+  author: { id: string; name: string };
+  likes: { id: string; postId?: string; userId?: string }[];
 }
 
 interface PostQuery {
@@ -33,7 +33,10 @@ const postsApiSlice = apiSlice.injectEndpoints({
       providesTags: [POSTS_TAG],
     }),
 
-    createPost: builder.mutation<void, { title: string; content: string, wordCount?: number }>({
+    createPost: builder.mutation<
+      void,
+      { title: string; content: string; wordCount?: number }
+    >({
       query: (body) => ({
         url: "posts",
         method: "POST",
@@ -43,20 +46,22 @@ const postsApiSlice = apiSlice.injectEndpoints({
     }),
 
     getPostBySlug: builder.query<Post, string>({
-      query: (postId) => `posts/${postId}`,
-      providesTags: [POSTS_TAG],
+      query: (slug) => `posts/${slug}`,
+      providesTags: (result, error, slug) => [{ type: POST_TAG, id: slug }],
     }),
 
     updatePost: builder.mutation<
       void,
-      { slug: string; title?: string; content?: string, wordCount?: number }
+      { slug: string; title?: string; content?: string; wordCount?: number }
     >({
       query: ({ slug, ...rest }) => ({
         url: `posts/${slug}`,
         method: "PATCH",
         body: rest,
       }),
-      invalidatesTags: [POSTS_TAG],
+      invalidatesTags: (result, error, arg) => [
+        { type: POST_TAG, id: arg.slug },
+      ],
     }),
 
     deletePost: builder.mutation<void, string>({

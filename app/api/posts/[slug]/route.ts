@@ -4,18 +4,27 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/authOptions";
 import { logStack } from "@/lib/error";
 
-type Params = { params: Promise<{ slug: string }> }
+type Params = { params: Promise<{ slug: string }> };
 
-export async function GET(
-  request: Request,
-  { params }: Params,
-) {
+export async function GET(request: Request, { params }: Params) {
   const { slug } = await params;
 
   try {
     const post = await db.post.findUnique({
       where: { slug: slug },
-      include: { author: true },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        likes: {
+          select: {
+            userId: true,
+          },
+        },
+      },
     });
 
     if (!post) {
@@ -24,15 +33,12 @@ export async function GET(
 
     return NextResponse.json(post, { status: 200 });
   } catch (error) {
-    logStack(error)
+    logStack(error);
     return new NextResponse("Failed to fetch post", { status: 500 });
   }
 }
 
-export async function PATCH(
-  request: Request,
-  { params }: Params,
-) {
+export async function PATCH(request: Request, { params }: Params) {
   const { slug } = await params;
 
   try {
@@ -49,7 +55,9 @@ export async function PATCH(
     }
 
     if (existingPost.authorId !== session.user.id) {
-      return new NextResponse("Not authorized to update this post", { status: 403 });
+      return new NextResponse("Not authorized to update this post", {
+        status: 403,
+      });
     }
 
     await db.post.update({
@@ -67,10 +75,7 @@ export async function PATCH(
   }
 }
 
-export async function DELETE(
-  request: Request,
-  { params }: Params,
-) {
+export async function DELETE(request: Request, { params }: Params) {
   const { slug } = await params;
 
   try {
@@ -85,7 +90,9 @@ export async function DELETE(
     }
 
     if (existingPost.authorId !== session.user.id) {
-      return new NextResponse("Not authorized to delete this post", { status: 403 });
+      return new NextResponse("Not authorized to delete this post", {
+        status: 403,
+      });
     }
 
     await db.post.delete({

@@ -15,6 +15,8 @@ import { Spinner } from "../labels/Spinner";
 import { Button } from "../ui/button";
 import "./editFormStyle.scss";
 import { debounce } from "@/lib/debounce";
+import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 const initialForm: PostForm = {
   title: "",
@@ -27,6 +29,7 @@ interface PostForm {
 }
 
 export function TiptapEditForm({ iform }: { iform?: Post }) {
+  const router = useRouter();
   const [update, { isLoading: uLoading }] = useUpdatePostMutation();
   const [create, { isLoading: cLoading }] = useCreatePostMutation();
   const isLoading = uLoading || cLoading;
@@ -54,11 +57,26 @@ export function TiptapEditForm({ iform }: { iform?: Post }) {
   const handlePublish = async () => {
     const payload = { wordCount: getWordCount(), ...form.getValues() };
     if (iform) {
-      await update({ ...payload, slug: iform.slug }).unwrap();
+      try {
+        await update({ ...payload, slug: iform.slug }).unwrap();
+        editorRef.current?.getInstance()?.commands.clearContent();
+        toast.success("Post updated successfully");
+        router.push(`/posts/${iform.slug}`);
+        form.reset(form.getValues());
+      } catch (error) {
+        toast.error("Error updating post");
+      }
     } else {
-      await create(payload).unwrap();
+      try {
+        await create(payload).unwrap();
+        editorRef.current?.getInstance()?.commands.clearContent();
+        toast.success("Post created successfully");
+        router.push("/posts");
+        form.reset(form.getValues());
+      } catch (error) {
+        toast.error("Error creating post");
+      }
     }
-    form.reset(form.getValues());
   };
 
   return (
@@ -101,8 +119,9 @@ export function TiptapEditForm({ iform }: { iform?: Post }) {
 
       <div className="flex justify-end">
         <Button
+          disabled={!form.formState.isDirty}
           className="flex items-center gap-2"
-          onClick={debounce(handlePublish, 1000)}
+          onClick={debounce(handlePublish, 500)}
         >
           Publish
           {isLoading ? <Spinner className="h-4 w-4" /> : <SendHorizonalIcon />}
