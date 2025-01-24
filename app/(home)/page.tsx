@@ -4,6 +4,7 @@ import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { authOptions } from "../api/auth/authOptions";
 import { MdWavingHand } from "react-icons/md";
+import { FeaturedSites } from "@/components/home/FeaturedSites";
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -32,6 +33,7 @@ export default async function Home() {
           <MdWavingHand className="text-blue-600 h-5 w-5" />
         </div>
       )}
+      <FeaturedSites />
     </div>
   );
 }
