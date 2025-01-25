@@ -10,7 +10,7 @@ interface PostHeaderProps {
 
 export async function PostHeader({ post }: PostHeaderProps) {
   const session = await getServerSession(authOptions);
-  const readingTime = post.wordCount ? Math.ceil(post.wordCount / 150) : 0;
+  const readingTime = post.wordCount ? Math.ceil(post.wordCount / 100) : 0;
 
   return (
     <div className="lg:max-w-[45rem] mx-auto mb-12">

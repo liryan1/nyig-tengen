@@ -47,7 +47,7 @@ export async function PATCH(request: Request, { params }: Params) {
       return new NextResponse("Not authorized", { status: 401 });
     }
 
-    const { title, content } = await request.json();
+    const { title, content, wordCount } = await request.json();
 
     const existingPost = await db.post.findUnique({ where: { slug: slug } });
     if (!existingPost) {
@@ -65,6 +65,8 @@ export async function PATCH(request: Request, { params }: Params) {
       data: {
         title: title ?? existingPost.title,
         content: content ?? existingPost.content,
+        wordCount,
+        updatedAt: new Date(),
       },
     });
 

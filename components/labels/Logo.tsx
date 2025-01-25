@@ -31,13 +31,5 @@ export function LogoWithText({
 }
 
 export function Logo({ h }: LogoProps) {
-  return (
-    <Image
-      className="p-0 m-0"
-      src="/logo.png"
-      height={h ?? "40"}
-      width={h ?? "40"}
-      alt=""
-    />
-  );
+  return <Image src="/logo.png" height={h ?? "40"} width={h ?? "40"} alt="" />;
 }

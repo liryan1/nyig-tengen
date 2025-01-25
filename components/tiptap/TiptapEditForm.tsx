@@ -58,21 +58,23 @@ export function TiptapEditForm({ iform }: { iform?: Post }) {
     const payload = { wordCount: getWordCount(), ...form.getValues() };
     if (iform) {
       try {
-        await update({ ...payload, slug: iform.slug }).unwrap();
-        editorRef.current?.getInstance()?.commands.clearContent();
+        await update({
+          ...payload,
+          slug: iform.slug,
+          wordCount: getWordCount(),
+        }).unwrap();
         toast.success("Post updated successfully");
         router.push(`/posts/${iform.slug}`);
-        form.reset(form.getValues());
+        editorRef.current?.getInstance()?.commands.clearContent();
       } catch (error) {
         toast.error("Error updating post");
       }
     } else {
       try {
-        await create(payload).unwrap();
-        editorRef.current?.getInstance()?.commands.clearContent();
+        await create({ ...payload, wordCount: getWordCount() }).unwrap();
         toast.success("Post created successfully");
         router.push("/posts");
-        form.reset(form.getValues());
+        editorRef.current?.getInstance()?.commands.clearContent();
       } catch (error) {
         toast.error("Error creating post");
       }

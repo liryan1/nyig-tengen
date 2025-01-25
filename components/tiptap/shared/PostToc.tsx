@@ -1,6 +1,6 @@
 "use client";
 
-import useToc from "@/hooks/useToc";
+import useToc from "@/components/tiptap/hooks/useToc";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
@@ -30,7 +30,9 @@ const PostToc = () => {
   return (
     <div className="hidden lg:block order-1">
       <div className="lg:sticky lg:h-[calc(100vh-120px)] lg:top-24 overflow-auto">
-        {items.length > 0 && <h2 className="text-sm font-bold uppercase">On this page</h2>}
+        {items.length > 0 && (
+          <h2 className="text-sm font-bold uppercase">On this page</h2>
+        )}
         <ul className="mt-4 space-y-3.5 text-sm">
           {items.map((item) => (
             <li

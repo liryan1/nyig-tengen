@@ -15,7 +15,7 @@ export default function useProgress(containerSelector: string) {
           if (!enable && entry.isIntersecting) setEnable(true);
         });
       },
-      { rootMargin: `0px 0px -${window.innerHeight - 64}px 0px`, threshold: 0 }
+      { rootMargin: `0px 0px -${window.innerHeight - 64}px 0px`, threshold: 0 },
     );
 
     observer.observe(container);

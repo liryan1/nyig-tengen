@@ -5,8 +5,8 @@ import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 import slugify from "slugify";
 
-const DEFAULT_PAGE = "1"
-const DEFAULT_LIMIT = "10"
+const DEFAULT_PAGE = "1";
+const DEFAULT_LIMIT = "10";
 
 export async function GET(request: NextRequest) {
   try {
@@ -67,10 +67,11 @@ export async function GET(request: NextRequest) {
     ]);
 
     const totalPages = Math.ceil(totalCount / limit);
-    const data = posts.map(post => ({
+    const data = posts.map((post) => ({
       ...post,
-      content: post.content.slice(0, 200) + (post.content.length > 200 ? "..." : "")
-    }))
+      content:
+        post.content.slice(0, 200) + (post.content.length > 200 ? "..." : ""),
+    }));
 
     return NextResponse.json({
       page,
@@ -80,11 +81,10 @@ export async function GET(request: NextRequest) {
       data,
     });
   } catch (error) {
-    logStack(error)
+    logStack(error);
     return new NextResponse("Failed to fetch posts", { status: 500 });
   }
 }
-
 
 export async function POST(request: Request) {
   try {
@@ -93,15 +93,17 @@ export async function POST(request: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    const { title, content } = await request.json();
+    const { title, content, wordCount } = await request.json();
     if (!title || !content) {
-      return new NextResponse("Title and content are required", { status: 400 });
+      return new NextResponse("Title and content are required", {
+        status: 400,
+      });
     }
 
     // 1. Generate a base slug from the title.
     const baseSlug = slugify(title, {
-      lower: true,         // convert to lowercase
-      strict: true,        // remove characters like punctuation
+      lower: true, // convert to lowercase
+      strict: true, // remove characters like punctuation
       remove: /[*+~.()'"!:@]/g,
     });
 
@@ -123,14 +125,15 @@ export async function POST(request: Request) {
       data: {
         title,
         content,
-        slug: uniqueSlug,   // store the final slug
+        wordCount,
+        slug: uniqueSlug, // store the final slug
         authorId: session.user.id,
       },
     });
 
     return NextResponse.json({ status: 201 });
   } catch (error) {
-    logStack(error)
+    logStack(error);
     return new NextResponse("Failed to create post", { status: 500 });
   }
 }

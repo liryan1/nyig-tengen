@@ -14,7 +14,11 @@ interface UseTocOptions {
 }
 
 export default function useToc(options: UseTocOptions) {
-  const { containerSelector, headingSelector = "h2, h3, h4", observerOptions } = options;
+  const {
+    containerSelector,
+    headingSelector = "h2, h3, h4",
+    observerOptions,
+  } = options;
 
   const [items, setItems] = useState<TocItem[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -25,7 +29,7 @@ export default function useToc(options: UseTocOptions) {
 
     const getHeadings = () => {
       const headings = container.querySelectorAll(headingSelector);
-      const items = Array.from(headings).map(heading => ({
+      const items = Array.from(headings).map((heading) => ({
         id: heading.id,
         text: heading.textContent || "",
         level: parseInt(heading.tagName[1]),
