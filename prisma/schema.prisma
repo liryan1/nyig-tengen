@@ -29,6 +29,11 @@ model User {
   posts    Post[]
   comments Comment[]
   likes    Like[]
+  problems Problem[]
+
+  ProblemSet ProblemSet[]
+
+  ProblemSetProgress ProblemSetProgress[]
 }
 
 // ----------- Begin authentication models -----------
@@ -76,6 +81,7 @@ model VerificationToken {
 
 // ----------- End authentication models -----------
 
+// -------------------- Post Models --------------------
 model Post {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
@@ -115,3 +121,119 @@ model Like {
   post    Post?    @relation(fields: [postId], references: [id])
   comment Comment? @relation(fields: [commentId], references: [id])
 }
+
+// -------------------- End Post Models --------------------
+
+// -------------------- Go Problem Models --------------------
+
+model Problem {
+  id                 String              @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  authorId           String              @db.ObjectId
+  description        String?
+  rank               Int
+  initial            Json
+  correct            Json
+  problemSetProblems ProblemSetProblem[]
+  submissions        Submission[]
+  author             User?               @relation(fields: [authorId], references: [id])
+  problemStats       ProblemStats?
+
+  @@index([authorId])
+}
+
+model ProblemStats {
+  id              String  @id @default(auto()) @map("_id") @db.ObjectId
+  problemId       String  @unique @db.ObjectId
+  problem         Problem @relation(fields: [problemId], references: [id])
+  likes           Int     @default(0)
+  views           Int     @default(0)
+  submissionCount Int     @default(0)
+  correctCount    Int     @default(0)
+}
+
+enum SubmissionStatus {
+  solved
+  mismatch
+  partial
+}
+
+// Join table between ProblemSet and Problem for efficient queries
+// Position is the Default position of the problem in the set (e.g., 1, 2, ...)
+model ProblemSetProblem {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  problemSetId String     @db.ObjectId
+  problemId    String     @db.ObjectId
+  position     Int
+  problem      Problem    @relation(fields: [problemId], references: [id])
+  problemSet   ProblemSet @relation(fields: [problemSetId], references: [id])
+  createdAt    DateTime   @default(now())
+
+  @@unique([problemSetId, problemId])
+}
+
+model ProblemSet {
+  id                   String               @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String
+  description          String?
+  authorId             String               @db.ObjectId
+  problemCount         Int                  @default(0)
+  averageRank          Float                @default(0)
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  author               User?                @relation(fields: [authorId], references: [id])
+  problemSetProblems   ProblemSetProblem[]
+  problemSetProgresses ProblemSetProgress[]
+  problemSetStats      ProblemSetStats?
+
+  @@index([authorId]) // Find how many problem sets a user has created
+}
+
+model ProblemSetStats {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  problemSetId String     @unique @db.ObjectId
+  problemSet   ProblemSet @relation(fields: [problemSetId], references: [id])
+  likes        Int        @default(0)
+  views        Int        @default(0)
+  attempted    Int        @default(0)
+  completed    Int        @default(0)
+}
+
+model Submission {
+  id                   String              @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String              @db.ObjectId
+  problemId            String              @db.ObjectId
+  problemSetProgressId String?             @db.ObjectId
+  userMoves            Json
+  status               SubmissionStatus
+  mismatchIndex        Int
+  correctOpponentMove  Json?
+  problem              Problem             @relation(fields: [problemId], references: [id])
+  progress             ProblemSetProgress? @relation(fields: [problemSetProgressId], references: [id])
+  createdAt            DateTime            @default(now())
+}
+
+enum ProgressStatus {
+  completed
+  abandoned
+  inprogress
+}
+
+model ProblemSetProgress {
+  id           String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String          @db.ObjectId
+  problemSetId String          @db.ObjectId
+  status       ProgressStatus?
+  problemOrder Json
+  currentIndex Int?
+  problemSet   ProblemSet      @relation(fields: [problemSetId], references: [id])
+  user         User            @relation(fields: [userId], references: [id])
+  submissions  Submission[]
+  updatedAt    DateTime        @updatedAt
+  createdAt    DateTime        @default(now())
+
+  @@index([userId, problemSetId]) // Common lookup for doing problem sets
+}
+
+// -------------------- End Go Problem Models --------------------

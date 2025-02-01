@@ -3,13 +3,13 @@ import SessionProvider from "@/components/providers/SessionProvider";
 import "@/styles/globals.scss";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
-import { Poppins } from "next/font/google";
+import { Inter } from "next/font/google";
 import { Toaster } from "react-hot-toast";
 import ReduxProvider from "../components/providers/ReduxProvider";
 import { authOptions } from "./api/auth/authOptions";
 import "./globals.css";
 
-const font = Poppins({
+const font = Inter({
   subsets: ["latin"],
   weight: ["200", "400", "500", "600", "800"],
 });
@@ -33,9 +33,7 @@ export default async function RootLayout({
         <SessionProvider session={session}>
           <ReduxProvider>
             <Navbar />
-            <main className="mx-auto max-w-[95%] sm:max-w[90%] md:max-w-[85%] lg:max-w-[80%]">
-              {children}
-            </main>
+            <main className="mx-auto">{children}</main>
           </ReduxProvider>
         </SessionProvider>
         <Toaster

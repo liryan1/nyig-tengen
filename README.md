@@ -1,30 +1,32 @@
-# NextJS Auth Template
+# NYIG Tengen
 
-Authentication template for NextJS. Sets up examples of authenticated access from the server and client using Next-Auth.
+A web application for the Go community.
 
 ## Technologies used
 
 - NextJS
-- Next-Auth (a.k.a Auth.js)
+- Next-Auth (aka Auth.js)
 - Prisma
-- MongoDB (replace with any Prisma supported DB)
+- MongoDB
 - TailwindCSS
-
-## Features
-
-- Credential auth
-- OAuth examples with Google and GitHub
-- Sign in and registration forms
-- Supports role-based access control
+- RTK Query for client state
 
 ## Getting started
 
+NextJS development workflow is straightforward. The dev server command includes `--turbopack` which is still in experimental mode but it should make the dev server run faster.
+
 1. Copy `.env.example` to `.env.local`
-2. Setup database connection and add your `DATABASE_URL` string
+2. Setup database connection and add `DATABASE_URL` string
 3. Install dependencies and run dev server
 
 ```sh
-npm i
-npx prisma generate
+npm install
 npm run dev
+```
+
+4. Create production build and run server
+
+```sh
+npm run build
+PORT=3003 npm run start
 ```

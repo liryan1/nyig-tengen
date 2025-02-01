@@ -7,6 +7,9 @@ export const POST_TAG = "Post"; // single post
 export const COMMENTS_TAG = "Comments";
 export const LIKES_TAG = "Likes";
 export const AUTH_TAG = "Auth";
+export const PROBLEMS_TAG = "Problems";
+export const PROBLEM_SETS_TAG = "ProblemSets";
+export const PROBLEM_SET_PROGRESS_TAG = "ProblemSetProgress";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -16,5 +19,14 @@ const baseQuery = fetchBaseQuery({
 export const apiSlice = createApi({
   baseQuery: baseQuery,
   endpoints: () => ({}), // Endpoints are injected in features
-  tagTypes: [POST_TAG, POSTS_TAG, COMMENTS_TAG, LIKES_TAG, AUTH_TAG],
+  tagTypes: [
+    PROBLEM_SET_PROGRESS_TAG,
+    PROBLEM_SETS_TAG,
+    PROBLEMS_TAG,
+    POST_TAG,
+    POSTS_TAG,
+    COMMENTS_TAG,
+    LIKES_TAG,
+    AUTH_TAG,
+  ],
 });

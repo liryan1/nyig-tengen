@@ -18,7 +18,7 @@ export function LogoWithText({
   className,
 }: LogoWithTextProps) {
   return (
-    <div className={cn(className, "flex items-center gap-2")}>
+    <div className={cn("flex items-center gap-2 select-none", className)}>
       <Logo h={h} />
       <div className="relative">
         <div className="text-2xl sm:text-3xl">{text}</div>

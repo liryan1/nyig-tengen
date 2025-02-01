@@ -17,6 +17,10 @@ export const menuConfig = [
     title: "Posts",
     path: "posts",
   },
+  {
+    title: "Learn",
+    path: "learn",
+  },
 ];
 
 export function NavbarLinks({ className }: { className?: string }) {

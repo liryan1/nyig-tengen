@@ -1,7 +1,8 @@
-import {v2 as cloudinary} from 'cloudinary';
-import {NextResponse} from 'next/server';
+import { logStack } from "@/lib/error";
+import { v2 as cloudinary } from "cloudinary";
+import { NextResponse } from "next/server";
 
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -11,9 +12,9 @@ cloudinary.config({
 
 export async function GET() {
   try {
-    const {resources} = await cloudinary.search
-      .expression('resource_type:image')
-      .sort_by('created_at', 'desc')
+    const { resources } = await cloudinary.search
+      .expression("resource_type:image")
+      .sort_by("created_at", "desc")
       .execute();
 
     const map = resources.map((item: any) => ({
@@ -24,23 +25,29 @@ export async function GET() {
       format: item.format,
       display_name: item.display_name || item.public_id,
       width: item.width,
-      height: item.height
+      height: item.height,
     }));
 
     return NextResponse.json(map);
   } catch (error) {
-    console.error('Error fetching images:', error);
-    return NextResponse.json({error: 'Failed to fetch images'}, {status: 500});
+    logStack(error);
+    return NextResponse.json(
+      { message: "Failed to fetch images" },
+      { status: 500 },
+    );
   }
 }
 
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
-    const file = formData.get('file') as File | null;
+    const file = formData.get("file") as File | null;
 
     if (!file) {
-      return NextResponse.json({error: 'No file provided'}, {status: 400});
+      return NextResponse.json(
+        { message: "No file provided" },
+        { status: 400 },
+      );
     }
 
     const bytes = await file.arrayBuffer();
@@ -50,33 +57,38 @@ export async function POST(req: Request) {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           public_id: file.name.split(/\.\w+$/)[0],
-          resource_type: 'image',
+          resource_type: "image",
           invalidate: true,
         },
         (error, result) => {
           if (error) reject(error);
           else resolve(result);
-        }
+        },
       );
 
       uploadStream.end(buffer);
     });
 
-
     if (result) {
-      return NextResponse.json({
-        id: result.public_id,
-        url: result.secure_url,
-        created_at: result.created_at,
-        bytes: result.bytes,
-        format: result.format,
-        display_name: result.display_name || result.public_id,
-        width: result.width,
-        height: result.height
-      });
+      return NextResponse.json(
+        {
+          id: result.public_id,
+          url: result.secure_url,
+          created_at: result.created_at,
+          bytes: result.bytes,
+          format: result.format,
+          display_name: result.display_name || result.public_id,
+          width: result.width,
+          height: result.height,
+        },
+        { status: 201 },
+      );
     }
   } catch (error) {
-    console.error('Error uploading file:', error);
-    return NextResponse.json({error: 'Failed to upload file'}, {status: 500});
+    console.error("Error uploading file:", error);
+    return NextResponse.json(
+      { message: "Failed to upload file" },
+      { status: 500 },
+    );
   }
 }

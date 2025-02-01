@@ -1,5 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { BookCheckIcon, CrownIcon } from "lucide-react";
+import {
+  BookCheckIcon,
+  ChartNoAxesCombinedIcon,
+  CrownIcon,
+} from "lucide-react";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { authOptions } from "../api/auth/authOptions";
@@ -16,21 +20,26 @@ export default async function Home() {
           Expand the Go Universe
         </div>
       </div>
-      <div className="sm:text-lg">
-        Your destination for Go news, events, and community insights.
+      <div className="flex gap-12 justify-center">
+        <Button>
+          <Link href="/learn" className="flex items-center gap-2">
+            <ChartNoAxesCombinedIcon />
+            Learn Go
+          </Link>
+        </Button>
+        <Button>
+          <Link href="/posts" className="flex items-center gap-2">
+            <BookCheckIcon />
+            Read posts
+          </Link>
+        </Button>
       </div>
-      <Button>
-        <Link href="/posts" className="flex items-center gap-2">
-          <BookCheckIcon />
-          Read posts
-        </Link>
-      </Button>
       {session?.user.id && (
         <div className="flex items-center justify-center gap-2 text-xl">
-          <MdWavingHand className="text-blue-600 h-5 w-5" />
+          <MdWavingHand className="text-indigo-600 h-5 w-5" />
           Welcome, {session.user.name}
           {session?.user.role === "ADMIN" && <CrownIcon className="h-5 w-5" />}
-          <MdWavingHand className="text-blue-600 h-5 w-5" />
+          <MdWavingHand className="text-indigo-600 h-5 w-5" />
         </div>
       )}
       <FeaturedSites />
