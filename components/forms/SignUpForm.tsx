@@ -90,13 +90,13 @@ export function SignUpForm() {
 
   return (
     <div className="my-16 sm:mx-auto sm:w-full sm:max-w-md">
-      <div className="bg-white px-4 py-8 shadow sm:rounded-lg sm:px-10">
+      <div className="px-4 py-8 shadow sm:rounded-lg sm:px-10">
         <div className="pb-6 sm:mx-auto sm:w-full sm:max-w-md">
           <LogoWithText text="Tengen" school="NYIG" />
         </div>
         <div className="pb-6">
           <p className="text-2xl">Sign Up</p>
-          <p className="text-base text-gray-500">
+          <p className="text-base text-muted-foreground">
             to join the Tengen Go community
           </p>
         </div>
@@ -148,7 +148,7 @@ export function SignUpForm() {
           </form>
         </Form>
 
-        <div className="flex gap-2 justify-center text-sm mt-6 px-2 align-middle text-gray-600">
+        <div className="flex gap-2 justify-center text-sm mt-6 px-2 align-middle text-muted-foreground">
           <div className="flex items-center">Already have an account?</div>
           <Button variant="link" onClick={() => router.push("/login")}>
             Sign in

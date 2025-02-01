@@ -62,7 +62,7 @@ const problemsApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: [PROBLEMS_TAG, PROBLEM_SET_PROGRESS_TAG],
+      invalidatesTags: [PROBLEM_SET_PROGRESS_TAG],
     }),
   }),
 });

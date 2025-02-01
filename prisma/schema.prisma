@@ -176,7 +176,7 @@ model ProblemSetProblem {
 model ProblemSet {
   id                   String               @id @default(auto()) @map("_id") @db.ObjectId
   name                 String
-  description          String?
+  description          String
   authorId             String               @db.ObjectId
   problemCount         Int                  @default(0)
   averageRank          Float                @default(0)

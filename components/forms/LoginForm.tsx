@@ -87,7 +87,7 @@ export function LoginForm({ referer }: { referer?: string | null }) {
 
   return (
     <div className="my-16 sm:mx-auto sm:w-full sm:max-w-md">
-      <div className="bg-white px-4 py-8 shadow sm:rounded-lg sm:px-10">
+      <div className="px-4 py-8 shadow sm:rounded-lg sm:px-10">
         <div className="pb-6 sm:mx-auto sm:w-full sm:max-w-md">
           <LogoWithText text="Tengen" school="NYIG" />
         </div>
@@ -143,7 +143,7 @@ export function LoginForm({ referer }: { referer?: string | null }) {
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-600">
+              <span className="px-2 text-muted-foreground">
                 Or continue with
               </span>
             </div>
@@ -180,7 +180,7 @@ export function LoginForm({ referer }: { referer?: string | null }) {
             </Button>
           </div>
         </div>
-        <div className="flex justify-center text-sm mt-6 align-middle text-gray-600">
+        <div className="flex justify-center text-sm mt-6 align-middle text-muted-foreground">
           <div className="flex items-center">New user?</div>
           <Button variant="link" onClick={() => router.push("/signup")}>
             Create an account

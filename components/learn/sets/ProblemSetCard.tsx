@@ -2,9 +2,9 @@
 import { getRank } from "@/lib/go/goLogic";
 import { GetPSetsProblemSet } from "@/lib/rtk/slices/problemSets";
 import Link from "next/link";
+import { GoBoardView } from "../go/GoBoardView";
 import { InfoBar } from "../InfoBar";
 import { StartButton } from "./StartButton";
-import { GoBoardView } from "../go/GoBoardView";
 
 interface ProblemSetCardProps {
   problemSet: GetPSetsProblemSet;
@@ -16,7 +16,7 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
   return (
     <div className="border rounded-lg shadow-sm p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <div className="text-md font-medium">{name}</div>
+        <span className="text-md font-medium">{name}</span>
         <StartButton sId={problemSet.id} size="sm" />
       </div>
       <InfoBar
