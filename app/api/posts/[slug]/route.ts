@@ -28,13 +28,15 @@ export async function GET(request: Request, { params }: Params) {
     });
 
     if (!post) {
-      return new NextResponse("Post not found", { status: 404 });
+      return NextResponse.json({ message: "Post not found" }, { status: 404 });
     }
 
     return NextResponse.json(post, { status: 200 });
   } catch (error) {
-    logStack(error);
-    return new NextResponse("Failed to fetch post", { status: 500 });
+    return NextResponse.json(
+      { message: "An unknown error occurred" },
+      { status: 500 },
+    );
   }
 }
 
@@ -44,20 +46,23 @@ export async function PATCH(request: Request, { params }: Params) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Not authorized", { status: 401 });
+      return NextResponse.json({ message: "Not authorized" }, { status: 401 });
     }
 
     const { title, content, wordCount } = await request.json();
 
     const existingPost = await db.post.findUnique({ where: { slug: slug } });
     if (!existingPost) {
-      return new NextResponse("Post not found", { status: 404 });
+      return NextResponse.json({ message: "Post not found" }, { status: 404 });
     }
 
     if (existingPost.authorId !== session.user.id) {
-      return new NextResponse("Not authorized to update this post", {
-        status: 403,
-      });
+      return NextResponse.json(
+        { message: "Not authorized" },
+        {
+          status: 403,
+        },
+      );
     }
 
     await db.post.update({
@@ -70,10 +75,16 @@ export async function PATCH(request: Request, { params }: Params) {
       },
     });
 
-    return NextResponse.json({ status: 200 });
+    return NextResponse.json(
+      { message: "Post updated successfully" },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Error updating post:", error);
-    return NextResponse.json("Failed to update post", { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to update post" },
+      { status: 500 },
+    );
   }
 }
 
@@ -83,27 +94,36 @@ export async function DELETE(request: Request, { params }: Params) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Not authorized", { status: 401 });
+      return NextResponse.json({ message: "Not authorized" }, { status: 401 });
     }
 
     const existingPost = await db.post.findUnique({ where: { slug: slug } });
     if (!existingPost) {
-      return new NextResponse("Post not found", { status: 404 });
+      return NextResponse.json({ message: "Post not found" }, { status: 404 });
     }
 
     if (existingPost.authorId !== session.user.id) {
-      return new NextResponse("Not authorized to delete this post", {
-        status: 403,
-      });
+      return NextResponse.json(
+        { message: "Not authorized" },
+        {
+          status: 403,
+        },
+      );
     }
 
     await db.post.delete({
       where: { id: existingPost.id },
     });
 
-    return NextResponse.json({ status: 204 });
+    return NextResponse.json(
+      { message: "Post deleted successfully" },
+      { status: 204 },
+    );
   } catch (error) {
     console.error("Error deleting post:", error);
-    return NextResponse.json("Failed to delete post", { status: 500 });
+    return NextResponse.json(
+      { message: "Failed to delete post" },
+      { status: 500 },
+    );
   }
 }

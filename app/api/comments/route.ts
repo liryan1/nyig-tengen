@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/authOptions";
+import { logStack } from "@/lib/error";
 
 export async function GET(request: NextRequest) {
   try {
@@ -28,8 +29,11 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(comments, { status: 200 });
   } catch (error) {
-    console.error("Error fetching comments:", error);
-    return new NextResponse("Failed to fetch comments", { status: 500 });
+    logStack(error);
+    return NextResponse.json(
+      { message: "Failed to fetch comments" },
+      { status: 500 },
+    );
   }
 }
 
@@ -37,15 +41,18 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json({ message: "Not authorized" }, { status: 401 });
     }
 
     const { postId, content } = await request.json();
     if (!postId || !content) {
-      return new NextResponse("postId and content are required", { status: 400 });
+      return NextResponse.json(
+        { message: "postId and content are required" },
+        { status: 400 },
+      );
     }
 
-    const newComment = await db.comment.create({
+    await db.comment.create({
       data: {
         postId,
         content,
@@ -53,9 +60,15 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(newComment, { status: 201 });
+    return NextResponse.json(
+      { message: "Comment posted successfully" },
+      { status: 201 },
+    );
   } catch (error) {
-    console.error("Error creating comment:", error);
-    return new NextResponse("Failed to create comment", { status: 500 });
+    logStack(error);
+    return NextResponse.json(
+      { message: "Failed to create comment" },
+      { status: 500 },
+    );
   }
 }

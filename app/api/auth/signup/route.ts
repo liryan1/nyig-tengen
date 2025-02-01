@@ -10,7 +10,10 @@ export async function POST(req: NextRequest) {
     const bodyData = await req.json();
     const { name, email, password } = bodyData;
     if (!email || !name || !password) {
-      return new NextResponse("Missing info", { status: 400 })
+      return NextResponse.json(
+        { message: "Email, name, and password are required" },
+        { status: 400 },
+      );
     }
 
     const existingUser = await db.user.findUnique({
@@ -21,8 +24,8 @@ export async function POST(req: NextRequest) {
 
     if (existingUser) {
       return NextResponse.json(
-        { success: false, message: "User already exists!" },
-        { status: 400 }
+        { message: "User already exists!" },
+        { status: 400 },
       );
     }
 
@@ -57,13 +60,13 @@ export async function POST(req: NextRequest) {
         success: true,
         message: "Account created successfully",
       },
-      { status: 200 }
+      { status: 200 },
     );
     response.cookies.set("token", token, options);
 
     return response;
   } catch (error) {
-    logStack(error)
-    return NextResponse.json({ error: "Failed to sign up" }, { status: 500 });
+    logStack(error);
+    return NextResponse.json({ message: "Failed to sign up" }, { status: 500 });
   }
 }

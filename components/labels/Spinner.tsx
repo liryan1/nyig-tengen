@@ -18,7 +18,7 @@ export function Spinner({ className }: { className?: string }) {
 
 export function PageSpinner() {
   return (
-    <div className="flex justify-center items-center p-10">
+    <div className="flex justify-center items-center m-auto">
       <Spinner />
     </div>
   );

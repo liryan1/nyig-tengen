@@ -81,8 +81,10 @@ export async function GET(request: NextRequest) {
       data,
     });
   } catch (error) {
-    logStack(error);
-    return new NextResponse("Failed to fetch posts", { status: 500 });
+    return NextResponse.json(
+      { message: "An unknown error occurred" },
+      { status: 500 },
+    );
   }
 }
 
@@ -90,14 +92,17 @@ export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
-      return new NextResponse("Unauthorized", { status: 401 });
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const { title, content, wordCount } = await request.json();
     if (!title || !content) {
-      return new NextResponse("Title and content are required", {
-        status: 400,
-      });
+      return NextResponse.json(
+        { message: "Title and content are required" },
+        {
+          status: 400,
+        },
+      );
     }
 
     // 1. Generate a base slug from the title.
@@ -121,7 +126,7 @@ export async function POST(request: Request) {
     }
 
     // 3. Create the post with the unique slug.
-    const newPost = await db.post.create({
+    await db.post.create({
       data: {
         title,
         content,
@@ -133,7 +138,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ status: 201 });
   } catch (error) {
-    logStack(error);
-    return new NextResponse("Failed to create post", { status: 500 });
+    return NextResponse.json(
+      { message: "An unknown error occurred" },
+      { status: 500 },
+    );
   }
 }

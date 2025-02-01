@@ -1,5 +1,6 @@
 "use client";
 
+import { PageError } from "@/components/labels/Error";
 import { Heading } from "@/components/labels/Heading";
 import { PageSpinner } from "@/components/labels/Spinner";
 import { PostCard } from "@/components/posts/PostCard";
@@ -11,7 +12,7 @@ import Link from "next/link";
 
 export default function PostsPage() {
   const userId = useSession().data?.user?.id;
-  const { data, error, isLoading } = useGetPostsQuery({
+  const { data, isError, isLoading } = useGetPostsQuery({
     page: 1,
     limit: 10,
   });
@@ -20,8 +21,8 @@ export default function PostsPage() {
     return <PageSpinner />;
   }
 
-  if (error) {
-    return <div className="flex justify-center p-10">Error loading posts!</div>;
+  if (isError) {
+    return <PageError>Error loading posts!</PageError>;
   }
 
   const posts = (data?.data ?? []).map((post) => ({

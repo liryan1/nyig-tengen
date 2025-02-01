@@ -1,6 +1,6 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +39,7 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="h-8 w-8 md:mx-2 cursor-pointer relative">
+          {data?.user?.image && <AvatarImage src={data.user.image} />}
           <AvatarFallback>{data.user.name?.at(0) ?? "?"}</AvatarFallback>
           {data?.user.role === "ADMIN" && (
             <CrownIcon
