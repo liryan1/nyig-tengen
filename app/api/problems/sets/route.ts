@@ -46,6 +46,11 @@ export async function GET(req: Request) {
               name: true,
             },
           },
+          problemSetProblems: {
+            include: { problem: { select: { initial: true } } },
+            take: 5,
+          },
+          problemSetStats: { select: { views: true } },
           description: true,
           problemCount: true,
           averageRank: true,
@@ -60,7 +65,12 @@ export async function GET(req: Request) {
         limit,
         totalPages: Math.ceil(totalProblemSets / limit),
         totalProblemSets,
-        problemSets,
+        problemSets: problemSets.map((pset) => ({
+          ...pset,
+          problemSetProblems: undefined,
+          views: pset.problemSetStats?.views,
+          problems: pset.problemSetProblems.map((psp) => psp.problem.initial),
+        })),
       },
       { status: 200 },
     );

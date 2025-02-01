@@ -32,7 +32,7 @@ export interface ProblemStats {
   views: number;
 }
 
-export interface ProblemMetadata {
+export interface ProblemResponse extends GoProblem {
   id: string;
   description?: string;
   problemStats?: ProblemStats;
@@ -46,15 +46,12 @@ export interface ProblemMetadata {
 /**
  * Defines a Go problem, including the board history, correct sequences, and optional incorrect sequences.
  */
-export interface ProblemResponse extends ProblemMetadata {
+export interface GoProblem {
   /** initial.color is "whoever played last", so it is the opposite of who plays first */
   initial: BoardHistory;
 
   /** Possible correct sequences (each is an array of moves, e.g. [[row, col], ...]) */
   correct: Variation[]; // e.g. an array of arrays of [row, col]
-
-  /** Optional incorrect sequences to highlight known mistakes */
-  incorrect?: Variation[];
 }
 
 /**

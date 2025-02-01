@@ -7,6 +7,7 @@ import { PageError } from "../../labels/Error";
 import { PageSpinner } from "../../labels/Spinner";
 import { GoProblemSubmit } from "../go/GoProblemSubmit";
 import { ProblemSetDoPageHeader } from "./ProblemSetDoPageHeader";
+import { useSession } from "next-auth/react";
 
 export function ProblemSetDoPage({
   psetId,
@@ -15,11 +16,14 @@ export function ProblemSetDoPage({
   psetId: string;
   problemId: string;
 }) {
+  const { status: authStatus } = useSession();
   const {
     data: progressResponse,
     isLoading: pgLoading,
     isError: pgError,
-  } = useGetPSetProgressQuery(psetId, { skip: !psetId });
+  } = useGetPSetProgressQuery(psetId, {
+    skip: !psetId || authStatus !== "authenticated",
+  });
   const {
     data: problem,
     isLoading: pLoading,

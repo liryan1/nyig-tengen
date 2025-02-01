@@ -1,16 +1,18 @@
-import { Button } from "@/components/ui/button";
+"use client";
 import { getRank } from "@/lib/go/goLogic";
 import { GetPSetsProblemSet } from "@/lib/rtk/slices/problemSets";
 import Link from "next/link";
 import { InfoBar } from "../InfoBar";
 import { StartButton } from "./StartButton";
+import { GoBoardView } from "../go/GoBoardView";
 
 interface ProblemSetCardProps {
   problemSet: GetPSetsProblemSet;
 }
 
 export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
-  const { id, name, author, problemCount, averageRank } = problemSet;
+  const { id, name, author, problemCount, averageRank, views, problems } =
+    problemSet;
   return (
     <div className="border rounded-lg shadow-sm p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -19,8 +21,18 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
       </div>
       <InfoBar
         size="sm"
-        info={{ author, rank: getRank(averageRank, true), count: problemCount }}
+        info={{
+          author,
+          rank: getRank(averageRank, true),
+          count: problemCount,
+          views,
+        }}
       />
+      <div className="flex items-center gap-2 overflow-x-auto">
+        {problems.slice(0, 3).map((p, i) => (
+          <GoBoardView key={i} fullBoardHistory={[p]} cellSize={12} readonly />
+        ))}
+      </div>
 
       <Link
         href={`/learn/sets/${id}`}

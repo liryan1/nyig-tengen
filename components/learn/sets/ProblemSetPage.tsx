@@ -33,8 +33,10 @@ import { GoBoardView } from "../go/GoBoardView";
 import { StartButton } from "./StartButton";
 import { redirect } from "next/navigation";
 import { InfoBar } from "../InfoBar";
+import { useSession } from "next-auth/react";
 
 export function ProblemSetPage({ sId }: { sId?: string }) {
+  const { status: authStatus } = useSession();
   const {
     data: pset,
     isLoading: psetLoading,
@@ -44,14 +46,16 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
     data: progress,
     isLoading: pgLoading,
     isError: pgError,
-  } = useGetPSetProgressQuery(sId ?? "", { skip: !sId });
+  } = useGetPSetProgressQuery(sId ?? "", {
+    skip: !sId || authStatus !== "authenticated",
+  });
   if (psetLoading || pgLoading) {
     return <PageSpinner />;
   }
   if (psetError || !pset) {
     return <PageError>Error getting problem set</PageError>;
   }
-  if (pgError || !progress) {
+  if (pgError) {
     return <PageError>Error getting problem set progress</PageError>;
   }
   const {
@@ -68,7 +72,7 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
     problems,
   } = pset;
 
-  const userSolved = progress.completedCount;
+  const userSolved = progress?.completedCount;
 
   const getIcon = (status?: SubmissionStatus) => {
     if (status === "solved") {
@@ -92,7 +96,7 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-md sm:text-xl font-medium">{name}</span>
-            {userSolved > 0 && (
+            {userSolved && userSolved > 0 && (
               <div className="flex items-center text-muted-foreground">
                 <TrophyIcon className="text-yellow-500" />
                 <span className="text-md font-base">{userSolved}</span>

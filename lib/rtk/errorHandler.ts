@@ -5,19 +5,23 @@ import toast from "react-hot-toast";
 /**
  * See https://redux-toolkit.js.org/rtk-query/usage/error-handling
  * Log a warning and show error toast
- * If the token has expired, redirect to the login page
  */
-export const rtkQueryErrorLogger: Middleware = (api: MiddlewareAPI) => (next) => (action) => {
-  if (isRejectedWithValue(action)) {
-    toast.error(getErrorMessage(action));
-  }
+export const rtkQueryErrorLogger: Middleware =
+  (api: MiddlewareAPI) => (next) => (action) => {
+    if (isRejectedWithValue(action)) {
+      console.error(getErrorMessage(action));
+      toast.error(getErrorMessage(action));
+    }
 
-  return next(action);
-};
+    return next(action);
+  };
 
 function getErrorMessage(action: any) {
   let message = action.error?.message;
-  if (action.payload?.status === 400 && typeof action.payload?.data === "string") {
+  if (
+    action.payload?.status === 400 &&
+    typeof action.payload?.data === "string"
+  ) {
     message = extractErrorMessage(action.payload.data);
   } else if (action.payload?.originalStatus === 401) {
     message = "Permission denied";

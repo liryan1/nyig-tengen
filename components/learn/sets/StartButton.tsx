@@ -7,22 +7,27 @@ import {
   useGetPSetProgressQuery,
 } from "@/lib/rtk/slices/problemSets";
 import { FlameIcon } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
 
 interface StartButtonProps extends ButtonProps {
   sId?: string;
 }
 
 export function StartButton({ sId, ...buttonProps }: StartButtonProps) {
+  const { status: authStatus } = useSession();
   const router = useRouter();
   const {
     data: progress,
     isLoading: pgLoading,
     isError: pgError,
-  } = useGetPSetProgressQuery(sId ?? "", { skip: !sId });
+  } = useGetPSetProgressQuery(sId ?? "", {
+    skip: !sId || authStatus !== "authenticated",
+  });
   const [create, { isLoading: cLoading, isError: cError }] =
     useCreatePSetProgressMutation();
-  const isLoading = pgLoading || cLoading;
+  const isLoading = pgLoading || cLoading || authStatus === "loading";
 
   const getRedirectUrl = (progress?: PSetProgressResponse) => {
     const currentProblemId = progress?.problemOrder?.find(
@@ -39,6 +44,10 @@ export function StartButton({ sId, ...buttonProps }: StartButtonProps) {
     <FlameIcon fill="red" />
   );
   const handleClick = async () => {
+    if (authStatus !== "authenticated") {
+      toast.error("Please login to start problem sets");
+      return;
+    }
     // If a progress exists, direct the user continues to work on it
     // Falls back to the problem set page if no problemId is found
     if (progress?.progress) {

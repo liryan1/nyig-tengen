@@ -11,6 +11,8 @@ export interface GetPSetsProblemSet {
   name: string;
   author: { id: string; name: string };
   description?: string;
+  problems: BoardHistory[];
+  views?: number;
   problemCount: number;
   averageRank: number;
   createdAt: string;
@@ -31,7 +33,7 @@ interface GetPSetProblem {
   initial: BoardHistory;
 }
 
-export interface PSetResponse extends GetPSetsProblemSet {
+export interface PSetResponse extends Omit<GetPSetsProblemSet, "problems"> {
   completedCount: number;
   attemptedCount: number;
   views: number;

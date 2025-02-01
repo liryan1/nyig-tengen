@@ -17,6 +17,8 @@ import { GoBoardView } from "./GoBoardView";
 import { GoProblemHeader } from "./GoProblemHeader";
 import { useGo } from "./useGo";
 import { infoIcon, successIcon } from "@/components/labels/icons";
+import { useSession } from "next-auth/react";
+import toast from "react-hot-toast";
 
 interface GoProblemSubmitProps {
   problem: ProblemResponse;
@@ -28,11 +30,14 @@ export function GoProblemSubmit({
   problem,
   problemSetProgressId,
 }: GoProblemSubmitProps) {
+  const { status: authStatus } = useSession();
   const [showSuccess, setShowSuccess] = useState(false);
   const [submitEnabled, setSubmitEnabled] = useState(true);
   validateProblemData(problem);
   const boardContainerRef = useRef<HTMLDivElement>(null);
-  const [submit, { isLoading, isError }] = useSubmitMutation();
+  const [submit, { isLoading: sLoading, isError: sError }] =
+    useSubmitMutation();
+  const isLoading = sLoading || authStatus === "loading";
   const {
     goToMove,
     playMove,
@@ -58,6 +63,12 @@ export function GoProblemSubmit({
   };
 
   const handleSubmitAnswer = async () => {
+    if (authStatus !== "authenticated") {
+      setSubmitEnabled(false);
+      toast.error("Please login to submit a solution");
+      setTimeout(() => setSubmitEnabled(true), 3000);
+      return;
+    }
     const userMoves = boardHistory
       .slice(1, boardHistory.length)
       .map((h) => h.move as [number, number]);
@@ -148,7 +159,7 @@ export function GoProblemSubmit({
         <div className="relative p-2 sm:p-4 border rounded-md shadow-sm space-y-2 min-h-24 md:min-h-40 text-sm sm:text-base">
           {message}
           {isLoading && <PageSpinner />}
-          {isError && (
+          {sError && (
             <PageError>
               Failed to submit solution. Please try again later.
             </PageError>
