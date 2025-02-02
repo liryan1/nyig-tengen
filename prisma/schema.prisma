@@ -26,14 +26,15 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  posts    Post[]
-  comments Comment[]
-  likes    Like[]
-  problems Problem[]
+  posts                Post[]
+  comments             Comment[]
+  likes                Like[]
+  problems             Problem[]
+  problemSets          ProblemSet[]
+  problemSetProgresses ProblemSetProgress[]
+  teamMemberships      TeamMembership[]
 
-  ProblemSet ProblemSet[]
-
-  ProblemSetProgress ProblemSetProgress[]
+  TeamInvite TeamInvite[]
 }
 
 // ----------- Begin authentication models -----------
@@ -132,13 +133,16 @@ model Problem {
   updatedAt          DateTime            @updatedAt
   authorId           String              @db.ObjectId
   description        String?
-  rank               Int
+  rank               Int                 @default(-10)
   initial            Json
   correct            Json
+  visibility         Visibility          @default(PRIVATE)
+  problemStats       ProblemStats?
   problemSetProblems ProblemSetProblem[]
   submissions        Submission[]
-  author             User?               @relation(fields: [authorId], references: [id])
-  problemStats       ProblemStats?
+  author             User                @relation(fields: [authorId], references: [id])
+  teamIds            String[]            @db.ObjectId
+  teams              Team[]              @relation(fields: [teamIds], references: [id])
 
   @@index([authorId])
 }
@@ -182,10 +186,13 @@ model ProblemSet {
   averageRank          Float                @default(0)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
-  author               User?                @relation(fields: [authorId], references: [id])
+  visibility           Visibility           @default(PRIVATE)
+  author               User                 @relation(fields: [authorId], references: [id])
   problemSetProblems   ProblemSetProblem[]
   problemSetProgresses ProblemSetProgress[]
   problemSetStats      ProblemSetStats?
+  teamIds              String[]             @db.ObjectId
+  teams                Team[]               @relation(fields: [teamIds], references: [id])
 
   @@index([authorId]) // Find how many problem sets a user has created
 }
@@ -236,4 +243,67 @@ model ProblemSetProgress {
   @@index([userId, problemSetId]) // Common lookup for doing problem sets
 }
 
+enum Visibility {
+  PUBLIC
+  TEAM
+  PRIVATE
+}
+
 // -------------------- End Go Problem Models --------------------
+
+// -------------------- Team models --------------------
+model Team {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  name        String
+  description String? // optional or required, up to you
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  memberships   TeamMembership[]
+  invites       TeamInvite[]
+  problemSetIds String[]         @db.ObjectId
+  problemSets   ProblemSet[]     @relation(fields: [problemSetIds], references: [id])
+  problemIds    String[]         @db.ObjectId
+  problems      Problem[]        @relation(fields: [problemIds], references: [id])
+}
+
+model TeamMembership {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  teamId    String   @db.ObjectId
+  role      TeamRole
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+  team      Team     @relation(fields: [teamId], references: [id])
+
+  @@unique([userId, teamId]) // no duplicate membership
+}
+
+enum TeamRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+model TeamInvite {
+  id        String       @id @default(auto()) @map("_id") @db.ObjectId
+  teamId    String       @db.ObjectId
+  userId    String       @db.ObjectId
+  role      TeamRole
+  status    InviteStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  team      Team         @relation(fields: [teamId], references: [id])
+  user      User         @relation(fields: [userId], references: [id])
+
+  @@unique([userId, teamId]) // no duplicate invite
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+// -------------------- End of Team models --------------------

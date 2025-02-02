@@ -10,7 +10,7 @@ import {
 import { buttonVariants } from "../ui/button";
 
 export function ShowCoordButton() {
-  const { toggleShowCoord } = useShowCoord();
+  const { toggleShowCoord, showCoord } = useShowCoord();
   return (
     <TooltipProvider>
       <Tooltip>
@@ -18,7 +18,7 @@ export function ShowCoordButton() {
           onClick={toggleShowCoord}
           className={buttonVariants({ variant: "outline", size: "sm" })}
         >
-          A1
+          <span className={showCoord ? "line-through" : ""}>A1</span>
         </TooltipTrigger>
         <TooltipContent>Show coordinates</TooltipContent>
       </Tooltip>

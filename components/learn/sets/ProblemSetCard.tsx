@@ -16,7 +16,12 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
   return (
     <div className="border rounded-lg shadow-sm p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-md font-medium">{name}</span>
+        <Link
+          href={`/learn/sets/${id}`}
+          className="text-md font-medium hover:underline"
+        >
+          {name}
+        </Link>
         <StartButton sId={problemSet.id} size="sm" />
       </div>
       <InfoBar
@@ -33,13 +38,6 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
           <GoBoardView key={i} fullBoardHistory={[p]} cellSize={12} readonly />
         ))}
       </div>
-
-      <Link
-        href={`/learn/sets/${id}`}
-        className="text-blue-500 text-xs font-medium underline"
-      >
-        More details
-      </Link>
     </div>
   );
 }

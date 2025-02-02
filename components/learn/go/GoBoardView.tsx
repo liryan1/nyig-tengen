@@ -33,7 +33,7 @@ interface GoBoardViewProps {
    */
   onMove?: (row: number, col: number, nextPlayer: StoneColor) => void;
   /**
-   * Readonly mode disables editing
+   * Readonly mode disables editing and coordinates are always off
    */
   readonly?: boolean;
   /**
@@ -229,7 +229,7 @@ export function GoBoardView({
           )}
       </svg>
 
-      {showCoord && (
+      {showCoord && !readonly && (
         <div className="absolute top-0 left-0 w-full h-full pointer-events-none text-black">
           {Array.from({ length: boardSize }, (_, i) => (
             <div key={i}>

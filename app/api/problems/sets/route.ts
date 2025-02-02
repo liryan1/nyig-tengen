@@ -85,10 +85,8 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const [session, { name, description, problems }] = await Promise.all([
-      getServerSession(authOptions),
-      req.json(),
-    ]);
+    const [session, { name, description, problems, averageRank }] =
+      await Promise.all([getServerSession(authOptions), req.json()]);
     const userId = session?.user?.id;
     if (!userId) {
       return NextResponse.json({ message: "Not authorized" }, { status: 401 });
@@ -98,31 +96,21 @@ export async function POST(req: Request) {
         name,
         description,
         authorId: userId,
+        averageRank: averageRank || -10,
+        problemCount: problems.length,
       },
     });
 
     const problemSetId = problemSet.id;
-    let position = 1; // To track the position in the problem set
-
-    const promises: Promise<number>[] = [];
+    let position = 1;
+    const promises: Promise<null>[] = [];
     for (const problem of problems) {
       promises.push(
         createOrGetProblem(problem, problemSetId, position++, userId),
       );
     }
 
-    const ranks = await Promise.all(promises);
-
-    const problemCount = promises.length;
-    const averageRank =
-      problemCount > 0
-        ? ranks.reduce((sum, rank) => sum + rank, 0) / problemCount
-        : 0;
-
-    await db.problemSet.update({
-      where: { id: problemSetId },
-      data: { problemCount, averageRank },
-    });
+    await Promise.all(promises);
 
     return NextResponse.json({
       message: "Problem set created successfully",
@@ -142,7 +130,7 @@ async function createOrGetProblem(
   problemSetId: string,
   position: number,
   userId: string,
-): Promise<number> {
+): Promise<any> {
   if (typeof problem === "string") {
     const existingProblem = await db.problem.findUnique({
       where: { id: problem },
@@ -153,15 +141,13 @@ async function createOrGetProblem(
       throw Error(`Problem ID ${problem} not found`);
     }
 
-    await db.problemSetProblem.create({
+    return db.problemSetProblem.create({
       data: {
         problemSetId,
         problemId: problem,
         position,
       },
     });
-
-    return existingProblem.rank;
   } else {
     const newProblem = await db.problem.create({
       data: {
@@ -170,14 +156,12 @@ async function createOrGetProblem(
       },
     });
 
-    await db.problemSetProblem.create({
+    return db.problemSetProblem.create({
       data: {
         problemSetId,
         problemId: newProblem.id,
         position,
       },
     });
-
-    return newProblem.rank;
   }
 }

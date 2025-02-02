@@ -80,6 +80,11 @@ export function PSetCreateForm() {
           render={({ field }) => (
             <FormItem>
               <FormLabel>SGF File</FormLabel>
+              <div className="text-sm">
+                Upload an SGF file with branches on the root node. Each branch
+                is a problem and each variation is a solution to the problem.
+                All solutions must end with the starting player.
+              </div>
               <FormControl>
                 <Input
                   type="file"
@@ -108,7 +113,9 @@ export function PSetCreateForm() {
           )}
         />
 
-        <Button type="submit">Save draft</Button>
+        <Button type="submit" disabled>
+          Save draft
+        </Button>
       </form>
     </Form>
   );
