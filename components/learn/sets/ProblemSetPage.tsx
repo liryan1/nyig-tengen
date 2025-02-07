@@ -1,24 +1,15 @@
 "use client";
 
-import { getRank } from "@/lib/go/goLogic";
+import { getRank } from "@/lib/go/display";
+import { getBoardSize, getRootBoardState } from "@/lib/go/parser";
 import {
   useGetPSetProgressQuery,
   useGetPSetQuery,
 } from "@/lib/rtk/slices/problemSets";
 import { SubmissionStatus } from "@prisma/client";
-import {
-  CheckCheckIcon,
-  CircleCheckBigIcon,
-  CircleHelpIcon,
-  EyeIcon,
-  HeartIcon,
-  NotebookPenIcon,
-  SignatureIcon,
-  SwordsIcon,
-  TrophyIcon,
-  UsersIcon,
-} from "lucide-react";
-import Link from "next/link";
+import { CircleCheckBigIcon, CircleHelpIcon, TrophyIcon } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { redirect } from "next/navigation";
 import { PageError } from "../../labels/Error";
 import { PageSpinner } from "../../labels/Spinner";
 import {
@@ -29,11 +20,10 @@ import {
   CardHeader,
   CardTitle,
 } from "../../ui/card";
-import { GoBoardView } from "../go/GoBoardView";
-import { StartButton } from "./StartButton";
-import { redirect } from "next/navigation";
+import { GoBoardView } from "../go/board/GoBoardView";
 import { InfoBar } from "../InfoBar";
-import { useSession } from "next-auth/react";
+import { StartButton } from "./StartButton";
+import { ReadonlyGoBoard } from "../go/board/ReadonlyGoBoard";
 
 export function ProblemSetPage({ sId }: { sId?: string }) {
   const { status: authStatus } = useSession();
@@ -96,7 +86,7 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-md sm:text-xl font-medium">{name}</span>
-            {userSolved && userSolved > 0 && (
+            {userSolved !== undefined && userSolved > 0 && (
               <div className="flex items-center text-muted-foreground">
                 <TrophyIcon className="text-yellow-500" />
                 <span className="text-md font-base">{userSolved}</span>
@@ -124,7 +114,7 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
         />
       </CardContent>
       <div className="text-sm text-muted-foreground px-2 sm:px-4">
-        Tolal problems: <strong>{problemCount}</strong>
+        Total problems: <strong>{problemCount}</strong>
       </div>
       <CardFooter className="gap-2 sm:gap-4 p-2 sm:p-4 flex flex-wrap max-h-[1/2]">
         {problems.map((problem, i) => (
@@ -133,11 +123,11 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
             key={problem.id}
             onClick={() => handleProblemClick(problem.id)}
           >
-            <GoBoardView
+            <ReadonlyGoBoard
               className="hover:shadow-lg"
-              fullBoardHistory={[problem.initial]}
+              boardState={getRootBoardState(problem.initial)}
+              boardSize={getBoardSize(problem.initial)}
               cellSize={20}
-              readonly
               icon={getIcon(progress?.progress?.problemOrder[i]?.status)}
             />
           </div>

@@ -17,7 +17,7 @@ export async function fetchData<T>(
     if (res.ok) {
       return res.json();
     } else {
-      console.log(`Status: ${res.status}, Status Text: ${res.statusText}`);
+      console.warn(`Status: ${res.status}, Status Text: ${res.statusText}`);
     }
   } catch (error) {
     logStack(error);

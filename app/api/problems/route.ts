@@ -67,7 +67,14 @@ export async function GET(req: Request) {
         limit,
         totalPages: Math.ceil(totalProblems / limit),
         totalProblems,
-        problems,
+        problems: problems.map((problem) => ({
+          id: problem.id,
+          initial: problem.initial,
+          rank: problem.rank,
+          description: problem.description,
+          author: problem.author,
+          stats: problem.problemStats,
+        })),
       },
       { status: 200 },
     );

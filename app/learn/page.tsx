@@ -1,4 +1,4 @@
-import { ProblemList } from "@/components/learn/problems/ProblemList";
+import { ProblemList } from "@/components/learn/problem/ProblemList";
 import { ProblemSetList } from "@/components/learn/sets/ProblemSetList";
 import { fetchSafe } from "@/lib/fetch";
 import { GetProblemsResponse } from "@/lib/rtk/slices/problems";
@@ -10,7 +10,7 @@ export default async function ProblemsPage() {
   const { response: resPS, isError: isErrorPS } =
     await fetchSafe<GetPSetsResponse>("problems/sets");
   return (
-    <div className="space-y-6">
+    <div className="px-1 space-y-6">
       <ProblemSetList
         problemSets={resPS?.problemSets ?? []}
         isError={isErrorPS}

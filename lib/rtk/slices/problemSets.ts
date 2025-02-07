@@ -1,4 +1,3 @@
-import { BoardHistory } from "@/lib/go/interface";
 import {
   ProblemSetProgress,
   ProgressStatus,
@@ -6,12 +5,12 @@ import {
 } from "@prisma/client";
 import { apiSlice, PROBLEM_SET_PROGRESS_TAG, PROBLEM_SETS_TAG } from "../api";
 
-export interface GetPSetsProblemSet {
+export interface PSetsProblemSet {
   id: string;
   name: string;
   author: { id: string; name: string };
   description?: string;
-  problems: BoardHistory[];
+  problems: string[];
   views?: number;
   problemCount: number;
   averageRank: number;
@@ -23,26 +22,26 @@ export interface GetPSetsResponse {
   limit: number;
   totalPages: number;
   totalProblems: number;
-  problemSets: GetPSetsProblemSet[];
+  problemSets: PSetsProblemSet[];
 }
 
-interface GetPSetProblem {
+interface PSetProblem {
   id: string;
   rank: number;
   position: number;
-  initial: BoardHistory;
+  initial: string;
 }
 
-export interface PSetResponse extends Omit<GetPSetsProblemSet, "problems"> {
+export interface PSetResponse extends Omit<PSetsProblemSet, "problems"> {
   completedCount: number;
   attemptedCount: number;
   views: number;
   likes: number;
-  problems: GetPSetProblem[];
+  problems: PSetProblem[];
 }
 
 export interface PSetProblemResponse {
-  problem: GetPSetProblem;
+  problem: PSetProblem;
   progress: ProblemSetProgress;
 }
 

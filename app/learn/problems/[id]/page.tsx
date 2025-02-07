@@ -1,10 +1,10 @@
-import GoProblem from "@/components/learn/go/GoProblem";
+import { GoProblemWrapper } from "@/components/learn/go/GoProblemWrapper";
 import { fetchSafe } from "@/lib/fetch";
 
 async function ProblemIdPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   fetchSafe(`/problems/${id}/view`, { method: "POST", cache: "no-store" });
-  return <GoProblem problemId={id} />;
+  return <GoProblemWrapper id={id} />;
 }
 
 export default ProblemIdPage;

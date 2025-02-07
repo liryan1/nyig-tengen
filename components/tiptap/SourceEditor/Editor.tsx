@@ -1,4 +1,9 @@
-import React, { useEffect, useState, forwardRef, useImperativeHandle } from "react";
+import React, {
+  useEffect,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import { useCodeMirror } from "./useCodeMirror";
 import { formatHtml } from "./format";
 import "./CodeMirror.scss";
@@ -22,10 +27,8 @@ const SourceEditor = forwardRef<HTMLDivElement, SourceEditorProps>(
 
     useImperativeHandle(ref, () => editorRef.current!, [editorRef]);
 
-    console.log("[tiptap/SourceEditor/Editor.tsx] formattedContent:", formattedContent)
-
     return <div ref={editorRef} />;
-  }
+  },
 );
 
 SourceEditor.displayName = "SourceEditor";

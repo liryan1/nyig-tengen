@@ -1,62 +1,37 @@
-import { getColorLabel, getNextColor, getRank } from "@/lib/go/goLogic";
-import { ProblemResponse, StoneColor } from "@/lib/go/interface";
-import { cn, formatLargeNumber } from "@/lib/utils";
-import {
-  CheckCircleIcon,
-  CircleIcon,
-  EyeIcon,
-  HeartIcon,
-  SwordsIcon,
-} from "lucide-react";
+import { GoProblemMeta, StoneColor } from "@/lib/go/interface";
+import { cn } from "@/lib/utils";
+import { CircleIcon } from "lucide-react";
 import Link from "next/link";
 import { InfoBar } from "../InfoBar";
+import { getRank } from "@/lib/go/display";
 
 type GoProblemHeaderProps = {
-  meta: ProblemResponse;
-  initialColor: StoneColor;
+  meta: GoProblemMeta;
+  initialColor?: StoneColor;
   className?: string;
-  problemTitle?: string;
 };
 
 export function GoProblemHeader({
   meta,
-  initialColor,
+  initialColor = 1,
   className,
-  problemTitle,
 }: GoProblemHeaderProps) {
-  const { rank, description, author, problemSet, problemStats: stats } = meta;
-  const stoneColor = getColorLabel(
-    getNextColor(initialColor),
-  ).toLocaleLowerCase();
-
+  const { rank, description, author, stats } = meta;
+  const stoneColor = initialColor === 1 ? "black" : "white";
+  const successRate =
+    (stats?.correctCount ?? 0) / (stats?.submissionCount ?? 1);
   return (
-    <div
-      className={cn(
-        "p-2 sm:p-4 border rounded-md shadow-sm flex flex-col space-y-2",
-        className,
-      )}
-    >
+    <div className={cn("flex flex-col space-y-2 p-2 sm:p-4", className)}>
       <div>
         <div className="flex justify-between items-center">
-          <h2 className="sm:text-xl font-medium">
-            {problemTitle ?? "Go Problem"}
-          </h2>
+          <div className="text-xs sm:text-sm text-muted-foreground">
+            By{" "}
+            <Link className="underline" href="#">
+              {author.name}
+            </Link>
+          </div>
           <CircleIcon size={24} fill={stoneColor} />
         </div>
-      </div>
-
-      <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
-        <div>
-          By{" "}
-          <Link className="underline" href="#">
-            {author.name}
-          </Link>
-        </div>
-        {problemSet && (
-          <Link className="underline" href="#">
-            {problemSet.name}
-          </Link>
-        )}
       </div>
 
       <InfoBar
@@ -64,7 +39,7 @@ export function GoProblemHeader({
           rank: getRank(rank),
           likes: stats?.likes,
           views: stats?.views,
-          rate: (stats?.correctCount ?? 0) / (stats?.submissionCount ?? 1),
+          rate: successRate || isNaN(successRate) ? 0 : successRate,
         }}
       />
 

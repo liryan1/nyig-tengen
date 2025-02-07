@@ -1,7 +1,5 @@
-import { authOptions } from "@/app/api/auth/authOptions";
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
-import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ id: string }> };

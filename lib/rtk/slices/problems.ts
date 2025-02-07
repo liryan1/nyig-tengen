@@ -1,20 +1,13 @@
 import {
-  BoardHistory,
   Evaluation,
-  ProblemResponse,
+  GoProblemResponse,
   ProblemStats,
-  Variation,
 } from "@/lib/go/interface";
-import {
-  apiSlice,
-  PROBLEM_SET_PROGRESS_TAG,
-  PROBLEM_SETS_TAG,
-  PROBLEMS_TAG,
-} from "../api";
+import { apiSlice, PROBLEM_SET_PROGRESS_TAG, PROBLEMS_TAG } from "../api";
 
 interface SubmissionRequest {
   id: string;
-  userMoves: Variation;
+  userMoves: string[];
   problemSetProgressId?: string;
 }
 
@@ -23,23 +16,12 @@ interface SubmissionResponse {
   submissionId: string;
 }
 
-export interface GetProblemProblemResponse {
-  id: string;
-  title?: string;
-  description?: string;
-  initial: BoardHistory;
-  correct: Variation[];
-  rank: number;
-  author: { id: string; name: string };
-  problemStats?: ProblemStats;
-}
-
 export interface GetProblemsResponse {
   currentPage: number;
   limit: number;
   totalPages: number;
   totalProblems: number;
-  problems: GetProblemProblemResponse[];
+  problems: GoProblemResponse[];
 }
 
 const problemsApiSlice = apiSlice.injectEndpoints({
@@ -52,7 +34,7 @@ const problemsApiSlice = apiSlice.injectEndpoints({
         `/problems?page=${page}&limit=${limit}`,
       providesTags: [PROBLEMS_TAG],
     }),
-    getProblem: builder.query<ProblemResponse, string>({
+    getProblem: builder.query<GoProblemResponse, string>({
       query: (id) => `problems/${id}`,
       providesTags: [PROBLEMS_TAG],
     }),

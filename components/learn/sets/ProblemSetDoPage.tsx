@@ -5,9 +5,9 @@ import { useGetPSetProgressQuery } from "@/lib/rtk/slices/problemSets";
 import { redirect } from "next/navigation";
 import { PageError } from "../../labels/Error";
 import { PageSpinner } from "../../labels/Spinner";
-import { GoProblemSubmit } from "../go/GoProblemSubmit";
 import { ProblemSetDoPageHeader } from "./ProblemSetDoPageHeader";
 import { useSession } from "next-auth/react";
+import { GoProblem } from "../go/GoProblem";
 
 export function ProblemSetDoPage({
   psetId,
@@ -60,7 +60,7 @@ export function ProblemSetDoPage({
         progress={progressResponse.progress}
         pSetClientUrl={`/learn/sets/${psetId}`}
       />
-      <GoProblemSubmit
+      <GoProblem
         problem={problem}
         problemSetProgressId={progressResponse.progress?.id}
       />

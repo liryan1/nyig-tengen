@@ -1,7 +1,8 @@
 import { authOptions } from "@/app/api/auth/authOptions";
+import { evaluate } from "@/lib/go/evaluate";
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
-import { evaluate } from "@/lib/go/goProblem";
+import { fromSgf } from "@/lib/go/parser";
 import { ProgressStatus, SubmissionStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
@@ -17,7 +18,6 @@ export async function POST(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Not authorized" }, { status: 401 });
     }
 
-    // TODO: improve Validation of input
     if (!Array.isArray(userMoves)) {
       return NextResponse.json(
         { message: "Invalid submission data" },
@@ -40,7 +40,8 @@ export async function POST(req: Request, { params }: Params) {
       );
     }
 
-    const { evaluation, stats } = evaluate(userMoves, problem.correct);
+    const root = fromSgf(problem.correct);
+    const { evaluation, stats } = evaluate(userMoves, root);
 
     // Creates the update data for the problem set progress saved in problemOrder
     // If all problems are completed, set the status

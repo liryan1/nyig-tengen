@@ -1,5 +1,5 @@
 import { PageError } from "@/components/labels/Error";
-import { ProblemCard } from "@/components/learn/problems/ProblemCard";
+import { ProblemCard } from "@/components/learn/problem/ProblemCard";
 import { fetchSafe } from "@/lib/fetch";
 import { GetProblemsResponse } from "@/lib/rtk/slices/problems";
 
@@ -12,7 +12,7 @@ async function AllProblems() {
   return (
     <div>
       {response?.problems.map((p, i) => (
-        <ProblemCard key={i} getproblemProblemResponse={p} />
+        <ProblemCard key={i} goProblemResponse={p} />
       ))}
     </div>
   );

@@ -134,8 +134,8 @@ model Problem {
   authorId           String              @db.ObjectId
   description        String?
   rank               Int                 @default(-10)
-  initial            Json
-  correct            Json
+  initial            String
+  correct            String
   visibility         Visibility          @default(PRIVATE)
   problemStats       ProblemStats?
   problemSetProblems ProblemSetProblem[]

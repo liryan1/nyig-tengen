@@ -21,6 +21,7 @@ export async function GET(req: Request, { params }: Params) {
         },
         problemStats: true,
       },
+      omit: { correct: true },
     });
     if (!problem) {
       return NextResponse.json(
@@ -28,7 +29,17 @@ export async function GET(req: Request, { params }: Params) {
         { status: 404 },
       );
     }
-    return NextResponse.json(problem, { status: 200 });
+    return NextResponse.json(
+      {
+        id: problem.id,
+        initial: problem.initial,
+        rank: problem.rank,
+        description: problem.description,
+        author: problem.author,
+        stats: problem.problemStats,
+      },
+      { status: 200 },
+    );
   } catch (e) {
     logStack(e);
     return NextResponse.json(

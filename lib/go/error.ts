@@ -15,3 +15,12 @@ export class StoneExistsError extends Error {
     Object.setPrototypeOf(this, StoneExistsError.prototype);
   }
 }
+
+export class KoError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "KoError";
+    // Set the prototype explicitly to maintain the correct prototype chain
+    Object.setPrototypeOf(this, KoError.prototype);
+  }
+}

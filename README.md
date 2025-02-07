@@ -2,6 +2,10 @@
 
 A web application for the Go community.
 
+## Design
+
+- All problems assume black to play. This can be randomized in the UI
+
 ## Technologies used
 
 - NextJS

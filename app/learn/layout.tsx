@@ -12,7 +12,7 @@ export default async function ProblemsLayout({
       <BreadcrumbNav>
         <ShowCoordButton />
       </BreadcrumbNav>
-      <div className="px-1 sm:px-6">{children}</div>
+      <div className="sm:px-6">{children}</div>
     </ShowCoordProvider>
   );
 }
