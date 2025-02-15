@@ -1,21 +1,15 @@
 import { PageError } from "@/components/labels/Error";
-import { ProblemCard } from "@/components/learn/problem/ProblemCard";
+import { ProblemList } from "@/components/learn/problem/ProblemList";
 import { fetchSafe } from "@/lib/fetch";
 import { GetProblemsResponse } from "@/lib/rtk/slices/problems";
 
 async function AllProblems() {
   const { response, isError } =
     await fetchSafe<GetProblemsResponse>("/problems");
-  if (isError) {
+  if (isError || !response) {
     return <PageError>Error getting problems</PageError>;
   }
-  return (
-    <div>
-      {response?.problems.map((p, i) => (
-        <ProblemCard key={i} goProblemResponse={p} />
-      ))}
-    </div>
-  );
+  return <ProblemList problems={response.problems} />;
 }
 
 export default AllProblems;

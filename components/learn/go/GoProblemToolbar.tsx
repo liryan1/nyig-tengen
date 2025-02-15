@@ -1,24 +1,22 @@
-import { Button } from "@/components/ui/button";
+"use client";
+
 import { SgfNode } from "@/lib/go/goGame";
-import { SendHorizonalIcon } from "lucide-react";
-import { ExportSGFButton } from "./node/ExportSGFButton";
-import { NodeVisualizer } from "./node/NodeVisualizer";
+import React from "react";
 import { GoBoardStepper } from "./board/GoBoardStepper";
+import { NodeVisualizer } from "./node/NodeVisualizer";
 
 interface GoProblemToolbarProps {
   rootNode: SgfNode;
   currentNode: SgfNode;
-  onSubmitAnswer: () => void;
   onSelectNode: (node: SgfNode) => void;
-  getSgf: () => string;
+  children?: React.ReactNode | React.ReactNode[];
 }
 
 export function GoProblemToolbar({
   rootNode,
   currentNode,
   onSelectNode,
-  onSubmitAnswer,
-  getSgf,
+  children,
 }: GoProblemToolbarProps) {
   return (
     <div className="h-full relative bg-yellow-50 dark:bg-slate-700 flex flex-col">
@@ -37,18 +35,7 @@ export function GoProblemToolbar({
         />
       </div>
       <div className="w-full sticky bottom-0 sm:bottom-1 flex justify-between mt-auto sm:px-2">
-        <ExportSGFButton
-          className="sticky left-0 sm:left-1 bottom-0 sm:bottom-1"
-          getSgfString={getSgf}
-        />
-        <Button
-          size="sm"
-          onClick={onSubmitAnswer}
-          className="sticky right-1 bottom-1"
-        >
-          Submit
-          <SendHorizonalIcon />
-        </Button>
+        {children}
       </div>
     </div>
   );

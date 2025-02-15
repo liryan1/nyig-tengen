@@ -47,7 +47,7 @@ export function ExportSGFButton({
         >
           <DownloadIcon />
         </TooltipTrigger>
-        <TooltipContent>Export to SGF</TooltipContent>
+        <TooltipContent>Download SGF</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

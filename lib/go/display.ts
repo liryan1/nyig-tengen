@@ -1,8 +1,13 @@
+/**
+ * Converts rank from digit to Go rank
+ * @param rank -1 means 1kyu, 0 means 1dan. Valid range [-29, 8]
+ * @param to1Decimal Convert to 1 decimal, for displaying average rank
+ * @returns string
+ */
 export function getRank(rank: number, to1Decimal?: boolean) {
-  if (rank < 0) {
-    return `${to1Decimal ? (-rank).toFixed(1) : -rank}k`;
-  }
-  return `${to1Decimal ? rank.toFixed(1) : rank}d`;
+  const r = rank >= 0 ? rank + 1 : -rank;
+  const kOrD = rank >= 0 ? "d" : "k";
+  return `${to1Decimal ? r.toFixed(1) : r}${kOrD}`;
 }
 
 export function getPixelSize({

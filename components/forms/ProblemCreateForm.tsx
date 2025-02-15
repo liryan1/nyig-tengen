@@ -1,36 +1,46 @@
 "use client";
 
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-
+import { Button } from "@/components/ui/button";
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { RANK_OPTIONS } from "@/lib/go/constants";
+import { GoGame } from "@/lib/go/goGame";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { SendHorizonalIcon } from "lucide-react";
+import { useRef } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { GoProblemEditor } from "../learn/go/GoProblemEditor";
 
 const formSchema = z.object({
-  rank: z.string(),
-  description: z
-    .string()
-    .min(20, "Please enter a description of at least 20 characters"),
+  rank: z.coerce.number().int().min(-29).max(8),
+  description: z.string().optional(),
   sgf: z.string().nonempty("An SGF problems file is required"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
 export function ProblemCreateForm() {
+  const goGameRef = useRef<GoGame | null>(null);
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      rank: "",
+      rank: -5,
       description: "",
       sgf: "",
     },
@@ -50,7 +60,21 @@ export function ProblemCreateForm() {
             <FormItem>
               <FormLabel>Difficulty</FormLabel>
               <FormControl>
-                <Input placeholder="Rank" {...field} />
+                <Select
+                  value={field.value.toString()}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="max-w-xs">
+                    <SelectValue placeholder="Select rank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RANK_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -65,7 +89,8 @@ export function ProblemCreateForm() {
               <FormLabel>Description</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="(Optional) Provide a description"
+                  className="text-xs"
+                  placeholder="(Optional) Describe the problem"
                   {...field}
                 />
               </FormControl>
@@ -74,46 +99,11 @@ export function ProblemCreateForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="sgf"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>SGF File</FormLabel>
-              <div className="text-sm">
-                Upload an SGF file with branches on the root node. Each branch
-                is a problem and each variation is a solution to the problem.
-              </div>
-              <FormControl>
-                <Input
-                  type="file"
-                  accept=".sgf"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0];
-                    if (file) {
-                      const reader = new FileReader();
-                      reader.onload = (loadEvent) => {
-                        const text = loadEvent.target?.result;
-                        if (typeof text === "string") {
-                          // Set the string contents of the file in the form
-                          field.onChange(text);
-                        }
-                      };
-                      reader.readAsText(file);
-                    } else {
-                      // Reset the field if no file is chosen
-                      field.onChange("");
-                    }
-                  }}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <GoProblemEditor goGameRef={goGameRef} />
 
-        <Button type="submit" disabled>
-          Save draft
+        <Button className="gap-1" type="submit" disabled>
+          Create
+          <SendHorizonalIcon />
         </Button>
       </form>
     </Form>

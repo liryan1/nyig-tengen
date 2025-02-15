@@ -128,6 +128,15 @@ export class GoGame {
     return boardState;
   }
 
+  public isEmpty() {
+    return !(
+      this.root.addBlack?.length ||
+      this.root.addWhite?.length ||
+      this.root.children?.length ||
+      Object.keys(this.root.labels ?? {}).length
+    );
+  }
+
   public static fromSgf(sgf: string) {
     const root = fromSgf(sgf);
     const boardSize = getBoardSize(sgf);

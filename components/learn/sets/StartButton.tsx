@@ -61,7 +61,7 @@ export function StartButton({ sId, ...buttonProps }: StartButtonProps) {
 
   return (
     <Button
-      className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-800 text-primary"
+      className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-800 text-white"
       disabled={isLoading || pgError || cError || !sId}
       onClick={handleClick}
       {...buttonProps}

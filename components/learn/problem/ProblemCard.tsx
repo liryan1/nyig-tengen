@@ -19,12 +19,10 @@ export function ProblemCard({ goProblemResponse }: Props) {
   const { id, initial, author, stats, rank } = goProblemResponse;
   const boardSize = getBoardSize(initial);
   const boardContainerRef = useRef<HTMLDivElement>(null);
-  const { cellSize } = useCellSize({
+  const { cellSize, boardPixelSize } = useCellSize({
     boardContainerRef,
     boardSize,
-    maxCellSize: 40,
   });
-  const { boardPixelSize } = getPixelSize({ boardSize, cellSize });
 
   const successRate =
     (stats?.correctCount ?? 0) / (stats?.submissionCount ?? 1);

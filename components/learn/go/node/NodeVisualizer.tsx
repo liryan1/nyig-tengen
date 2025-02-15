@@ -1,6 +1,7 @@
 "use client";
 
 import { SgfNode } from "@/lib/go/goGame";
+import { JSX, useEffect } from "react";
 import { NodeBox } from "./NodeBox";
 import {
   buildEdgePath,
@@ -8,8 +9,6 @@ import {
   layoutNodes,
   NodePosition,
 } from "./layoutNodes";
-import { JSX, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 
 interface NodeVisualizerProps {
   rootNode: SgfNode;

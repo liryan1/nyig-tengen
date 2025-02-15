@@ -4,22 +4,26 @@ import { PageError } from "@/components/labels/Error";
 import { infoIcon, successIcon } from "@/components/labels/icons";
 import { PageSpinner } from "@/components/labels/Spinner";
 import { Button } from "@/components/ui/button";
-import { coordToIndices } from "@/lib/go/goGame";
+import { useIsMobile } from "@/hooks/isMobile";
+import { coordToIndices, GoGame } from "@/lib/go/goGame";
 import { GoProblemResponse } from "@/lib/go/interface";
-import { fromSgf, getBoardSize, toSgf } from "@/lib/go/parser";
+import { getBoardSize, toSgf } from "@/lib/go/parser";
 import { useSubmitMutation } from "@/lib/rtk/slices/problems";
-import { MoveRightIcon } from "lucide-react";
+import { MoveRightIcon, SendHorizonalIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useCellSize } from "../../../hooks/useCellSize";
+import { useGo } from "../../../hooks/useGo";
 import { getMoves } from "../../../lib/go/evaluate";
 import { GoProblemBoard } from "./GoProblemBoard";
 import { GoProblemHeader } from "./GoProblemHeader";
 import { GoProblemToolbar } from "./GoProblemToolbar";
-import { useGo } from "../../../hooks/useGo";
-import { GoBoardStepper } from "./board/GoBoardStepper";
-import { useIsMobile } from "@/hooks/isMobile";
+import { ExportSGFButton } from "./node/ExportSGFButton";
+
+const sgf = `
+(;SZ[19](;SZ[19];AB[bl][bn][cn][co][dp][dq][dr][fr]AW[bo][ap][cp][cq][cr]SZ[19](;B[pj];W[oj];B[ok];W[nj];B[nk])(;B[nl];W[nk];B[mk])(;B[ml](;W[nk];B[mm];W[nm])(;W[on];B[mo];W[nq])(;W[lq](;B[pq])(;B[jj];W[mf])(;B[ia];W[jg])(;B[ke];W[od])(;B[pd];W[rn])(;B[ss];W[rs])(;B[no](;W[np])(;W[gk])(;W[he])(;W[lc])(;W[ob])(;W[qb])(;W[bc]))(;B[ba])(;B[rs]))(;W[gb])(;W[na]))))
+`;
 
 interface GoProblemProps {
   problem: GoProblemResponse;
@@ -28,18 +32,21 @@ interface GoProblemProps {
 
 export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
   const boardSize = getBoardSize(problem.initial);
-  const root = fromSgf(problem.initial);
-  const { handleMove, handleSelectNode, currentNode, nextPlayer, goLogic } =
-    useGo({ boardSize, root });
+  const goGameRef = useRef<GoGame | null>(null);
+  if (goGameRef.current === null) {
+    goGameRef.current = GoGame.fromSgf(sgf); //problem.initial);
+  }
+  const goGame = goGameRef.current;
+  const { handleMove, handleSelectNode, currentNode, nextPlayer } = useGo({
+    goGame,
+  });
   const isMobile = useIsMobile();
   const boardContainerRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState<React.ReactNode>("");
   const [showSuccess, setShowSuccess] = useState(false);
-  const { cellSize } = useCellSize({
+  const { cellSize, boardPixelSize } = useCellSize({
     boardSize,
     boardContainerRef,
-    minCellSize: isMobile ? 3 : 5,
-    maxCellSize: isMobile ? 40 : 80,
   });
   const { status: authStatus } = useSession();
 
@@ -144,24 +151,27 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
     <div className="sm:max-w-6xl mx-auto border rounded-md shadow-sm m-2">
       <GoProblemHeader meta={problem} />
       <hr />
-      <div className="grid md:grid-cols-2">
-        <div ref={boardContainerRef} className="overflow-none">
+      <div
+        className="grid md:grid-cols-2"
+        style={{ maxHeight: boardPixelSize }}
+      >
+        <div
+          ref={boardContainerRef}
+          className="overflow-none"
+          style={{ height: boardPixelSize }}
+        >
           <GoProblemBoard
             cellSize={cellSize}
             boardSize={boardSize}
-            boardState={goLogic.getBoardState(currentNode, 1)}
+            boardState={goGame.getBoardState(currentNode, 1)}
             nextPlayer={nextPlayer}
             onMove={handleMove}
             showSuccess={showSuccess}
           />
         </div>
         <div
-          className="flex flex-col flex-1 w-full overflow-auto"
-          style={
-            isMobile
-              ? { maxHeight: boardContainerRef.current?.clientHeight || "auto" }
-              : undefined // No maxHeight on larger screens
-          }
+          className="overflow-hidden"
+          style={{ maxHeight: isMobile ? "30vh" : boardPixelSize }}
         >
           <div className="relative p-2 text-sm sm:text-base min-h-20 sm:min-h-24">
             {message}
@@ -172,15 +182,26 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
               </PageError>
             )}
           </div>
-          <div className="sm:h-full h-32 md:min-h-40">
-            <GoProblemToolbar
-              rootNode={goLogic.root}
-              currentNode={currentNode}
-              onSelectNode={handleSelectNode}
-              onSubmitAnswer={handleSubmitAnswer}
-              getSgf={() => toSgf(goLogic.root, boardSize)}
+          {/* <div className=""> */}
+          <GoProblemToolbar
+            rootNode={goGame.root}
+            currentNode={currentNode}
+            onSelectNode={handleSelectNode}
+          >
+            <ExportSGFButton
+              className="sticky left-0 sm:left-1 bottom-0 sm:bottom-1"
+              getSgfString={() => toSgf(goGame.root, boardSize)}
             />
-          </div>
+            <Button
+              size="sm"
+              onClick={handleSubmitAnswer}
+              className="sticky right-0 sm:right-1 bottom-0 sm:bottom-1"
+            >
+              Submit
+              <SendHorizonalIcon />
+            </Button>
+          </GoProblemToolbar>
+          {/* </div> */}
         </div>
       </div>
     </div>

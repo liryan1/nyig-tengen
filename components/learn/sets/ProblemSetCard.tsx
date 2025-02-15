@@ -78,15 +78,17 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
       {/* Board Display with Pagination */}
       <div className="relative flex items-center gap-2 w-full">
         {/* Left Pagination Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute left-0 z-10 bg-white/80 dark:bg-gray-800/80 rounded-full"
-          disabled={currentIndex === 0}
-          onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 3))}
-        >
-          <ChevronLeft size={24} />
-        </Button>
+        {problems.length > 3 && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute left-0 z-10 bg-white/80 dark:bg-gray-800/80 rounded-full"
+            disabled={currentIndex === 0}
+            onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 3))}
+          >
+            <ChevronLeft size={24} />
+          </Button>
+        )}
 
         {/* Boards Container */}
         <div
@@ -113,17 +115,19 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
         </div>
 
         {/* Right Pagination Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute right-0 z-10 bg-white/80 dark:bg-gray-800/80 rounded-full"
-          disabled={currentIndex >= maxIndex}
-          onClick={() =>
-            setCurrentIndex((prev) => Math.min(maxIndex, prev + 3))
-          }
-        >
-          <ChevronRight size={24} />
-        </Button>
+        {problems.length > 3 && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-0 z-10 bg-white/80 dark:bg-gray-800/80 rounded-full"
+            disabled={currentIndex >= maxIndex}
+            onClick={() =>
+              setCurrentIndex((prev) => Math.min(maxIndex, prev + 3))
+            }
+          >
+            <ChevronRight size={24} />
+          </Button>
+        )}
       </div>
     </div>
   );
