@@ -9,11 +9,19 @@ import {
   layoutNodes,
   NodePosition,
 } from "./layoutNodes";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { Trash2Icon } from "lucide-react";
 
 interface NodeVisualizerProps {
   rootNode: SgfNode;
   currentNode: SgfNode;
   onSelectNode: (node: SgfNode) => void;
+  onDeleteNode?: (node: SgfNode) => void;
   columnWidth?: number;
   rowHeight?: number;
   shapeSize?: number; // diameter for circles, or box size
@@ -29,6 +37,7 @@ export function NodeVisualizer({
   rootNode,
   currentNode,
   onSelectNode,
+  onDeleteNode,
   columnWidth = 80,
   rowHeight = 60,
   shapeSize = 30,
@@ -106,14 +115,26 @@ export function NodeVisualizer({
     const isCurrent = node === currentNode;
 
     nodeElems.push(
-      <div key={`${left}-${top}`} style={{ position: "absolute", left, top }}>
-        <NodeBox
-          node={node}
-          isCurrent={isCurrent}
-          size={shapeSize}
-          onClick={() => onSelectNode(node)}
-        />
-      </div>,
+      <ContextMenu key={`${left}-${top}`}>
+        <ContextMenuTrigger style={{ position: "absolute", left, top }}>
+          <NodeBox
+            node={node}
+            isCurrent={isCurrent}
+            size={shapeSize}
+            onClick={() => onSelectNode(node)}
+          />
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem
+            disabled={node === rootNode}
+            className="focus:text-red-500 flex justify-between cursor-pointer"
+            onClick={() => onDeleteNode && onDeleteNode(node)}
+          >
+            Delete
+            <Trash2Icon size={16} />
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>,
     );
   });
 

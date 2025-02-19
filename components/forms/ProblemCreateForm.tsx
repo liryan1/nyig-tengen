@@ -64,7 +64,7 @@ export function ProblemCreateForm() {
                   value={field.value.toString()}
                   onValueChange={field.onChange}
                 >
-                  <SelectTrigger className="max-w-xs">
+                  <SelectTrigger className="max-w-32">
                     <SelectValue placeholder="Select rank" />
                   </SelectTrigger>
                   <SelectContent>
@@ -80,6 +80,8 @@ export function ProblemCreateForm() {
             </FormItem>
           )}
         />
+
+        <GoProblemEditor goGameRef={goGameRef} />
 
         <FormField
           control={form.control}
@@ -98,8 +100,6 @@ export function ProblemCreateForm() {
             </FormItem>
           )}
         />
-
-        <GoProblemEditor goGameRef={goGameRef} />
 
         <Button className="gap-1" type="submit" disabled>
           Create

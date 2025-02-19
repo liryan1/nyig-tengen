@@ -17,6 +17,7 @@ export function GoBoardCoord({
 }: GoBoardCoordProps) {
   const margin = cellSize * 0.95;
   const fontSize = cellSize * 0.35;
+  const edge = cellSize * 0.01;
 
   return (
     <>
@@ -26,7 +27,7 @@ export function GoBoardCoord({
             className={cn(coordinateCN, className)}
             style={{
               bottom: margin + i * cellSize - 8,
-              left: cellSize * 0.05,
+              left: edge,
               fontSize,
             }}
           >
@@ -36,7 +37,7 @@ export function GoBoardCoord({
             className={cn(coordinateCN, className)}
             style={{
               bottom: margin + i * cellSize - 8,
-              right: cellSize * 0.05,
+              right: edge,
               fontSize,
             }}
           >
@@ -45,7 +46,7 @@ export function GoBoardCoord({
           <span
             className={cn(coordinateCN, className)}
             style={{
-              bottom: cellSize * 0.05,
+              bottom: edge,
               left: margin + i * cellSize - 8,
               fontSize,
             }}
@@ -55,7 +56,7 @@ export function GoBoardCoord({
           <span
             className={cn(coordinateCN, className)}
             style={{
-              top: cellSize * 0.05,
+              top: edge,
               left: margin + i * cellSize - 8,
               fontSize,
             }}

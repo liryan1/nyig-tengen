@@ -1,10 +1,18 @@
 "use client";
 
 import { KoError, SuicideError } from "@/lib/go/error";
-import { getNextColor, GoGame, indicesToCoord, SgfNode } from "@/lib/go/goGame";
+import {
+  EditProps,
+  getNextColor,
+  GoGame,
+  indicesToCoord,
+  SgfNode,
+} from "@/lib/go/goGame";
 import { StoneColor } from "@/lib/go/interface";
 import { useState } from "react";
 import toast from "react-hot-toast";
+
+export type Mode = "move" | "edit";
 
 export interface UseGoProps {
   readonly?: boolean;
@@ -14,7 +22,7 @@ export interface UseGoProps {
 export function useGo({ goGame, readonly }: UseGoProps) {
   const [currentNode, setCurrentNode] = useState<SgfNode>(goGame.root);
   const [nextPlayer, setNextPlayer] = useState<StoneColor>(1);
-  const [mode, setMode] = useState("move");
+  const [mode, setMode] = useState<Mode>("move");
 
   const handleMove = (row: number, col: number, node?: SgfNode) => {
     if (readonly) {
@@ -31,28 +39,25 @@ export function useGo({ goGame, readonly }: UseGoProps) {
         toast.error(error.message);
       }
     }
+    setMode("move");
   };
 
-  const handleEdit = (row: number, col: number) => {
-    if (readonly) {
+  const handleEditStone = (row: number, col: number) => {
+    // If there is a parent, then we're not on the root node
+    if (readonly || currentNode.parent) {
       return;
     }
     const coord = indicesToCoord(row, col);
     const boardState = goGame.getBoardState(currentNode);
     const stone = boardState.stones[coord];
 
-    // Create an edit node
-    if (stone) {
-      // Remove the stone
-      const newNode = goGame.makeEdits(currentNode, {
-        removeStones: [coord],
-      });
-      setCurrentNode(newNode);
-    } else {
-      // Add a black stone (you can customize to white or choose a color)
-      const newNode = goGame.makeEdits(currentNode, {
-        addBlack: [coord],
-      });
+    if (!currentNode.moveColor) {
+      let edit: EditProps =
+        nextPlayer === -1 ? { addWhite: [coord] } : { addBlack: [coord] };
+      if (stone === nextPlayer) {
+        edit = { removeStones: [coord] };
+      }
+      const newNode = goGame.editOnRoot(edit);
       setCurrentNode(newNode);
     }
   };
@@ -63,8 +68,10 @@ export function useGo({ goGame, readonly }: UseGoProps) {
     }
     if (mode === "move") {
       handleMove(row, col);
+    } else if (mode === "edit") {
+      handleEditStone(row, col);
     } else {
-      handleEdit(row, col);
+      throw Error("Unhandled board mode");
     }
   };
 
@@ -88,6 +95,7 @@ export function useGo({ goGame, readonly }: UseGoProps) {
       }
       setNextPlayer(getNextColor(color));
     }
+    setMode("move");
   };
 
   return {
@@ -100,6 +108,8 @@ export function useGo({ goGame, readonly }: UseGoProps) {
 
     mode,
     setMode,
+    handleEditStone,
+
     handleClickBoard,
   };
 }

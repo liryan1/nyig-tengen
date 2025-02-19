@@ -9,7 +9,11 @@ async function AllProblems() {
   if (isError || !response) {
     return <PageError>Error getting problems</PageError>;
   }
-  return <ProblemList problems={response.problems} />;
+  return (
+    <div className="px-1 sm:px-0">
+      <ProblemList problems={response.problems} />
+    </div>
+  );
 }
 
 export default AllProblems;

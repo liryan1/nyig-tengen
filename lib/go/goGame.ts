@@ -1,3 +1,4 @@
+import { BOARD_SIZES } from "./constants";
 import { KoError, StoneExistsError, SuicideError } from "./error";
 import { BoardState, StoneColor } from "./interface";
 import { fromSgf, getBoardSize } from "./parser";
@@ -21,6 +22,13 @@ export interface SgfNode {
 
   // Might store additional SGF properties on the node
   // e.g. comment, markers (CR, TR, SQ), etc., if needed
+}
+
+export interface EditProps {
+  addBlack?: string[];
+  addWhite?: string[];
+  removeStones?: string[];
+  labels?: Record<string, string>;
 }
 
 export interface PlayMoveOptions {
@@ -67,6 +75,14 @@ function getNeighbors(coord: string, size: number): string[] {
 }
 
 export class GoGame {
+  private readonly initialRoot: SgfNode = {
+    addBlack: [],
+    addWhite: [],
+    removeStones: [],
+    labels: {},
+    children: [],
+    moveColor: -1,
+  };
   public root: SgfNode;
   public boardSize;
 
@@ -82,14 +98,7 @@ export class GoGame {
     boardSize?: number;
     root?: SgfNode;
   }) {
-    this.root = root ?? {
-      addBlack: [],
-      addWhite: [],
-      removeStones: [],
-      labels: {},
-      children: [],
-      moveColor: -1,
-    };
+    this.root = root ?? this.initialRoot;
     this.boardSize = boardSize;
   }
 
@@ -126,6 +135,87 @@ export class GoGame {
     }
 
     return boardState;
+  }
+
+  public setBoardSize(size: number) {
+    if (!BOARD_SIZES.includes(size)) {
+      throw new Error(`Invalid board size: ${size}`);
+    }
+
+    // Helper function to check if a coordinate is valid for the new size
+    const isValidCoord = (coord: string): boolean => {
+      try {
+        const { row, col } = coordToIndices(coord);
+        return row >= 0 && row < size && col >= 0 && col < size;
+      } catch {
+        return false;
+      }
+    };
+
+    // Helper function to check if a node has any invalid coordinates
+    const hasInvalidCoords = (node: SgfNode): boolean => {
+      // Check move coordinate
+      if (node.moveCoord && !isValidCoord(node.moveCoord)) {
+        return true;
+      }
+
+      // Check addBlack coordinates
+      if (
+        node.addBlack &&
+        node.addBlack.some((coord) => !isValidCoord(coord))
+      ) {
+        return true;
+      }
+
+      // Check addWhite coordinates
+      if (
+        node.addWhite &&
+        node.addWhite.some((coord) => !isValidCoord(coord))
+      ) {
+        return true;
+      }
+
+      // Check removeStones coordinates
+      if (
+        node.removeStones &&
+        node.removeStones.some((coord) => !isValidCoord(coord))
+      ) {
+        return true;
+      }
+
+      // Check labels
+      if (
+        node.labels &&
+        Object.keys(node.labels).some((coord) => !isValidCoord(coord))
+      ) {
+        return true;
+      }
+
+      return false;
+    };
+
+    // Traverse the tree and remove invalid nodes
+    const traverseAndClean = (node: SgfNode) => {
+      // Filter children recursively
+      node.children = node.children.filter((child) => {
+        if (hasInvalidCoords(child)) {
+          return false; // Remove this child and all its descendants
+        }
+        traverseAndClean(child); // Process valid child's descendants
+        return true;
+      });
+    };
+
+    // Check and clean root node
+    if (hasInvalidCoords(this.root)) {
+      // If root node has invalid coordinates, reset it
+      this.root = this.initialRoot;
+    } else {
+      // Clean the rest of the tree
+      traverseAndClean(this.root);
+    }
+
+    this.boardSize = size;
   }
 
   public isEmpty() {
@@ -271,6 +361,18 @@ export class GoGame {
     return false;
   }
 
+  public deleteNode(node: SgfNode) {
+    if (this.root === node || !node.parent) {
+      throw new Error("Cannot delete root node or node without any parents");
+    }
+
+    // Remove the node from its parent's children array
+    node.parent.children = node.parent.children.filter(
+      (child) => child !== node,
+    );
+    return node.parent;
+  }
+
   /**
    * Insert a child node for a move (black or white) at `coord`.
    * Returns the newly created node to continue adding variations.
@@ -337,22 +439,12 @@ export class GoGame {
 
   /**
    * Make edits (AE, AB, AW, LB) on the board at `parentNode`.
+   * Contains regular SGF logic:
+   * If current node is edit and has no children, edit on the same node
+   * Otherwise, creates a new node if necessary.
    * This returns a new node containing the edits.
    */
-  public makeEdits(
-    parentNode: SgfNode,
-    {
-      addBlack,
-      addWhite,
-      removeStones,
-      labels,
-    }: {
-      addBlack?: string[];
-      addWhite?: string[];
-      removeStones?: string[];
-      labels?: Record<string, string>;
-    },
-  ): SgfNode {
+  public makeEdits(parentNode: SgfNode, editProps: EditProps): SgfNode {
     let editNode: SgfNode;
     if (parentNode.moveColor === 0 && !parentNode.children?.length) {
       // If we're on an edit node and there are no children, edit on the same node
@@ -367,15 +459,43 @@ export class GoGame {
       parentNode.children.push(editNode);
     }
 
-    if (addBlack)
+    return this.performEdit(editNode, editProps);
+  }
+
+  public editOnRoot(editProps: EditProps) {
+    return this.performEdit(this.root, editProps);
+  }
+
+  private performEdit(
+    editNode: SgfNode,
+    { addBlack, addWhite, removeStones, labels }: EditProps,
+  ) {
+    if (addBlack) {
       editNode.addBlack = [...addBlack, ...(editNode.addBlack ?? [])];
-    if (addWhite)
+      editNode.addWhite =
+        editNode.addWhite?.filter((coord) => !addBlack.includes(coord)) ?? [];
+    }
+
+    if (addWhite) {
       editNode.addWhite = [...addWhite, ...(editNode.addWhite ?? [])];
-    if (removeStones)
-      editNode.removeStones = [
-        ...removeStones,
-        ...(editNode.removeStones ?? []),
-      ];
+      editNode.addBlack =
+        editNode.addBlack?.filter((coord) => !addWhite.includes(coord)) ?? [];
+    }
+
+    if (removeStones) {
+      editNode.removeStones = removeStones.filter(
+        (coord) =>
+          !editNode.addBlack?.includes(coord) &&
+          !editNode.addWhite?.includes(coord),
+      );
+      editNode.addBlack =
+        editNode.addBlack?.filter((coord) => !removeStones.includes(coord)) ??
+        [];
+      editNode.addWhite =
+        editNode.addWhite?.filter((coord) => !removeStones.includes(coord)) ??
+        [];
+    }
+
     if (labels) editNode.labels = { ...labels, ...editNode.labels };
 
     return editNode;

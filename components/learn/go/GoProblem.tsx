@@ -19,11 +19,7 @@ import { getMoves } from "../../../lib/go/evaluate";
 import { GoProblemBoard } from "./GoProblemBoard";
 import { GoProblemHeader } from "./GoProblemHeader";
 import { GoProblemToolbar } from "./GoProblemToolbar";
-import { ExportSGFButton } from "./node/ExportSGFButton";
-
-const sgf = `
-(;SZ[19](;SZ[19];AB[bl][bn][cn][co][dp][dq][dr][fr]AW[bo][ap][cp][cq][cr]SZ[19](;B[pj];W[oj];B[ok];W[nj];B[nk])(;B[nl];W[nk];B[mk])(;B[ml](;W[nk];B[mm];W[nm])(;W[on];B[mo];W[nq])(;W[lq](;B[pq])(;B[jj];W[mf])(;B[ia];W[jg])(;B[ke];W[od])(;B[pd];W[rn])(;B[ss];W[rs])(;B[no](;W[np])(;W[gk])(;W[he])(;W[lc])(;W[ob])(;W[qb])(;W[bc]))(;B[ba])(;B[rs]))(;W[gb])(;W[na]))))
-`;
+import { ExportSGFButton } from "./tools/ExportSGFButton";
 
 interface GoProblemProps {
   problem: GoProblemResponse;
@@ -34,7 +30,7 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
   const boardSize = getBoardSize(problem.initial);
   const goGameRef = useRef<GoGame | null>(null);
   if (goGameRef.current === null) {
-    goGameRef.current = GoGame.fromSgf(sgf); //problem.initial);
+    goGameRef.current = GoGame.fromSgf(problem.initial);
   }
   const goGame = goGameRef.current;
   const { handleMove, handleSelectNode, currentNode, nextPlayer } = useGo({
@@ -148,16 +144,13 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
   };
 
   return (
-    <div className="sm:max-w-6xl mx-auto border rounded-md shadow-sm m-2">
+    <div className="sm:max-w-6xl mx-auto border rounded-md shadow-sm m-2 px-1 sm:px-0">
       <GoProblemHeader meta={problem} />
       <hr />
-      <div
-        className="grid md:grid-cols-2"
-        style={{ maxHeight: boardPixelSize }}
-      >
+      <div className="grid md:grid-cols-2">
         <div
+          className="overflow-hidden"
           ref={boardContainerRef}
-          className="overflow-none"
           style={{ height: boardPixelSize }}
         >
           <GoProblemBoard
@@ -173,7 +166,7 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
           className="overflow-hidden"
           style={{ maxHeight: isMobile ? "30vh" : boardPixelSize }}
         >
-          <div className="relative p-2 text-sm sm:text-base min-h-20 sm:min-h-24">
+          <div className="relative p-2 text-sm sm:text-base min-h-20 max-h-20 sm:min-h-24 sm:max-h-24 sm:space-y-2 overflow-hidden">
             {message}
             {isLoading && <PageSpinner />}
             {sError && (
@@ -182,26 +175,19 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
               </PageError>
             )}
           </div>
-          {/* <div className=""> */}
           <GoProblemToolbar
             rootNode={goGame.root}
             currentNode={currentNode}
             onSelectNode={handleSelectNode}
           >
             <ExportSGFButton
-              className="sticky left-0 sm:left-1 bottom-0 sm:bottom-1"
               getSgfString={() => toSgf(goGame.root, boardSize)}
             />
-            <Button
-              size="sm"
-              onClick={handleSubmitAnswer}
-              className="sticky right-0 sm:right-1 bottom-0 sm:bottom-1"
-            >
+            <Button size="sm" onClick={handleSubmitAnswer}>
               Submit
               <SendHorizonalIcon />
             </Button>
           </GoProblemToolbar>
-          {/* </div> */}
         </div>
       </div>
     </div>
