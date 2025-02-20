@@ -69,10 +69,11 @@ export function ProblemForm({ problemId }: Props) {
     };
     try {
       if (problemId) {
-        console.log("Update not implemented yet. body:", body);
+        console.warn("Update not implemented yet. body:", body);
       } else {
         const createResponse = await create(body).unwrap();
         toast.success("Successfully created new problem", {
+          duration: 5000,
           action: {
             label: "View",
             onClick: () => {

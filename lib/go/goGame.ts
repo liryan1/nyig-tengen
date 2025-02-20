@@ -51,6 +51,9 @@ export function coordToIndices(coord: string): { row: number; col: number } {
 
 // Convert row,col => 'dd'
 export function indicesToCoord(row: number, col: number): string {
+  if (row === -1 && col === -1) {
+    return ""; // pass
+  }
   return (
     String.fromCharCode("a".charCodeAt(0) + col) +
     String.fromCharCode("a".charCodeAt(0) + row)
@@ -225,6 +228,20 @@ export class GoGame {
       this.root.children?.length ||
       Object.keys(this.root.labels ?? {}).length
     );
+  }
+
+  public swapColors(editNode: SgfNode): SgfNode {
+    if (editNode.moveColor !== 0) {
+      console.warn("Can only swap colors on edit nodes");
+      return editNode;
+    }
+
+    // Swap addBlack and addWhite arrays
+    const tempBlack = editNode.addBlack ? [...editNode.addBlack] : [];
+    editNode.addBlack = editNode.addWhite ? [...editNode.addWhite] : [];
+    editNode.addWhite = tempBlack;
+
+    return editNode;
   }
 
   public static fromSgf(sgf: string) {
@@ -435,6 +452,27 @@ export class GoGame {
     parentNode.children.push(newNode);
 
     return newNode;
+  }
+
+  public playPass(parentNode: SgfNode, color: StoneColor): SgfNode {
+    const moveCoord = ""; // empty string represents pass in SGF
+    for (const n of parentNode.children) {
+      if (n.moveColor === color && n.moveCoord === moveCoord) {
+        return n; // This move already exists
+      }
+    }
+    const newNode: SgfNode = {
+      moveColor: color,
+      moveCoord,
+      children: [],
+      parent: parentNode,
+    };
+    parentNode.children.push(newNode);
+    return newNode;
+  }
+
+  public isPass(node: SgfNode): boolean {
+    return node.moveColor !== undefined && node.moveCoord === "";
   }
 
   /**

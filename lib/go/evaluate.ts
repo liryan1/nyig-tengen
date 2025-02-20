@@ -10,7 +10,7 @@ export function getMoves(node: SgfNode) {
   const moves: string[] = [];
   let currentNode: SgfNode | undefined = node;
   while (currentNode) {
-    if (currentNode.moveCoord) {
+    if (currentNode.moveCoord !== undefined) {
       moves.push(currentNode.moveCoord);
     }
     currentNode = currentNode.parent;
@@ -22,6 +22,8 @@ export function getEvaluation(
   userMoves: string[],
   solutionTree: SgfNode,
 ): Evaluation {
+  console.log("solutionTree:", solutionTree);
+  console.log("userMoves:", userMoves);
   let currentNode = solutionTree;
   let i = 0;
   while (currentNode.children?.length && i < userMoves.length) {

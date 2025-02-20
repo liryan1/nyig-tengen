@@ -14,6 +14,7 @@ import { EditButton } from "./tools/EditButton";
 import { ExportSGFButton } from "./tools/ExportSGFButton";
 import { StoneSwitch } from "./tools/StoneSwitch";
 import { UploadSGFButton } from "./tools/UploadSGFButton";
+import { PassButton } from "./tools/PassButton";
 
 interface GoProblemEditorProps {
   goGameRef: RefObject<GoGame | null>;
@@ -45,9 +46,11 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
     setNextPlayer,
     currentNode,
     handleSelectNode,
+    handleDeleteNode: onDeleteNode,
     editTool,
     setEditTool,
     getNextPlayer,
+    handleMove,
     handleClickBoard,
   } = useGo({
     goGame,
@@ -78,18 +81,17 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
   };
 
   const handleDeleteNode = (node: SgfNode) => {
-    try {
-      const parent = goGame.deleteNode(node);
-      handleSelectNode(parent);
-      setNextPlayer(getNextPlayer(parent));
-      forceUpdate();
-    } catch (error) {
-      toast.error(`Failed to delete node: ${error}`);
-    }
+    onDeleteNode(node);
+    forceUpdate();
   };
 
   const handleClickBoardForcedUpdate = (row: number, col: number) => {
     handleClickBoard(row, col, editTool);
+    forceUpdate();
+  };
+
+  const handleSwapColorChange = () => {
+    goGame.swapColors(currentNode);
     forceUpdate();
   };
 
@@ -126,7 +128,9 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
               toggleIsEdit={(isEdit) => setMode(isEdit ? "edit" : "move")}
               editTool={editTool}
               onEditToolChange={setEditTool}
+              onSwapColorChange={handleSwapColorChange}
             />
+            <PassButton onClick={() => handleMove(-1, -1)} />
             <StoneSwitch
               disabled={mode === "edit"}
               stone={nextPlayer}
@@ -134,17 +138,17 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
             />
           </div>
           <div className="flex items-end gap-1">
-            <BoardSizeSelect
-              size={boardSize}
-              onChange={handleBoardSizeChange}
-              isBoardEmpty={goGame.isEmpty()}
-            />
             <ExportSGFButton
               getSgfString={() => toSgf(goGame.root, goGame.boardSize)}
             />
             <UploadSGFButton
               onUpload={handleUploadSgfChange}
               goGameRef={goGameRef}
+            />
+            <BoardSizeSelect
+              size={boardSize}
+              onChange={handleBoardSizeChange}
+              isBoardEmpty={goGame.isEmpty()}
             />
           </div>
         </GoProblemToolbar>

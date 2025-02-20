@@ -20,6 +20,7 @@ import { GoProblemBoard } from "./GoProblemBoard";
 import { GoProblemHeader } from "./GoProblemHeader";
 import { GoProblemToolbar } from "./GoProblemToolbar";
 import { ExportSGFButton } from "./tools/ExportSGFButton";
+import { PassButton } from "./tools/PassButton";
 
 interface GoProblemProps {
   problem: GoProblemResponse;
@@ -33,7 +34,13 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
     goGameRef.current = GoGame.fromSgf(problem.initial);
   }
   const goGame = goGameRef.current;
-  const { handleMove, handleSelectNode, currentNode, nextPlayer } = useGo({
+  const {
+    handleMove,
+    handleSelectNode,
+    handleDeleteNode,
+    currentNode,
+    nextPlayer,
+  } = useGo({
     goGame,
   });
   const isMobile = useIsMobile();
@@ -179,18 +186,28 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
             rootNode={goGame.root}
             currentNode={currentNode}
             onSelectNode={handleSelectNode}
+            onDeleteNode={handleDeleteNode}
           >
-            <ExportSGFButton
-              getSgfString={() => toSgf(goGame.root, boardSize)}
-            />
-            <Button size="sm" onClick={handleSubmitAnswer} disabled={isLoading}>
-              Submit
-              {isLoading ? (
-                <Spinner className="h-4 w-4" />
-              ) : (
-                <SendHorizonalIcon />
-              )}
-            </Button>
+            <div className="flex items-end gap-1">
+              <PassButton onClick={() => handleMove(-1, -1)} />
+            </div>
+            <div className="flex items-end gap-2">
+              <ExportSGFButton
+                getSgfString={() => toSgf(goGame.root, boardSize)}
+              />
+              <Button
+                size="sm"
+                onClick={handleSubmitAnswer}
+                disabled={isLoading}
+              >
+                Submit
+                {isLoading ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  <SendHorizonalIcon />
+                )}
+              </Button>
+            </div>
           </GoProblemToolbar>
         </div>
       </div>

@@ -14,7 +14,7 @@ export function getMoveNumber(node: SgfNode): number {
   let count = 0;
   let current: SgfNode | undefined = node;
   while (current) {
-    if (current.moveCoord) {
+    if (current.moveCoord !== undefined) {
       count++;
     }
     current = current.parent;
@@ -34,7 +34,7 @@ export function getColNumber(node: SgfNode): number {
 
 /**
  * Recursively assign (x, y) positions to each node so that:
- *  - x = moveNumber (all move #5 line up in one vertical column)
+ *  - x = moveNumber (all move #s line up in one vertical column)
  *  - The first child of a node shares the same row (y)
  *  - Subsequent siblings each get a new row below
  */

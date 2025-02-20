@@ -16,9 +16,9 @@ export function NodeBox({
   // Root => blank
   const isRoot = !node.parent;
   // Edit => '^'
-  const isEdit = !node.moveCoord && !isRoot;
+  const isEdit = node.moveCoord === undefined && !isRoot;
   // Move => circle with move#
-  const isMove = !!node.moveCoord;
+  const isMove = node.moveCoord !== undefined;
 
   // We'll do a square container. If isCurrent => background color
   const boxStyle: React.CSSProperties = {

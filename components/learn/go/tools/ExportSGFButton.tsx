@@ -39,6 +39,7 @@ export function ExportSGFButton({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger
+          type="button"
           onClick={downloadTxtFile}
           className={cn(
             buttonVariants({ variant: "outline", size: "sm" }),

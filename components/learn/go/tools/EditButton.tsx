@@ -1,9 +1,25 @@
 "use client";
 
-import { Toggle } from "@/components/ui/toggle";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Separator } from "@/components/ui/separator";
+import { Toggle, toggleVariants } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { BoardEditTool } from "@/hooks/useGo";
-import { CircleIcon, EditIcon, EraserIcon } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  ArrowRightLeftIcon,
+  CircleIcon,
+  EditIcon,
+  EraserIcon,
+} from "lucide-react";
+
+const buttonStyle =
+  "bg-background shadow-sm hover:bg-accent hover:text-accent-foreground data-[state=on]:bg-node-highlight";
 
 interface EditButtonProps {
   disabled?: boolean;
@@ -11,6 +27,7 @@ interface EditButtonProps {
   toggleIsEdit: (pressed: boolean) => void;
   editTool?: BoardEditTool;
   onEditToolChange?: (editTool: BoardEditTool) => void;
+  onSwapColorChange?: () => void;
 }
 
 export function EditButton({
@@ -19,43 +36,63 @@ export function EditButton({
   toggleIsEdit,
   editTool,
   onEditToolChange,
+  onSwapColorChange,
 }: EditButtonProps) {
   return (
     <div className="relative">
       {isEdit && (
-        <ToggleGroup
-          type="single"
-          value={editTool}
-          onValueChange={(value: BoardEditTool) =>
-            onEditToolChange && onEditToolChange(value)
-          }
-          className="absolute bottom-full flex items-center gap-0 bg-primary-foreground"
-        >
-          <ToggleGroupItem
-            value="black"
-            aria-label="Add black stone"
-            variant="outline"
-            className="data-[state=on]:bg-node-highlight"
+        <div className="absolute bottom-full flex items-center gap-1 h-full">
+          <ToggleGroup
+            type="single"
+            value={editTool}
+            onValueChange={(value: BoardEditTool) =>
+              onEditToolChange && onEditToolChange(value)
+            }
+            className="gap-0"
           >
-            <CircleIcon fill="black" size={30} strokeWidth={1} />
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="white"
-            aria-label="Add white stone"
-            variant="outline"
-            className="data-[state=on]:bg-node-highlight"
-          >
-            <CircleIcon fill="white" size={30} strokeWidth={1} />
-          </ToggleGroupItem>
-          <ToggleGroupItem
-            value="erase"
-            aria-label="Erase stone"
-            variant="outline"
-            className="data-[state=on]:bg-node-highlight"
-          >
-            <EraserIcon />
-          </ToggleGroupItem>
-        </ToggleGroup>
+            <ToggleGroupItem
+              value="black"
+              aria-label="Add black stone"
+              variant="outline"
+              className={buttonStyle}
+            >
+              <CircleIcon fill="black" size={30} strokeWidth={1} />
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="white"
+              aria-label="Add white stone"
+              variant="outline"
+              className={buttonStyle}
+            >
+              <CircleIcon fill="white" size={30} strokeWidth={1} />
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="erase"
+              aria-label="Erase stone"
+              variant="outline"
+              className={buttonStyle}
+            >
+              <EraserIcon />
+            </ToggleGroupItem>
+          </ToggleGroup>
+          <Separator className="" orientation="vertical" />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger
+                className={cn(
+                  toggleVariants({ variant: "outline" }),
+                  buttonStyle,
+                  "cursor-pointer",
+                )}
+                type="button"
+                onClick={() => onSwapColorChange && onSwapColorChange()}
+              >
+                <ArrowRightLeftIcon />
+              </TooltipTrigger>
+              <TooltipContent>Swap black & white</TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       )}
       <Toggle
         disabled={disabled}
@@ -63,7 +100,7 @@ export function EditButton({
         pressed={isEdit}
         onPressedChange={toggleIsEdit}
         variant="outline"
-        className="bg-primary-foreground data-[state=on]:bg-node-highlight"
+        className={buttonStyle}
       >
         <EditIcon />
       </Toggle>

@@ -23,16 +23,21 @@ export function getBoardSize(sgf?: string) {
  * Returns the root SgfNode of that tree.
  */
 export function fromSgf(sgf: string): SgfNode {
-  const parser = new SgfParser(sgf);
-  const gameTrees = parser.parseCollection();
+  try {
+    const parser = new SgfParser(sgf);
+    const gameTrees = parser.parseCollection();
 
-  if (gameTrees.length === 0) {
-    // No valid game trees found
-    throw new Error("No valid SGF GameTree found in input.");
+    if (gameTrees.length === 0) {
+      // No valid game trees found
+      throw new Error("No valid SGF GameTree found in input.");
+    }
+
+    // Return the first game tree's root node
+    return gameTrees[0];
+  } catch (error) {
+    console.error("Failed to parse SGF:", sgf);
+    return { children: [] };
   }
-
-  // Return the first game tree's root node
-  return gameTrees[0];
 }
 
 /**
@@ -50,7 +55,7 @@ export function goGameToSgf(goGame: GoGame) {
 }
 
 export function rootNodeToSgf(goGame: GoGame) {
-  return `(;[SZ${goGame.boardSize}]${serializeNode(goGame.root).slice(1)})`;
+  return `(;SZ[${goGame.boardSize}]${serializeNode(goGame.root).slice(1)})`;
 }
 
 export function getRootBoardState(sgf: string): BoardState {
@@ -201,13 +206,13 @@ class SgfParser {
       case "B": {
         // Black move. Usually only one value with the coordinate or empty for pass
         node.moveColor = 1 as StoneColor;
-        node.moveCoord = values[0] || undefined;
+        node.moveCoord = values[0];
         break;
       }
       case "W": {
         // White move
         node.moveColor = -1 as StoneColor;
-        node.moveCoord = values[0] || undefined;
+        node.moveCoord = values[0];
         break;
       }
       case "AB": {

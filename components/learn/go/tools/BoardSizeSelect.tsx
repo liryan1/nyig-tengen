@@ -56,10 +56,10 @@ export function BoardSizeSelect({
   return (
     <>
       <Select value={size?.toString()} onValueChange={handleSelect}>
-        <SelectTrigger className="w-20 bg-primary-foreground h-8 p-0 px-2">
+        <SelectTrigger className="w-[4.5rem] h-8 p-0 px-2 bg-background hover:bg-accent hover:text-accent-foreground">
           <SelectValue placeholder="Select rank" />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent align="end">
           {BOARD_SIZES.map((o) => (
             <SelectItem key={o} value={o.toString()}>
               {o}x{o}

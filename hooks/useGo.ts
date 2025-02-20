@@ -100,7 +100,12 @@ export function useGo({ goGame, readonly }: UseGoProps) {
     const coord = indicesToCoord(row, col);
 
     try {
-      const newNode = goGame.playMove(node ?? currentNode, nextPlayer, coord);
+      let newNode;
+      if (!coord) {
+        newNode = goGame.playPass(node ?? currentNode, nextPlayer);
+      } else {
+        newNode = goGame.playMove(node ?? currentNode, nextPlayer, coord);
+      }
       setCurrentNode(newNode);
       setNextPlayer(getNextColor(nextPlayer));
     } catch (error) {
@@ -156,7 +161,7 @@ export function useGo({ goGame, readonly }: UseGoProps) {
         handleEditStone(row, col, editTool);
       }
     } else {
-      throw Error("Unhandled board mode");
+      toast.error("Unhandled board mode");
     }
   };
 
@@ -168,16 +173,27 @@ export function useGo({ goGame, readonly }: UseGoProps) {
     setNextPlayer(getNextPlayer(node, true));
   };
 
+  const handleDeleteNode = (node: SgfNode) => {
+    try {
+      const parent = goGame.deleteNode(node);
+      handleSelectNode(parent);
+      setNextPlayer(getNextPlayer(parent));
+    } catch (error) {
+      toast.error(`Failed to delete node: ${error}`);
+    }
+  };
+
   return {
     currentNode,
     setCurrentNode,
+    handleSelectNode,
+    handleDeleteNode,
 
     nextPlayer,
     setNextPlayer,
     getNextPlayer,
 
     handleMove,
-    handleSelectNode,
     handleEditStone,
     handleClickBoard,
 
