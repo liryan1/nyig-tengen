@@ -57,11 +57,11 @@ export function ProblemCard({ goProblemResponse }: Props) {
           />
         </Link>
       </CardContent>
-      <CardFooter className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground p-0 px-1 sm:px-2 py-1">
+      <CardFooter className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground p-0 sm:px-1 py-1">
         <div className="flex gap-2">
           <span className="flex items-center space-x-1">
             <EyeIcon size={16} />
-            <span>{stats?.views ? formatLargeNumber(stats.views) : "?"}</span>
+            <span>{stats?.views ? formatLargeNumber(stats.views) : "0"}</span>
           </span>
           <span className="flex items-center space-x-1">
             <HeartIcon size={16} />

@@ -16,6 +16,7 @@ export function StoneSwitch({
 }: StoneSwitchProps) {
   return (
     <button
+      type="button"
       onClick={() => !disabled && onSwitchStone(stone === 1 ? -1 : 1)}
       className={`
         relative h-9 w-9

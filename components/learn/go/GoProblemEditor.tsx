@@ -81,6 +81,7 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
     try {
       const parent = goGame.deleteNode(node);
       handleSelectNode(parent);
+      setNextPlayer(getNextPlayer(parent));
       forceUpdate();
     } catch (error) {
       toast.error(`Failed to delete node: ${error}`);

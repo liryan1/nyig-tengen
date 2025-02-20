@@ -103,7 +103,7 @@ export async function POST(req: Request) {
       );
     }
 
-    await db.problem.create({
+    const createdProblem = await db.problem.create({
       data: {
         description,
         rank,
@@ -111,12 +111,12 @@ export async function POST(req: Request) {
         correct,
         authorId: userId,
       },
+      select: {
+        id: true,
+      },
     });
 
-    return NextResponse.json(
-      { message: "Problem created successfully" },
-      { status: 201 },
-    );
+    return NextResponse.json(createdProblem, { status: 201 });
   } catch (error) {
     logStack(error);
     return NextResponse.json(

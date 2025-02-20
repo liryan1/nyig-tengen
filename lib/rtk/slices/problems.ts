@@ -19,6 +19,10 @@ export interface ProblemCreateRequest {
   correct: string;
 }
 
+export interface ProblemCreateResponse {
+  id: string;
+}
+
 export interface GetProblemsResponse {
   currentPage: number;
   limit: number;
@@ -49,7 +53,10 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [PROBLEM_SET_PROGRESS_TAG],
     }),
-    createProblem: builder.mutation<void, ProblemCreateRequest>({
+    createProblem: builder.mutation<
+      ProblemCreateResponse,
+      ProblemCreateRequest
+    >({
       query: (body) => ({
         url: "problems",
         method: "POST",

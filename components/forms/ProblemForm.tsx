@@ -34,7 +34,7 @@ import {
 import { Spinner } from "../labels/Spinner";
 
 const formSchema = z.object({
-  rank: z.coerce.number().int().min(-29).max(8),
+  rank: z.coerce.number().int().min(-30).max(8),
   description: z.string().optional(),
 });
 
@@ -71,17 +71,15 @@ export function ProblemForm({ problemId }: Props) {
       if (problemId) {
         console.log("Update not implemented yet. body:", body);
       } else {
-        await create(body).unwrap();
+        const createResponse = await create(body).unwrap();
+        toast.success(
+          "Successfully created problem with ID: " + createResponse.id,
+        );
       }
-      toast.success(
-        "Problem successfully " + problemId ? "updated" : "created",
-      );
-      form.reset();
-      goGameRef.current = new GoGame({
-        boardSize: 19,
-      });
     } catch (error) {
-      toast.error("Failed to " + problemId ? "update" : "create" + " problem");
+      toast.error(
+        "Failed to " + (problemId ? "update" : "create") + " problem",
+      );
     }
   };
 
