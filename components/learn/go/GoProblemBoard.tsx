@@ -1,13 +1,13 @@
 "use client";
 
 import { useShowCoord } from "@/components/providers/ShowCoordProvider";
+import { getPixelSize } from "@/lib/go/display";
 import { SgfNode } from "@/lib/go/goGame";
 import { BoardState, StoneColor } from "@/lib/go/interface";
 import { CircleCheckBigIcon } from "lucide-react";
 import { GoBoardControl } from "./board/GoBoardControl";
 import { GoBoardCoord } from "./board/GoBoardCoord";
 import { GoBoardView } from "./board/GoBoardView";
-import { getPixelSize } from "@/lib/go/display";
 
 interface GoProblemBoardProps {
   showSuccess?: boolean;
@@ -61,7 +61,7 @@ export function GoProblemBoard({
         />
       )}
 
-      {onMove && nextPlayer && (
+      {onMove && (
         <GoBoardControl
           onMove={onMove}
           nextPlayer={nextPlayer}

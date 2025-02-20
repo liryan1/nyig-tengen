@@ -6,6 +6,7 @@ import { useGo } from "@/hooks/useGo";
 import { GoGame, SgfNode } from "@/lib/go/goGame";
 import { toSgf } from "@/lib/go/parser";
 import { RefObject, useEffect, useRef, useState } from "react";
+import toast from "react-hot-toast";
 import { GoProblemBoard } from "./GoProblemBoard";
 import { GoProblemToolbar } from "./GoProblemToolbar";
 import { BoardSizeSelect } from "./tools/BoardSizeSelect";
@@ -13,32 +14,48 @@ import { EditButton } from "./tools/EditButton";
 import { ExportSGFButton } from "./tools/ExportSGFButton";
 import { StoneSwitch } from "./tools/StoneSwitch";
 import { UploadSGFButton } from "./tools/UploadSGFButton";
-import toast from "react-hot-toast";
+import {
+  PROBLEM_EDIT_BOARD_SIZE_KEY,
+  useLocalStorage,
+} from "@/hooks/useLocalStorage";
 
 interface GoProblemEditorProps {
   goGameRef: RefObject<GoGame | null>;
 }
 
 export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
-  // Sync the goGame's ref to reflect the changes after user upload
   const [goGame, setGoGame] = useState(
     () => goGameRef.current || GoGame.fromSgf("(;)"),
   );
+  const [updateCounter, setUpdateCounter] = useState(0);
+  const forceUpdate = () => setUpdateCounter((prev) => prev + 1);
+  const isMobile = useIsMobile();
+  const [boardSize, setBoardSize] = useLocalStorage(
+    PROBLEM_EDIT_BOARD_SIZE_KEY,
+    goGame.boardSize,
+  );
+
+  // Sync the goGame's ref to reflect the changes after user upload
   useEffect(() => {
     goGameRef.current = goGame;
   }, [goGame, goGameRef]);
-  const [updateCounter, setUpdateCounter] = useState(0);
-  const forceUpdate = () => setUpdateCounter((prev) => prev + 1);
-  const [boardSize, setBoardSize] = useState(goGame.boardSize);
-  const isMobile = useIsMobile();
+
+  // sync the board size state with goGame
+  useEffect(() => {
+    setBoardSize(goGame.boardSize);
+  }, [goGame.boardSize]);
+
   const {
-    handleSelectNode,
-    handleClickBoard,
-    currentNode,
-    nextPlayer,
-    setNextPlayer,
     mode,
     setMode,
+    nextPlayer,
+    setNextPlayer,
+    currentNode,
+    handleSelectNode,
+    editTool,
+    setEditTool,
+    getNextPlayer,
+    handleClickBoard,
   } = useGo({
     goGame,
   });
@@ -49,17 +66,21 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
   });
 
   const handleUploadSgfChange = (sgf: string) => {
-    const newGoGame = GoGame.fromSgf(sgf);
-    setGoGame(newGoGame);
-    forceUpdate();
-    toast.success("Successfully loaded SGF content");
+    try {
+      const newGoGame = GoGame.fromSgf(sgf);
+      setGoGame(newGoGame);
+      handleSelectNode(newGoGame.root);
+      forceUpdate();
+      toast.success("Successfully loaded SGF content");
+    } catch (error) {
+      toast.error(`Failed to load SGF content: ${error}`);
+    }
   };
 
   const handleBoardSizeChange = (boardSize: number) => {
     setBoardSize(boardSize);
     goGame.setBoardSize(boardSize);
     handleSelectNode(goGame.root);
-    forceUpdate();
   };
 
   const handleDeleteNode = (node: SgfNode) => {
@@ -73,7 +94,7 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
   };
 
   const handleClickBoardForcedUpdate = (row: number, col: number) => {
-    handleClickBoard(row, col);
+    handleClickBoard(row, col, editTool);
     forceUpdate();
   };
 
@@ -89,7 +110,7 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
           cellSize={cellSize}
           boardSize={goGame.boardSize}
           boardState={goGame.getBoardState(currentNode, 1)}
-          nextPlayer={nextPlayer}
+          nextPlayer={getNextPlayer(currentNode)}
           onMove={handleClickBoardForcedUpdate}
         />
       </div>
@@ -108,8 +129,14 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
               disabled={goGame.root !== currentNode}
               isEdit={mode === "edit"}
               toggleIsEdit={(isEdit) => setMode(isEdit ? "edit" : "move")}
+              editTool={editTool}
+              onEditToolChange={setEditTool}
             />
-            <StoneSwitch stone={nextPlayer} onSwitchStone={setNextPlayer} />
+            <StoneSwitch
+              disabled={mode === "edit"}
+              stone={nextPlayer}
+              onSwitchStone={setNextPlayer}
+            />
           </div>
           <div className="flex items-end gap-1">
             <BoardSizeSelect

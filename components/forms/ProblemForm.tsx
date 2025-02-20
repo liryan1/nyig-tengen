@@ -19,35 +19,71 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { RANK_OPTIONS } from "@/lib/go/constants";
 import { GoGame } from "@/lib/go/goGame";
+import { goGameToSgf, rootNodeToSgf } from "@/lib/go/parser";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SendHorizonalIcon } from "lucide-react";
 import { useRef } from "react";
 import { useForm } from "react-hook-form";
+import toast from "react-hot-toast";
 import { z } from "zod";
 import { GoProblemEditor } from "../learn/go/GoProblemEditor";
+import {
+  ProblemCreateRequest,
+  useCreateProblemMutation,
+} from "@/lib/rtk/slices/problems";
+import { PROBLEM_EDIT_BOARD_SIZE_KEY } from "@/hooks/useLocalStorage";
+import { Spinner } from "../labels/Spinner";
 
 const formSchema = z.object({
   rank: z.coerce.number().int().min(-29).max(8),
   description: z.string().optional(),
-  sgf: z.string().nonempty("An SGF problems file is required"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function ProblemCreateForm() {
+interface Props {
+  problemId?: string;
+}
+
+export function ProblemForm({ problemId }: Props) {
   const goGameRef = useRef<GoGame | null>(null);
+  const [create, { isLoading: cLoading }] = useCreateProblemMutation();
+  const isLoading = cLoading;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       rank: -5,
       description: "",
-      sgf: "",
     },
   });
 
-  const onSubmit = (values: FormValues) => {
-    console.log("Form values:", values);
+  const onSubmit = async (values: FormValues) => {
+    if (!goGameRef.current || goGameRef.current.isEmpty()) {
+      // nothing to submit
+      return;
+    }
+    const body: ProblemCreateRequest = {
+      ...values,
+      initial: rootNodeToSgf(goGameRef.current),
+      correct: goGameToSgf(goGameRef.current),
+    };
+    try {
+      if (problemId) {
+        console.log("Update not implemented yet. body:", body);
+      } else {
+        await create(body).unwrap();
+      }
+      toast.success(
+        "Problem successfully " + problemId ? "updated" : "created",
+      );
+      form.reset();
+      goGameRef.current = new GoGame({
+        boardSize: localStorage.get(PROBLEM_EDIT_BOARD_SIZE_KEY) ?? 19,
+      });
+    } catch (error) {
+      toast.error("Failed to " + problemId ? "update" : "create" + " problem");
+    }
   };
 
   return (
@@ -101,9 +137,9 @@ export function ProblemCreateForm() {
           )}
         />
 
-        <Button className="gap-1" type="submit" disabled>
+        <Button className="gap-1" type="submit" disabled={isLoading}>
           Create
-          <SendHorizonalIcon />
+          {isLoading ? <Spinner className="h-4 w-4" /> : <SendHorizonalIcon />}
         </Button>
       </form>
     </Form>

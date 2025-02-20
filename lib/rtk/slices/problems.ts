@@ -1,8 +1,4 @@
-import {
-  Evaluation,
-  GoProblemResponse,
-  ProblemStats,
-} from "@/lib/go/interface";
+import { Evaluation, GoProblemResponse } from "@/lib/go/interface";
 import { apiSlice, PROBLEM_SET_PROGRESS_TAG, PROBLEMS_TAG } from "../api";
 
 interface SubmissionRequest {
@@ -14,6 +10,13 @@ interface SubmissionRequest {
 interface SubmissionResponse {
   evaluation: Evaluation;
   submissionId: string;
+}
+
+export interface ProblemCreateRequest {
+  rank: number;
+  description?: string;
+  initial: string;
+  correct: string;
 }
 
 export interface GetProblemsResponse {
@@ -46,8 +49,20 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [PROBLEM_SET_PROGRESS_TAG],
     }),
+    createProblem: builder.mutation<void, ProblemCreateRequest>({
+      query: (body) => ({
+        url: "problems",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [PROBLEMS_TAG],
+    }),
   }),
 });
 
-export const { useGetProblemQuery, useSubmitMutation, useGetProblemsQuery } =
-  problemsApiSlice;
+export const {
+  useGetProblemQuery,
+  useSubmitMutation,
+  useGetProblemsQuery,
+  useCreateProblemMutation,
+} = problemsApiSlice;

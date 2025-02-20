@@ -1,5 +1,6 @@
 "use client";
 
+import { BoardEditTool } from "@/hooks/useGo";
 import { getPixelSize } from "@/lib/go/display";
 import { indicesToCoord } from "@/lib/go/goGame";
 import { BoardState, StoneColor } from "@/lib/go/interface";
@@ -66,7 +67,7 @@ export function GoBoardControl({
     row: number,
     col: number,
   ) => {
-    if (!readonly && event && nextPlayer && onMove) {
+    if (!readonly && event && onMove) {
       onMove(row, col);
       handleEmptySpaceHoverLeave(event, row, col);
     }

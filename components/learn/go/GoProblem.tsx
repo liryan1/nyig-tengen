@@ -2,7 +2,7 @@
 
 import { PageError } from "@/components/labels/Error";
 import { infoIcon, successIcon } from "@/components/labels/icons";
-import { PageSpinner } from "@/components/labels/Spinner";
+import { PageSpinner, Spinner } from "@/components/labels/Spinner";
 import { Button } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/isMobile";
 import { coordToIndices, GoGame } from "@/lib/go/goGame";
@@ -183,9 +183,13 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
             <ExportSGFButton
               getSgfString={() => toSgf(goGame.root, boardSize)}
             />
-            <Button size="sm" onClick={handleSubmitAnswer}>
+            <Button size="sm" onClick={handleSubmitAnswer} disabled={isLoading}>
               Submit
-              <SendHorizonalIcon />
+              {isLoading ? (
+                <Spinner className="h-4 w-4" />
+              ) : (
+                <SendHorizonalIcon />
+              )}
             </Button>
           </GoProblemToolbar>
         </div>

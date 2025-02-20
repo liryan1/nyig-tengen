@@ -40,8 +40,17 @@ export function fromSgf(sgf: string): SgfNode {
  * back into SGF format.
  */
 export function toSgf(root: SgfNode, boardSize: number): string {
-  // Build a single SGF "GameTree" string from this root
-  return `(;SZ[${boardSize}]` + buildGameTreeString(root) + ")";
+  // Append size to the root game tree
+  return `(;SZ[${boardSize}]` + buildGameTreeString(root).slice(2) + ")";
+}
+
+// Wrapper for toSgf
+export function goGameToSgf(goGame: GoGame) {
+  return toSgf(goGame.root, goGame.boardSize);
+}
+
+export function rootNodeToSgf(goGame: GoGame) {
+  return `(${serializeNode(goGame.root)})`;
 }
 
 export function getRootBoardState(sgf: string): BoardState {

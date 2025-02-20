@@ -79,7 +79,7 @@ export function UploadSGFButton({
           <DialogTitle>Upload SGF File</DialogTitle>
         </DialogHeader>
         {goGameRef?.current && !goGameRef.current.isEmpty() && (
-          <div className="flex items-center gap-1 text-red-400">
+          <div className="text-sm flex items-center gap-1 text-red-500">
             <CircleAlertIcon />
             Warning: This will overwrite all existing data.
           </div>

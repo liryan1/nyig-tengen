@@ -89,14 +89,14 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const [session, { title, description, rank, initial, correct, incorrect }] =
+    const [session, { description, rank, initial, correct }] =
       await Promise.all([getServerSession(authOptions), req.json()]);
     const userId = session?.user?.id;
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    if (!title || !rank || !initial || !correct) {
+    if (!rank || !initial || !correct) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 },
