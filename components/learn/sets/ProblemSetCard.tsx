@@ -93,7 +93,7 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
         {/* Boards Container */}
         <div
           ref={containerRef}
-          className="flex items-center gap-1 overflow-hidden w-full justify-center"
+          className="flex items-center gap-1 overflow-hidden w-full justify-center px-2"
         >
           {problems.slice(currentIndex, currentIndex + 3).map((p, i) => {
             const boardSize = getBoardSize(p);

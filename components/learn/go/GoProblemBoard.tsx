@@ -29,6 +29,8 @@ export function GoProblemBoard({
   const { showCoord } = useShowCoord();
   const { boardPixelSize } = getPixelSize({ boardSize, cellSize });
 
+  console.log("boardState:", boardState);
+
   return (
     <div
       className="overflow-hidden"

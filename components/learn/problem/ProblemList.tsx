@@ -19,7 +19,7 @@ export async function ProblemList({ problems, isError }: ProblemListProps) {
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-2xl font-medium">Go Problems</span>
+          <span className="text-2xl font-medium">Problems</span>
           {session?.user?.role === "ADMIN" && (
             <Link href="/learn/problems/create">
               <Button size="sm" variant="outline">
@@ -33,7 +33,7 @@ export async function ProblemList({ problems, isError }: ProblemListProps) {
           <Link href="/learn/problems">More</Link>
         </Button>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
         {isError ? (
           <PageError>Error getting problems</PageError>
         ) : (

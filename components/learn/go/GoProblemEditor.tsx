@@ -14,10 +14,6 @@ import { EditButton } from "./tools/EditButton";
 import { ExportSGFButton } from "./tools/ExportSGFButton";
 import { StoneSwitch } from "./tools/StoneSwitch";
 import { UploadSGFButton } from "./tools/UploadSGFButton";
-import {
-  PROBLEM_EDIT_BOARD_SIZE_KEY,
-  useLocalStorage,
-} from "@/hooks/useLocalStorage";
 
 interface GoProblemEditorProps {
   goGameRef: RefObject<GoGame | null>;
@@ -30,10 +26,7 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
   const [updateCounter, setUpdateCounter] = useState(0);
   const forceUpdate = () => setUpdateCounter((prev) => prev + 1);
   const isMobile = useIsMobile();
-  const [boardSize, setBoardSize] = useLocalStorage(
-    PROBLEM_EDIT_BOARD_SIZE_KEY,
-    goGame.boardSize,
-  );
+  const [boardSize, setBoardSize] = useState(goGame.boardSize);
 
   // Sync the goGame's ref to reflect the changes after user upload
   useEffect(() => {
@@ -81,6 +74,7 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
     setBoardSize(boardSize);
     goGame.setBoardSize(boardSize);
     handleSelectNode(goGame.root);
+    setNextPlayer(getNextPlayer(goGame.root));
   };
 
   const handleDeleteNode = (node: SgfNode) => {
@@ -142,6 +136,7 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
             <BoardSizeSelect
               size={boardSize}
               onChange={handleBoardSizeChange}
+              isBoardEmpty={goGame.isEmpty()}
             />
             <ExportSGFButton
               getSgfString={() => toSgf(goGame.root, goGame.boardSize)}

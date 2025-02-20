@@ -1,14 +1,14 @@
 "use client";
 
-import { getPixelSize, getRank } from "@/lib/go/display";
+import { useCellSize } from "@/hooks/useCellSize";
+import { getRank } from "@/lib/go/display";
 import { GoProblemResponse } from "@/lib/go/interface";
 import { getBoardSize, getRootBoardState } from "@/lib/go/parser";
 import { formatLargeNumber } from "@/lib/utils";
-import { CheckCircleIcon, EyeIcon, SwordsIcon } from "lucide-react";
+import { CheckCircleIcon, EyeIcon, HeartIcon, SwordsIcon } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
 import { Card, CardContent, CardFooter, CardTitle } from "../../ui/card";
-import { useCellSize } from "@/hooks/useCellSize";
 import { ReadonlyGoBoard } from "../go/board/ReadonlyGoBoard";
 
 type Props = {
@@ -29,7 +29,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
 
   return (
     <Card className="hover:shadow-sm max-w-sm rounded-sm">
-      <CardTitle className="font-medium text-muted-foreground p-2">
+      <CardTitle className="font-medium text-sm md:text-base text-muted-foreground p-1">
         <div className="flex justify-between">
           <span>
             <Link className="underline" href="#">
@@ -57,11 +57,17 @@ export function ProblemCard({ goProblemResponse }: Props) {
           />
         </Link>
       </CardContent>
-      <CardFooter className="flex items-center justify-between text-sm text-muted-foreground p-0 px-2 py-1">
-        <span className="flex items-center space-x-1">
-          <EyeIcon size={16} />
-          <span>{stats?.views ? formatLargeNumber(stats.views) : "?"}</span>
-        </span>
+      <CardFooter className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground p-0 px-1 sm:px-2 py-1">
+        <div className="flex gap-2">
+          <span className="flex items-center space-x-1">
+            <EyeIcon size={16} />
+            <span>{stats?.views ? formatLargeNumber(stats.views) : "?"}</span>
+          </span>
+          <span className="flex items-center space-x-1">
+            <HeartIcon size={16} />
+            <span>{stats?.likes ? formatLargeNumber(stats.likes) : "0"}</span>
+          </span>
+        </div>
         <div className="flex items-center space-x-1">
           <CheckCircleIcon size={16} />
           <span>

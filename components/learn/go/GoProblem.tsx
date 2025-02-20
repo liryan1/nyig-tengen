@@ -170,9 +170,9 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
             {message}
             {isLoading && <PageSpinner />}
             {sError && (
-              <PageError>
+              <div className="flex justify-center items-center p-10 text-xl text-red-500">
                 Failed to submit solution. Please try again later.
-              </PageError>
+              </div>
             )}
           </div>
           <GoProblemToolbar

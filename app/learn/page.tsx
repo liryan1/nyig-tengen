@@ -10,7 +10,7 @@ export default async function ProblemsPage() {
   const { response: resPS, isError: isErrorPS } =
     await fetchSafe<GetPSetsResponse>("problems/sets");
   return (
-    <div className="px-1 space-y-6">
+    <div className="px-1 sm:px-0 space-y-6">
       <ProblemSetList
         problemSets={resPS?.problemSets ?? []}
         isError={isErrorPS}

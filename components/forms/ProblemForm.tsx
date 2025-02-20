@@ -31,7 +31,6 @@ import {
   ProblemCreateRequest,
   useCreateProblemMutation,
 } from "@/lib/rtk/slices/problems";
-import { PROBLEM_EDIT_BOARD_SIZE_KEY } from "@/hooks/useLocalStorage";
 import { Spinner } from "../labels/Spinner";
 
 const formSchema = z.object({
@@ -79,7 +78,7 @@ export function ProblemForm({ problemId }: Props) {
       );
       form.reset();
       goGameRef.current = new GoGame({
-        boardSize: localStorage.get(PROBLEM_EDIT_BOARD_SIZE_KEY) ?? 19,
+        boardSize: 19,
       });
     } catch (error) {
       toast.error("Failed to " + problemId ? "update" : "create" + " problem");

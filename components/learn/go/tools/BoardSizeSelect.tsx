@@ -9,6 +9,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -18,34 +19,43 @@ import { BOARD_SIZES } from "@/lib/go/constants";
 import { CircleAlertIcon } from "lucide-react";
 
 interface BoardSizeSelectProps {
-  size: number;
+  isBoardEmpty?: boolean;
+  size: number | null;
   onChange: (size: number) => void;
 }
 
-export function BoardSizeSelect({ size, onChange }: BoardSizeSelectProps) {
+export function BoardSizeSelect({
+  isBoardEmpty,
+  size,
+  onChange,
+}: BoardSizeSelectProps) {
   const [open, setOpen] = useState(false);
-  const [selectedSize, setSelectedSize] = useState<number | null>(null);
+  const [selectedSize, setSelectedSize] = useState(size);
 
   const handleSelect = (value: string) => {
-    setSelectedSize(parseInt(value));
-    setOpen(true);
+    if (isBoardEmpty) {
+      onChange(parseInt(value));
+    } else {
+      setSelectedSize(parseInt(value));
+      setOpen(true);
+    }
   };
 
   const handleConfirm = () => {
-    if (selectedSize !== null) {
+    if (selectedSize) {
       onChange(selectedSize);
     }
     setOpen(false);
   };
 
   const handleCancel = () => {
-    setSelectedSize(null);
+    setSelectedSize(size);
     setOpen(false);
   };
 
   return (
     <>
-      <Select value={size.toString()} onValueChange={handleSelect}>
+      <Select value={size?.toString()} onValueChange={handleSelect}>
         <SelectTrigger className="w-20 bg-primary-foreground h-8 p-0 px-2">
           <SelectValue placeholder="Select rank" />
         </SelectTrigger>
@@ -80,6 +90,9 @@ export function BoardSizeSelect({ size, onChange }: BoardSizeSelectProps) {
             </Button>
           </DialogFooter>
         </DialogContent>
+        <DialogDescription className="hidden">
+          Board Resize warning
+        </DialogDescription>
       </Dialog>
     </>
   );

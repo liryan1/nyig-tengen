@@ -129,7 +129,7 @@ export class GoGame {
     let moveNumber = startNumber;
     for (const n of path) {
       this.applyNodeChanges(boardState, n, moveNumber);
-      if (moveNumber !== undefined && n.moveColor) {
+      if (moveNumber !== undefined && n.moveColor && n !== this.root) {
         moveNumber++;
       }
     }
