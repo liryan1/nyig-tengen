@@ -15,7 +15,7 @@ import { Spinner } from "../labels/Spinner";
 import { Button } from "../ui/button";
 import "./editFormStyle.scss";
 import { debounce } from "@/lib/debounce";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
 const initialForm: PostForm = {

@@ -12,7 +12,7 @@ import { useSubmitMutation } from "@/lib/rtk/slices/problems";
 import { MoveRightIcon, SendHorizonalIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { useCellSize } from "../../../hooks/useCellSize";
 import { useGo } from "../../../hooks/useGo";
 import { getMoves } from "../../../lib/go/evaluate";
@@ -52,7 +52,7 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
 
   const handleSubmitAnswer = async () => {
     if (authStatus !== "authenticated") {
-      toast.error("Please login to submit a solution");
+      toast.error("Please login to submit a solution.");
       return;
     }
     const userMoves = getMoves(currentNode);

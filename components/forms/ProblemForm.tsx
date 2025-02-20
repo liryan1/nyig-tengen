@@ -24,7 +24,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SendHorizonalIcon } from "lucide-react";
 import { useRef } from "react";
 import { useForm } from "react-hook-form";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { z } from "zod";
 import { GoProblemEditor } from "../learn/go/GoProblemEditor";
 import {
@@ -72,9 +72,14 @@ export function ProblemForm({ problemId }: Props) {
         console.log("Update not implemented yet. body:", body);
       } else {
         const createResponse = await create(body).unwrap();
-        toast.success(
-          "Successfully created problem with ID: " + createResponse.id,
-        );
+        toast.success("Successfully created new problem", {
+          action: {
+            label: "View",
+            onClick: () => {
+              window.location.href = "/learn/problems/" + createResponse.id;
+            },
+          },
+        });
       }
     } catch (error) {
       toast.error(

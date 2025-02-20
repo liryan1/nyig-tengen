@@ -9,7 +9,7 @@ import {
 import { FlameIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 interface StartButtonProps extends ButtonProps {
   sId?: string;

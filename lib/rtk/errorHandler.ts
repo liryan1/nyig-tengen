@@ -1,6 +1,5 @@
 import type { Middleware, MiddlewareAPI } from "@reduxjs/toolkit";
 import { isRejectedWithValue } from "@reduxjs/toolkit";
-import toast from "react-hot-toast";
 
 /**
  * See https://redux-toolkit.js.org/rtk-query/usage/error-handling
@@ -10,7 +9,6 @@ export const rtkQueryErrorLogger: Middleware =
   (api: MiddlewareAPI) => (next) => (action) => {
     if (isRejectedWithValue(action)) {
       console.error(getErrorMessage(action));
-      toast.error(getErrorMessage(action));
     }
 
     return next(action);

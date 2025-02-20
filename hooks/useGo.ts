@@ -10,7 +10,7 @@ import {
 } from "@/lib/go/goGame";
 import { StoneColor } from "@/lib/go/interface";
 import { useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export type BoardMode = "move" | "edit";
 export type BoardEditTool = "black" | "white" | "erase";
@@ -50,11 +50,6 @@ export function useGo({ goGame, readonly }: UseGoProps) {
     currNode?: SgfNode,
     ignoreNextPlayer?: boolean,
   ): StoneColor => {
-    // We know the next player, just return it
-    // e.g. if move tool was clicked, the next move should be nextPlayer
-    if (!ignoreNextPlayer && nextPlayer !== 0) {
-      return nextPlayer;
-    }
     // If edit tool is set, use its color to determine the next player
     if (mode === "edit") {
       if (editTool === "black") {
@@ -64,6 +59,11 @@ export function useGo({ goGame, readonly }: UseGoProps) {
       } else {
         return 0;
       }
+    }
+    // We know the next player, just return it
+    // e.g. if move tool was clicked, the next move should be nextPlayer
+    if (!ignoreNextPlayer && nextPlayer !== 0) {
+      return nextPlayer;
     }
     // Then try to use the current node
     if (currNode) {

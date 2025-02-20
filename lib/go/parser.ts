@@ -50,7 +50,7 @@ export function goGameToSgf(goGame: GoGame) {
 }
 
 export function rootNodeToSgf(goGame: GoGame) {
-  return `(${serializeNode(goGame.root)})`;
+  return `(;[SZ${goGame.boardSize}]${serializeNode(goGame.root).slice(1)})`;
 }
 
 export function getRootBoardState(sgf: string): BoardState {

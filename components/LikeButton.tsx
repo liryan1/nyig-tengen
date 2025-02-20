@@ -3,7 +3,7 @@ import { debounce } from "@/lib/debounce";
 import { useToggleLikeMutation } from "@/lib/rtk/slices/likes";
 import { HeartIcon } from "lucide-react";
 import React from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 export type LikeButtonProps = {
   postId: string;
@@ -36,7 +36,7 @@ export function LikeButton({
       toast.success(liked ? "Unliked post" : "Liked post");
     } catch (error) {
       if ((error as { status: number })?.status === 401) {
-        toast.error("You must be logged in to like a post");
+        toast.warning("You must be logged in to like a post");
       } else {
         console.error("Failed to toggle like:", error);
       }

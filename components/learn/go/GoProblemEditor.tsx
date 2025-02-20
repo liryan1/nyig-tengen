@@ -6,7 +6,7 @@ import { useGo } from "@/hooks/useGo";
 import { GoGame, SgfNode } from "@/lib/go/goGame";
 import { toSgf } from "@/lib/go/parser";
 import { RefObject, useEffect, useRef, useState } from "react";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { GoProblemBoard } from "./GoProblemBoard";
 import { GoProblemToolbar } from "./GoProblemToolbar";
 import { BoardSizeSelect } from "./tools/BoardSizeSelect";

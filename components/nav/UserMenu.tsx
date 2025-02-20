@@ -14,7 +14,7 @@ import { signOut, useSession } from "next-auth/react";
 import { redirect } from "next/navigation";
 import { Button } from "../ui/button";
 import Link from "next/link";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { CrownIcon } from "lucide-react";
 
 export function UserMenu() {

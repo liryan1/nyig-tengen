@@ -4,7 +4,7 @@ import "@/styles/globals.scss";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { Inter } from "next/font/google";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
 import ReduxProvider from "../components/providers/ReduxProvider";
 import { authOptions } from "./api/auth/authOptions";
 import "./globals.css";
@@ -36,11 +36,7 @@ export default async function RootLayout({
             <main className="mx-auto">{children}</main>
           </ReduxProvider>
         </SessionProvider>
-        <Toaster
-          containerStyle={{
-            top: 70,
-          }}
-        />
+        <Toaster closeButton richColors duration={3000} />
       </body>
     </html>
   );

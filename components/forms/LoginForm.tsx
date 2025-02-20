@@ -21,7 +21,7 @@ import { Spinner } from "../labels/Spinner";
 import { Input } from "../ui/input";
 import Image from "next/image";
 import { logStack } from "@/lib/error";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   email: z.string().email({
@@ -54,21 +54,27 @@ export function LoginForm({ referer }: { referer?: string | null }) {
   });
 
   const onSubmit: SubmitHandler<FieldValues> = async (data) => {
-    setLoading(true);
-    try {
+    const signin = async () => {
       const response = await signIn("credentials", {
         ...data,
-        callbackUrl: referer || undefined,
-        redirect: !!referer,
+        redirect: false,
       });
       if (response?.error) {
-        form.setError("root", { message: response.error });
-        toast.error("Login failed");
+        form.setError("root", { message: "Failed to sign in" });
+        throw Error(`Login failed, status ${response.status}`);
       }
-      if (response?.ok) {
-        toast.success("Login successful");
-        router.push("/");
+      if (referer) {
+        window.location.href = referer;
       }
+    };
+
+    setLoading(true);
+    try {
+      toast.promise(signin, {
+        loading: "Logging in...",
+        success: "Login successful",
+        error: (err) => err.message,
+      });
     } catch (error) {
       logStack(error);
     } finally {

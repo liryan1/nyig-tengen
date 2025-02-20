@@ -7,7 +7,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { redirect, useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { Spinner } from "../labels/Spinner";
-import { SquarePenIcon } from "lucide-react";
+import { CircleAlertIcon, SquarePenIcon } from "lucide-react";
 import { LogoWithText } from "../labels/Logo";
 import {
   Form,
@@ -20,7 +20,7 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Input } from "../ui/input";
 import { useSignupMutation } from "@/lib/rtk/slices/auth";
-import toast from "react-hot-toast";
+import { toast } from "sonner";
 import { logStack } from "@/lib/error";
 
 export const signUpSchema = z.object({
@@ -41,7 +41,7 @@ const defaultValues = {
   password: "",
 };
 
-export function SignUpForm() {
+export function SignUpForm({ referer }: { referer?: string | null }) {
   const session = useSession();
   const router = useRouter();
   const [signup, { isLoading }] = useSignupMutation();
@@ -58,28 +58,45 @@ export function SignUpForm() {
   });
 
   const onSubmit: SubmitHandler<TSignUpForm> = async (data) => {
-    try {
-      await signup(data).unwrap();
-      toast.success("Signup successful!");
-      const response = await signIn("credentials", {
+    const signUpAndSignIn = async () => {
+      const signupResponse = await signup(data);
+      if (!signupResponse) {
+        throw Error("Unknown Error");
+      } else if (signupResponse.error) {
+        const error = signupResponse.error as any;
+        if (error.data) {
+          form.setError("root", { message: error.data.message });
+          throw Error(`Sign up failed due to: ${error.data.message}`);
+        } else {
+          throw Error("Sign up failed");
+        }
+      }
+
+      const signinResponse = await signIn("credentials", {
         email: data.email,
         password: data.password,
         redirect: false,
       });
-      if (response?.error) {
-        form.setError("root", { message: response.error });
-        toast.error("Login failed");
+
+      if (signinResponse?.error) {
+        throw Error(
+          "Sign up successful, but auto login failed. Please log in manually.",
+        );
       }
-      if (response?.ok) {
-        toast.success("Login successful");
+      if (referer) {
+        window.location.href = referer;
       }
-      router.push("/");
+    };
+
+    try {
+      toast.promise(signUpAndSignIn, {
+        loading: "Loading...",
+        success: "Sign up successful",
+        error: (err) => err.message,
+      });
     } catch (error) {
       logStack(error);
-      toast.error("An unknown issue has occurred");
     }
-
-    router.push("/");
   };
 
   const buttonIcon = isLoading ? (
@@ -102,6 +119,12 @@ export function SignUpForm() {
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            {form.formState.errors.root && (
+              <div className="flex items-center text-red-600 text-sm gap-1">
+                <CircleAlertIcon className="h-4 w-4" />
+                {form.formState.errors.root.message}
+              </div>
+            )}
             <FormField
               control={form.control}
               name="name"
