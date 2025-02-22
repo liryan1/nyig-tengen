@@ -1,6 +1,6 @@
 import { PageError } from "@/components/labels/Error";
 import { ProblemSetList } from "@/components/learn/sets/ProblemSetList";
-import { CustomPagination } from "@/components/nav/CustomPagination";
+import { QueryPagination } from "@/components/nav/QueryPagination";
 import { fetchSafe } from "@/lib/fetch";
 import { GetPSetsResponse } from "@/lib/rtk/slices/problemSets";
 
@@ -24,7 +24,7 @@ export default async function ProblemSetsPage({ searchParams }: PageProps) {
   return (
     <div className="flex flex-col gap-6">
       <ProblemSetList problemSets={response.problemSets} isError={isError} />
-      <CustomPagination
+      <QueryPagination
         className="my-4"
         currentPage={response.currentPage}
         totalPages={response.totalPages}

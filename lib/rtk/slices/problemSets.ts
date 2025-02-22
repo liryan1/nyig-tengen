@@ -50,11 +50,27 @@ export interface GetPSetProgressResponse {
   completedCount: number;
 }
 
+export interface ProblemOrder {
+  problemId: string;
+  status?: SubmissionStatus;
+}
+
+export interface CreatePSetProgressResponse {
+  id: string;
+  createdAt: string;
+  status: ProgressStatus;
+  problemOrder: ProblemOrder[];
+  problemSet: {
+    name: string;
+    id: string;
+  };
+}
+
 export interface PSetProgressResponse {
   id: string;
   createdAt: string;
   problemSet: { name: string; id: string };
-  problemOrder: { problemId: string; status?: SubmissionStatus }[];
+  problemOrder: ProblemOrder[];
   status: ProgressStatus;
 }
 
@@ -77,7 +93,7 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       providesTags: [PROBLEM_SET_PROGRESS_TAG],
     }),
     createPSetProgress: builder.mutation<
-      GetPSetProgressResponse,
+      CreatePSetProgressResponse,
       { id: string; randomize?: boolean }
     >({
       query: ({ id, randomize }) => ({

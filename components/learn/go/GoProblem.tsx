@@ -25,9 +25,14 @@ import { PassButton } from "./tools/PassButton";
 interface GoProblemProps {
   problem: GoProblemResponse;
   problemSetProgressId?: string;
+  initialSuccess?: boolean;
 }
 
-export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
+export function GoProblem({
+  problem,
+  problemSetProgressId,
+  initialSuccess,
+}: GoProblemProps) {
   const boardSize = getBoardSize(problem.initial);
   const goGameRef = useRef<GoGame | null>(null);
   if (goGameRef.current === null) {
@@ -46,7 +51,7 @@ export function GoProblem({ problem, problemSetProgressId }: GoProblemProps) {
   const isMobile = useIsMobile();
   const boardContainerRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState<React.ReactNode>("");
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(!!initialSuccess);
   const { cellSize, boardPixelSize } = useCellSize({
     boardSize,
     boardContainerRef,

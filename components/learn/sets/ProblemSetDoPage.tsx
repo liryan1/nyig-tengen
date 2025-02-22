@@ -63,6 +63,10 @@ export function ProblemSetDoPage({
       <GoProblem
         problem={problem}
         problemSetProgressId={progressResponse.progress?.id}
+        initialSuccess={
+          progressResponse.progress.problemOrder[currentIndex].status ===
+          "solved"
+        }
       />
     </div>
   );

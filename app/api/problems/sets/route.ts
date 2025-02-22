@@ -48,7 +48,7 @@ export async function GET(req: Request) {
           },
           problemSetProblems: {
             include: { problem: { select: { initial: true } } },
-            take: 5,
+            take: 10,
           },
           problemSetStats: { select: { views: true } },
           description: true,

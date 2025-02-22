@@ -1,7 +1,7 @@
 // app/problems/page.tsx
 import { PageError } from "@/components/labels/Error";
 import { ProblemList } from "@/components/learn/problem/ProblemList";
-import { CustomPagination } from "@/components/nav/CustomPagination";
+import { QueryPagination } from "@/components/nav/QueryPagination";
 import { fetchSafe } from "@/lib/fetch";
 import { GetProblemsResponse } from "@/lib/rtk/slices/problems";
 
@@ -25,7 +25,7 @@ async function AllProblems({ searchParams }: PageProps) {
   return (
     <div className="px-1 sm:px-0">
       <ProblemList problems={response.problems} />
-      <CustomPagination
+      <QueryPagination
         className="my-4"
         currentPage={response.currentPage}
         totalPages={response.totalPages}

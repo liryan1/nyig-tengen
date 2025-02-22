@@ -24,6 +24,7 @@ import { GoBoardView } from "../go/board/GoBoardView";
 import { InfoBar } from "../InfoBar";
 import { StartButton } from "./StartButton";
 import { ReadonlyGoBoard } from "../go/board/ReadonlyGoBoard";
+import { ProblemGrid } from "../problem/ProblemGrid";
 
 export function ProblemSetPage({ sId }: { sId?: string }) {
   const { status: authStatus } = useSession();
@@ -114,24 +115,14 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
         />
       </CardContent>
       <div className="text-sm text-muted-foreground px-2 sm:px-4">
-        Total problems: <strong>{problemCount}</strong>
+        Problem count: <strong>{problemCount}</strong>
       </div>
       <CardFooter className="gap-2 sm:gap-4 p-2 sm:p-4 flex flex-wrap max-h-[1/2]">
-        {problems.map((problem, i) => (
-          <div
-            className={progress?.progress ? "cursor-pointer" : ""}
-            key={problem.id}
-            onClick={() => handleProblemClick(problem.id)}
-          >
-            <ReadonlyGoBoard
-              className="hover:shadow-lg"
-              boardState={getRootBoardState(problem.initial)}
-              boardSize={getBoardSize(problem.initial)}
-              cellSize={20}
-              icon={getIcon(progress?.progress?.problemOrder[i]?.status)}
-            />
-          </div>
-        ))}
+        <ProblemGrid
+          problems={problems}
+          progress={progress}
+          onProblemClick={handleProblemClick}
+        />
       </CardFooter>
     </Card>
   );

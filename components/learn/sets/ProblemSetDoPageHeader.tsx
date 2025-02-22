@@ -34,13 +34,8 @@ export function ProblemSetDoPageHeader({
   const isCompleted = completedCount === problemOrder.length;
 
   return (
-    <>
-      <Link
-        href={pSetClientUrl}
-        className="hover:underline font-semibold sm:text-base md:text-xl"
-      >
-        {problemSet.name}
-      </Link>
+    <div className="px-1 sm:px-0 space-y-2 sm:space-y-6">
+      <div className="font-normal text-lg md:text-2xl">{problemSet.name}</div>
       <div className="flex items-center justify-between">
         <Button size="sm" color="secondary" disabled={!hasPrev}>
           <Link href={prevLink} className="flex items-center gap-1">
@@ -50,9 +45,15 @@ export function ProblemSetDoPageHeader({
         </Button>
         <div className="flex flex-col items-center space-y-1 mx-2">
           <div className="flex items-center gap-1 text-sm md:text-base font-medium">
-            <span className="text-muted-foreground">
-              Solved: {completedCount} of {problemOrder.length}
-            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-muted-foreground"
+            >
+              <Link href={pSetClientUrl}>
+                Solved: {completedCount} of {problemOrder.length}
+              </Link>
+            </Button>
             {isCompleted && (
               <span className="flex items-center gap-1 text-green-600 ml-2">
                 <CheckCircleIcon size={16} strokeWidth={3} />
@@ -68,6 +69,6 @@ export function ProblemSetDoPageHeader({
           </Link>
         </Button>
       </div>
-    </>
+    </div>
   );
 }

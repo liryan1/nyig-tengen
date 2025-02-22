@@ -46,7 +46,7 @@ export function GoProblemBoard({
           showSuccess && (
             <CircleCheckBigIcon
               className="text-green-600"
-              size={cellSize * 2}
+              size={boardPixelSize / 3}
             />
           )
         }

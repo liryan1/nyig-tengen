@@ -17,7 +17,7 @@ interface PaginationProps {
   className?: string;
 }
 
-export function CustomPagination({
+export function QueryPagination({
   currentPage,
   totalPages,
   className,

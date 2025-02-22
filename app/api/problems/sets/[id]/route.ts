@@ -23,6 +23,15 @@ export async function GET(req: Request, { params }: Params) {
       return NextResponse.json("Problem set not found", { status: 404 });
     }
 
+    const problems = problemSet.problemSetProblems.map((psp) => ({
+      id: psp.problem.id,
+      rank: psp.problem.rank,
+      initial: psp.problem.initial,
+      position: psp.position,
+    }));
+
+    problems.sort((a, b) => a.position - b.position);
+
     return NextResponse.json(
       {
         id: problemSet.id,
@@ -35,12 +44,7 @@ export async function GET(req: Request, { params }: Params) {
         views: problemSet.problemSetStats?.views,
         likes: problemSet.problemSetStats?.likes,
         author: problemSet.author,
-        problems: problemSet.problemSetProblems.map((psp) => ({
-          id: psp.problem.id,
-          rank: psp.problem.rank,
-          initial: psp.problem.initial,
-          position: psp.position,
-        })),
+        problems,
       },
       { status: 200 },
     );

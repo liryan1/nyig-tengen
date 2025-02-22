@@ -31,7 +31,7 @@ export function StartButton({ sId, ...buttonProps }: StartButtonProps) {
 
   const getRedirectUrl = (progress?: PSetProgressResponse) => {
     const currentProblemId = progress?.problemOrder?.find(
-      (p) => p.status !== "solved",
+      (p) => !p.status || p.status !== "solved",
     )?.problemId;
     return currentProblemId
       ? `/learn/sets/${sId}/${currentProblemId}`
@@ -56,7 +56,7 @@ export function StartButton({ sId, ...buttonProps }: StartButtonProps) {
     }
     // No current progress exists and the user is starting a new progress
     const response = await create({ id: sId ?? "" }).unwrap();
-    router.push(getRedirectUrl(response.progress));
+    router.push(getRedirectUrl(response));
   };
 
   return (
