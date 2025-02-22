@@ -10,6 +10,7 @@ generator client {
 enum UserRole {
   USER
   ADMIN
+  SUPERADMIN
 }
 
 model User {
@@ -32,9 +33,10 @@ model User {
   problems             Problem[]
   problemSets          ProblemSet[]
   problemSetProgresses ProblemSetProgress[]
-  teamMemberships      TeamMembership[]
+  endorsements         Endorsement[]
 
-  TeamInvite TeamInvite[]
+  teamMemberships TeamMembership[]
+  TeamInvite      TeamInvite[]
 }
 
 // ----------- Begin authentication models -----------
@@ -136,13 +138,14 @@ model Problem {
   rank               Int                 @default(-10)
   initial            String
   correct            String
-  visibility         Visibility          @default(PRIVATE)
+  visibility         Visibility          @default(PUBLIC)
   problemStats       ProblemStats?
   problemSetProblems ProblemSetProblem[]
   submissions        Submission[]
   author             User                @relation(fields: [authorId], references: [id])
   teamIds            String[]            @db.ObjectId
   teams              Team[]              @relation(fields: [teamIds], references: [id])
+  endorsement        Endorsement?
 
   @@index([authorId])
 }
@@ -186,7 +189,7 @@ model ProblemSet {
   averageRank          Float                @default(0)
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @updatedAt
-  visibility           Visibility           @default(PRIVATE)
+  visibility           Visibility           @default(PUBLIC)
   author               User                 @relation(fields: [authorId], references: [id])
   problemSetProblems   ProblemSetProblem[]
   problemSetProgresses ProblemSetProgress[]
@@ -247,6 +250,19 @@ enum Visibility {
   PUBLIC
   TEAM
   PRIVATE
+}
+
+model Endorsement {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  problemId String   @db.ObjectId
+  userId    String   @db.ObjectId
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  problem Problem @relation(fields: [problemId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([problemId]) // Only one endorsement per problem
 }
 
 // -------------------- End Go Problem Models --------------------

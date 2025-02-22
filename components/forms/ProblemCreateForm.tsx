@@ -20,18 +20,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { RANK_OPTIONS } from "@/lib/go/constants";
 import { GoGame } from "@/lib/go/goGame";
 import { goGameToSgf, rootNodeToSgf } from "@/lib/go/parser";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { SendHorizonalIcon } from "lucide-react";
-import { useRef } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-import { z } from "zod";
-import { GoProblemEditor } from "../learn/go/GoProblemEditor";
 import {
   ProblemCreateRequest,
   useCreateProblemMutation,
 } from "@/lib/rtk/slices/problems";
-import { Spinner } from "../labels/Spinner";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { CircleAlertIcon, SendHorizonalIcon } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useRef } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import { PageSpinner, Spinner } from "../labels/Spinner";
+
+const GoProblemEditor = dynamic(
+  () => import("@/components/learn/go/GoProblemEditor"),
+  { ssr: false, loading: () => <PageSpinner /> },
+);
 
 const formSchema = z.object({
   rank: z.coerce.number().int().min(-30).max(8),
@@ -44,7 +49,7 @@ interface Props {
   problemId?: string;
 }
 
-export function ProblemForm({ problemId }: Props) {
+export function ProblemCreateForm({ problemId }: Props) {
   const goGameRef = useRef<GoGame | null>(null);
   const [create, { isLoading: cLoading }] = useCreateProblemMutation();
   const isLoading = cLoading;
@@ -58,14 +63,25 @@ export function ProblemForm({ problemId }: Props) {
   });
 
   const onSubmit = async (values: FormValues) => {
-    if (!goGameRef.current || goGameRef.current.isEmpty()) {
+    const goGame = goGameRef.current;
+    if (!goGame) {
       // nothing to submit
+      return;
+    }
+    if (goGame.isEmpty()) {
+      form.setError("root", { message: "Please create a problem" });
+      return;
+    }
+    if (goGame.root.children.length === 0) {
+      form.setError("root", {
+        message: "Please provide at least one solution",
+      });
       return;
     }
     const body: ProblemCreateRequest = {
       ...values,
-      initial: rootNodeToSgf(goGameRef.current),
-      correct: goGameToSgf(goGameRef.current),
+      initial: rootNodeToSgf(goGame),
+      correct: goGameToSgf(goGame),
     };
     try {
       if (problemId) {
@@ -120,6 +136,12 @@ export function ProblemForm({ problemId }: Props) {
           )}
         />
 
+        {form.formState.errors.root && (
+          <div className="flex items-center text-red-600 text-sm gap-1">
+            <CircleAlertIcon className="h-4 w-4" />
+            {form.formState.errors.root.message}
+          </div>
+        )}
         <GoProblemEditor goGameRef={goGameRef} />
 
         <FormField

@@ -8,8 +8,13 @@ import { ReadonlyGoBoard } from "../go/board/ReadonlyGoBoard";
 import { InfoBar } from "../InfoBar";
 import { StartButton } from "./StartButton";
 import { AspectRatio } from "@/components/ui/aspect-ratio";
-import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 interface ProblemSetCardProps {
   problemSet: PSetsProblemSet;
@@ -19,36 +24,31 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
   const { id, name, author, problemCount, averageRank, views, problems } =
     problemSet;
 
-  // Ref for the container div
   const containerRef = useRef<HTMLDivElement>(null);
-  const [cellSizes, setCellSizes] = useState<number[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0); // Track pagination
 
-  const maxIndex = Math.max(0, problems.length - 3); // Max index for pagination
+  const [cellSizes, setCellSizes] = useState<number[]>([]);
 
   // Function to calculate cellSize for each board individually
   const calculateCellSizes = () => {
     if (containerRef.current) {
-      const containerWidth = containerRef.current.clientWidth; // Get container width
-      const boardAreaWidth = containerWidth / 3; // Each board gets 1/3 of the space
+      const containerWidth = containerRef.current.clientWidth;
+      const boardAreaWidth = containerWidth / 3.5; // Each board gets 1/3 of the space
 
-      const newCellSizes = problems
-        .slice(currentIndex, currentIndex + 3)
-        .map((p) => {
-          const boardSize = getBoardSize(p);
-          return boardAreaWidth / (boardSize + 1);
-        });
+      const newCellSizes = problems.map((p) => {
+        const boardSize = getBoardSize(p);
+        return boardAreaWidth / (boardSize + 1);
+      });
 
       setCellSizes(newCellSizes);
     }
   };
 
-  // Recalculate cell sizes on mount, resize, and pagination update
+  // Recalculate cell sizes on mount and resize
   useEffect(() => {
     calculateCellSizes();
     window.addEventListener("resize", calculateCellSizes);
     return () => window.removeEventListener("resize", calculateCellSizes);
-  }, [problems, currentIndex]); // Re-run when problems or index change
+  }, [problems]);
 
   return (
     <div className="border rounded-lg shadow-sm">
@@ -73,61 +73,33 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
           }}
         />
       </div>
-      <hr className="pt-2 pb-1" />
+      <hr />
 
-      {/* Board Display with Pagination */}
-      <div className="relative flex items-center gap-2 w-full">
-        {/* Left Pagination Button */}
-        {problems.length > 3 && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute left-0 z-10 bg-white/80 dark:bg-gray-800/80 rounded-full"
-            disabled={currentIndex === 0}
-            onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 3))}
-          >
-            <ChevronLeft size={24} />
-          </Button>
-        )}
-
-        {/* Boards Container */}
-        <div
-          ref={containerRef}
-          className="flex items-center gap-1 overflow-hidden w-full justify-center px-2"
+      {/* Carousel Implementation */}
+      <div ref={containerRef} className="relative w-full p-2">
+        <Carousel
+          opts={{
+            align: "center",
+            loop: true,
+          }}
+          className="w-full"
         >
-          {problems.slice(currentIndex, currentIndex + 3).map((p, i) => {
-            const boardSize = getBoardSize(p);
-
-            return (
-              <div key={i} className="w-1/3 flex-shrink-0 overflow-hidden">
-                <AspectRatio ratio={1}>
-                  {cellSizes.length === 3 && (
-                    <ReadonlyGoBoard
-                      boardState={getRootBoardState(p)}
-                      boardSize={boardSize}
-                      cellSize={cellSizes[i]} // Each board gets a unique cellSize
-                    />
-                  )}
-                </AspectRatio>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Right Pagination Button */}
-        {problems.length > 3 && (
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute right-0 z-10 bg-white/80 dark:bg-gray-800/80 rounded-full"
-            disabled={currentIndex >= maxIndex}
-            onClick={() =>
-              setCurrentIndex((prev) => Math.min(maxIndex, prev + 3))
-            }
-          >
-            <ChevronRight size={24} />
-          </Button>
-        )}
+          <CarouselContent>
+            {problems.map((problem, index) => (
+              <CarouselItem key={index} className="basis-1/3">
+                {cellSizes.length > 0 && (
+                  <ReadonlyGoBoard
+                    boardState={getRootBoardState(problem)}
+                    boardSize={getBoardSize(problem)}
+                    cellSize={cellSizes[index]}
+                  />
+                )}
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="left-0" />
+          <CarouselNext className="right-0" />
+        </Carousel>
       </div>
     </div>
   );

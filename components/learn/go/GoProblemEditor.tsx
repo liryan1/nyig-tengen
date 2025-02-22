@@ -15,19 +15,22 @@ import { ExportSGFButton } from "./tools/ExportSGFButton";
 import { StoneSwitch } from "./tools/StoneSwitch";
 import { UploadSGFButton } from "./tools/UploadSGFButton";
 import { PassButton } from "./tools/PassButton";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
+
+const BOARD_SIZE_KEY = "tengen-problem-create-board-size";
 
 interface GoProblemEditorProps {
   goGameRef: RefObject<GoGame | null>;
 }
 
 export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
+  const [boardSize, setBoardSize] = useLocalStorage(BOARD_SIZE_KEY, 19);
   const [goGame, setGoGame] = useState(
-    () => goGameRef.current || GoGame.fromSgf("(;)"),
+    () => goGameRef.current || new GoGame({ boardSize }),
   );
   const [updateCounter, setUpdateCounter] = useState(0);
   const forceUpdate = () => setUpdateCounter((prev) => prev + 1);
   const isMobile = useIsMobile();
-  const [boardSize, setBoardSize] = useState(goGame.boardSize);
 
   // Sync the goGame's ref to reflect the changes after user upload
   useEffect(() => {
@@ -36,7 +39,9 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
 
   // sync the board size state with goGame
   useEffect(() => {
-    setBoardSize(goGame.boardSize);
+    if (goGame.boardSize) {
+      setBoardSize(goGame.boardSize);
+    }
   }, [goGame.boardSize]);
 
   const {
@@ -54,6 +59,7 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
     handleClickBoard,
   } = useGo({
     goGame,
+    initialMode: "edit",
   });
   const boardContainerRef = useRef<HTMLDivElement>(null);
   const { cellSize, boardPixelSize } = useCellSize({
@@ -156,3 +162,5 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
     </div>
   );
 }
+
+export default GoProblemEditor;

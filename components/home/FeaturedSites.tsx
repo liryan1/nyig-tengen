@@ -30,7 +30,6 @@ export type FeaturedSite = {
 export function FeaturedSites() {
   return (
     <div className="container mx-auto">
-      <h2 className="text-2xl font-medium text-center mb-6 mt-16">Featured</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {featuredSites.map((site, index) => (
           <div
@@ -47,7 +46,7 @@ export function FeaturedSites() {
                   className="rounded-t-lg object-cover"
                 />
               </div>
-              <div className="p-4">
+              <div className="p-4 text-sm">
                 <p className="text-muted-foreground">{site.description}</p>
               </div>
             </a>

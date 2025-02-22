@@ -22,8 +22,6 @@ export function getEvaluation(
   userMoves: string[],
   solutionTree: SgfNode,
 ): Evaluation {
-  console.log("solutionTree:", solutionTree);
-  console.log("userMoves:", userMoves);
   let currentNode = solutionTree;
   let i = 0;
   while (currentNode.children?.length && i < userMoves.length) {

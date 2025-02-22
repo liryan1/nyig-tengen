@@ -18,12 +18,13 @@ export type BoardEditTool = "black" | "white" | "erase";
 export interface UseGoProps {
   readonly?: boolean;
   goGame: GoGame;
+  initialMode?: BoardMode;
 }
 
-export function useGo({ goGame, readonly }: UseGoProps) {
+export function useGo({ goGame, readonly, initialMode = "move" }: UseGoProps) {
   const [currentNode, setCurrentNode] = useState<SgfNode>(goGame.root);
   const [nextPlayer, setNextPlayer] = useState<StoneColor>(1);
-  const [mode, onModeChange] = useState<BoardMode>("move");
+  const [mode, onModeChange] = useState<BoardMode>(initialMode);
   const [editTool, onEditToolChange] = useState<BoardEditTool>("black");
   const setEditTool = (bet: BoardEditTool) => {
     if (readonly) {

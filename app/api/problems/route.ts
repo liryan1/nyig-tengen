@@ -96,7 +96,7 @@ export async function POST(req: Request) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
 
-    if (!rank || !initial || !correct) {
+    if (rank === undefined || rank === null || !initial || !correct) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 },

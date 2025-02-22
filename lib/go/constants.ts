@@ -1,4 +1,6 @@
-export const BOARD_SIZES = [3, 5, 7, 9, 11, 13, 15, 17, 19];
+export const BOARD_SIZES = [
+  3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+];
 
 export const FLOWER_POINT_POSITIONS: [number, number][][] = [
   [],

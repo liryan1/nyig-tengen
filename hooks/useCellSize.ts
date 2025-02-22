@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { type RefObject, useEffect, useState } from "react";
 
 interface UseCellSizeProps {
   /**
@@ -12,7 +12,7 @@ interface UseCellSizeProps {
    * Ref to the parent container in which the Go board is rendered.
    * If provided, we measure its width for responsiveness.
    */
-  boardContainerRef?: React.RefObject<HTMLDivElement | null>;
+  boardContainerRef?: RefObject<HTMLDivElement | null>;
 }
 
 export function useCellSize({

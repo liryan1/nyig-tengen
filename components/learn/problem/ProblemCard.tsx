@@ -29,7 +29,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
 
   return (
     <Card className="hover:shadow-sm max-w-sm rounded-sm">
-      <CardTitle className="font-medium text-sm md:text-base text-muted-foreground p-1">
+      <CardTitle className="font-medium text-sm text-muted-foreground p-1">
         <div className="flex justify-between">
           <span>
             <Link className="underline" href="#">
@@ -57,7 +57,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
           />
         </Link>
       </CardContent>
-      <CardFooter className="flex items-center justify-between text-xs sm:text-sm text-muted-foreground p-0 sm:px-1 py-1">
+      <CardFooter className="flex items-center justify-between text-xs text-muted-foreground p-0 sm:px-1 py-1">
         <div className="flex gap-2">
           <span className="flex items-center space-x-1">
             <EyeIcon size={16} />
