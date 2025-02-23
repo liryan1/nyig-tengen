@@ -32,6 +32,8 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { PageSpinner, Spinner } from "../labels/Spinner";
+import { revalidateTag } from "next/cache";
+import { ALL_PROBLEMS_TAG } from "@/lib/nextTags";
 
 const GoProblemEditor = dynamic(
   () => import("@/components/learn/go/GoProblemEditor"),
@@ -97,6 +99,8 @@ export function ProblemCreateForm({ problemId }: Props) {
             },
           },
         });
+        // Creator should be able to see the new created problem
+        revalidateTag(ALL_PROBLEMS_TAG);
       }
     } catch (error) {
       toast.error(

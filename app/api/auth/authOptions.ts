@@ -26,27 +26,27 @@ export const authOptions: AuthOptions = {
   callbacks: {
     jwt({ token, user }) {
       // Pass mongoDB user.role to the token
-      if (user) token.role = user.role
-      return token
+      if (user) token.role = user.role;
+      return token;
     },
     session({ session, token }) {
       // Pass JWT information to sessions for client and server components
       if (session?.user) {
-        session.user.role = token.role
-        session.user.id = token.sub
+        session.user.role = token.role;
+        session.user.id = token.sub;
       }
-      return session
-    }
+      return session;
+    },
   },
   session: {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
     // Override default UI paths
     signIn: "/login",
-    error: "/authError"
-  }
-}
+    error: "/authError",
+  },
+};

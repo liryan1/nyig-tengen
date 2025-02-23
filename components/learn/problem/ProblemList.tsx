@@ -1,11 +1,17 @@
-import { ProblemCard } from "@/components/learn/problem/ProblemCard";
-import { PageError } from "../../labels/Error";
-import { Button } from "../../ui/button";
-import Link from "next/link";
+import { authOptions } from "@/app/api/auth/authOptions";
+import { PageSpinner } from "@/components/labels/Spinner";
 import { GoProblemResponse } from "@/lib/go/interface";
 import { CirclePlusIcon } from "lucide-react";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/app/api/auth/authOptions";
+import dynamic from "next/dynamic";
+import Link from "next/link";
+import { PageError } from "../../labels/Error";
+import { Button } from "../../ui/button";
+
+const ProblemCard = dynamic(
+  () => import("@/components/learn/problem/ProblemCard"),
+  { ssr: true, loading: () => <PageSpinner /> },
+);
 
 interface ProblemListProps {
   problems: GoProblemResponse[];

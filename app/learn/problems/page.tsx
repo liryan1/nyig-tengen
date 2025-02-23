@@ -1,8 +1,8 @@
-// app/problems/page.tsx
 import { PageError } from "@/components/labels/Error";
 import { ProblemList } from "@/components/learn/problem/ProblemList";
 import { QueryPagination } from "@/components/nav/QueryPagination";
 import { fetchSafe } from "@/lib/fetch";
+import { ALL_PROBLEMS_TAG } from "@/lib/nextTags";
 import { GetProblemsResponse } from "@/lib/rtk/slices/problems";
 
 interface PageProps {
@@ -16,6 +16,8 @@ async function AllProblems({ searchParams }: PageProps) {
 
   const { response, isError } = await fetchSafe<GetProblemsResponse>(
     `/problems?page=${currentPage}&limit=${limit}`,
+    { next: { tags: [ALL_PROBLEMS_TAG] } },
+    true,
   );
 
   if (isError || !response) {

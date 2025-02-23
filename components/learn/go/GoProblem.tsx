@@ -1,6 +1,5 @@
 "use client";
 
-import { PageError } from "@/components/labels/Error";
 import { infoIcon, successIcon } from "@/components/labels/icons";
 import { PageSpinner, Spinner } from "@/components/labels/Spinner";
 import { Button } from "@/components/ui/button";
@@ -157,7 +156,7 @@ export function GoProblem({
 
   return (
     <div className="sm:max-w-6xl mx-auto border rounded-md shadow-sm m-2 px-1 sm:px-0">
-      <GoProblemHeader meta={problem} />
+      <GoProblemHeader pId={problem.id} meta={problem} />
       <hr />
       <div className="grid md:grid-cols-2">
         <div
@@ -219,3 +218,5 @@ export function GoProblem({
     </div>
   );
 }
+
+export default GoProblem;

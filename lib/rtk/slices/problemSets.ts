@@ -12,6 +12,9 @@ export interface PSetsProblemSet {
   description?: string;
   problems: string[];
   views?: number;
+  likes: number;
+  userLiked: boolean;
+  userCompletions: number;
   problemCount: number;
   averageRank: number;
   createdAt: string;
@@ -37,6 +40,8 @@ export interface PSetResponse extends Omit<PSetsProblemSet, "problems"> {
   attemptedCount: number;
   views: number;
   likes: number;
+  userLiked: boolean;
+  userCompletions: number;
   problems: PSetProblem[];
 }
 
@@ -103,6 +108,12 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [PROBLEM_SET_PROGRESS_TAG],
     }),
+    PSetLike: builder.mutation<{ liked: boolean }, string>({
+      query: (id) => ({
+        url: `problems/sets/${id}/like`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -111,4 +122,5 @@ export const {
   useGetPSetQuery,
   useGetPSetProgressQuery,
   useCreatePSetProgressMutation,
+  usePSetLikeMutation,
 } = problemsApiSlice;

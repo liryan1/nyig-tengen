@@ -1,6 +1,6 @@
 "use client";
 
-import { type RefObject, useEffect, useState } from "react";
+import { type RefObject, useLayoutEffect, useState } from "react";
 
 interface UseCellSizeProps {
   /**
@@ -19,10 +19,10 @@ export function useCellSize({
   boardSize,
   boardContainerRef,
 }: UseCellSizeProps) {
-  const [boardPixelSize, setBoardPixelSize] = useState(0);
-  const [cellSize, setCellSize] = useState(0);
+  const [boardPixelSize, setBoardPixelSize] = useState(50);
+  const [cellSize, setCellSize] = useState(2);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     function updateSizes() {
       const containerWidth = Math.min(
         boardContainerRef?.current?.clientWidth || 0,

@@ -1,7 +1,6 @@
 import { cn, formatLargeNumber } from "@/lib/utils";
 import {
   CalculatorIcon,
-  CheckCircleIcon,
   EyeIcon,
   HeartIcon,
   SignatureIcon,
@@ -15,15 +14,17 @@ interface InfoBarProps {
     author?: { name: string; id: string };
     rank?: string;
     likes?: number;
+    userLiked?: boolean;
     views?: number;
     count?: number;
     rate?: number;
   };
   size?: "sm";
   moreStuff?: React.ReactNode[];
+  toggleLike?: () => void;
 }
 
-export function InfoBar({ info, moreStuff, size }: InfoBarProps) {
+export function InfoBar({ info, moreStuff, size, toggleLike }: InfoBarProps) {
   const { rank, likes, views, author, count, rate } = info;
 
   const iconCN = "flex items-center space-x-1";
@@ -65,8 +66,14 @@ export function InfoBar({ info, moreStuff, size }: InfoBarProps) {
       )}
 
       {likes !== undefined && (
-        <div className={iconCN}>
-          <HeartIcon size={iconSize} />
+        <div
+          className={cn(iconCN, toggleLike ? "cursor-pointer" : "")}
+          onClick={toggleLike}
+        >
+          <HeartIcon
+            size={iconSize}
+            fill={info.userLiked ? "#ff0000" : "none"}
+          />
           <span>{formatLargeNumber(likes)}</span>
         </div>
       )}

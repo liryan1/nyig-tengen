@@ -7,7 +7,12 @@ import { PageError } from "../../labels/Error";
 import { PageSpinner } from "../../labels/Spinner";
 import { ProblemSetDoPageHeader } from "./ProblemSetDoPageHeader";
 import { useSession } from "next-auth/react";
-import { GoProblem } from "../go/GoProblem";
+import dynamic from "next/dynamic";
+
+const GoProblem = dynamic(() => import("@/components/learn/go/GoProblem"), {
+  ssr: false,
+  loading: () => <PageSpinner />,
+});
 
 export function ProblemSetDoPage({
   psetId,

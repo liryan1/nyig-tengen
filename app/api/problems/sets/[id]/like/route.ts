@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/authOptions";
 import { logStack } from "@/lib/error";
+import { authOptions } from "@/app/api/auth/authOptions";
+import { revalidateTag } from "next/cache";
+import { ALL_PROBLEM_SETS_TAG } from "@/lib/nextTags";
 
+type Params = { params: Promise<{ id: string }> };
 /**
- * POST /api/likes/toggle
- * Body: { postId?: string, commentId?: string }
- *
  * - If the user has not liked the target yet, create a new like.
  * - If the user already liked it, remove the existing like.
  *
@@ -17,46 +17,44 @@ import { logStack } from "@/lib/error";
  *   "like": { ... } | null
  * }
  */
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest, { params }: Params) {
   try {
     // 1. Verify user is logged in
-    const session = await getServerSession(authOptions);
+    const [session, { id }] = await Promise.all([
+      getServerSession(authOptions),
+      params,
+    ]);
     if (!session?.user) {
       return NextResponse.json({ message: "Not authorized" }, { status: 401 });
     }
 
-    // 2. Parse request body
-    const { postId, commentId } = await request.json();
-
-    // Must provide either a postId or commentId
-    if (!postId && !commentId) {
+    if (!id) {
       return NextResponse.json(
-        { message: "Either postId or commentId is required" },
+        { message: "problem set ID is required" },
         { status: 400 },
       );
     }
 
     // 3. Check if user already has a like for this resource
-    const existingLike = await db.postLike.findFirst({
+    const existingLike = await db.problemSetLike.findFirst({
       where: {
         userId: session.user.id,
-        postId: postId || undefined,
-        commentId: commentId || undefined,
+        problemSetId: id,
       },
+      select: { id: true },
     });
 
     // 4. Toggle logic
     if (existingLike) {
       // Already liked => remove the like
-      await db.postLike.delete({ where: { id: existingLike.id } });
+      await db.problemSetLike.delete({ where: { id: existingLike.id } });
       return NextResponse.json({ liked: false }, { status: 200 });
     } else {
       // Not liked yet => create the like
-      const newLike = await db.postLike.create({
+      await db.problemSetLike.create({
         data: {
           userId: session.user.id,
-          postId: postId || null,
-          commentId: commentId || null,
+          problemSetId: id,
         },
       });
       return NextResponse.json({ liked: true }, { status: 201 });
@@ -67,5 +65,7 @@ export async function POST(request: NextRequest) {
       { message: "An unknown error occurred" },
       { status: 500 },
     );
+  } finally {
+    revalidateTag(ALL_PROBLEM_SETS_TAG);
   }
 }

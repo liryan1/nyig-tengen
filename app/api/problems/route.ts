@@ -3,9 +3,13 @@ import { logStack } from "@/lib/error";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../auth/authOptions";
+import {
+  validateProblemInitial,
+  validateProblemSolutions,
+} from "@/lib/go/validator";
 
 const DEFAULT_PAGE = "1";
-const DEFAULT_LIMIT = "50";
+const DEFAULT_LIMIT = "20";
 
 type QueryParams = {
   page?: string;
@@ -16,6 +20,10 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const params: QueryParams = Object.fromEntries(searchParams.entries());
+
+    // If logged in, fetch problem submissions
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
 
     // Default pagination settings
     const page = parseInt(params.page || DEFAULT_PAGE, 10);
@@ -52,14 +60,53 @@ export async function GET(req: Request) {
             select: {
               id: true,
               views: true,
-              likes: true,
               submissionCount: true,
               correctCount: true,
             },
           },
+          problemLikes: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+          // If the user is logged in, fetch the first solved submission
+          submissions: userId
+            ? {
+                where: {
+                  userId,
+                  status: "solved",
+                },
+                select: {
+                  status: true,
+                },
+                take: 1,
+              }
+            : false,
         },
       }),
     ]);
+
+    const normalizedProblems = problems.map((problem) => {
+      const userLiked =
+        problem.problemLikes.findIndex((p) => p.user.id === userId) !== -1;
+      return {
+        id: problem.id,
+        initial: problem.initial,
+        rank: problem.rank,
+        description: problem.description,
+        author: problem.author,
+        userSolved: problem.submissions?.at(0)?.status === "solved",
+        stats: {
+          ...problem.problemStats,
+          userLiked,
+          likes: problem.problemLikes.length,
+        },
+      };
+    });
 
     return NextResponse.json(
       {
@@ -67,14 +114,7 @@ export async function GET(req: Request) {
         limit,
         totalPages: Math.ceil(totalProblems / limit),
         totalProblems,
-        problems: problems.map((problem) => ({
-          id: problem.id,
-          initial: problem.initial,
-          rank: problem.rank,
-          description: problem.description,
-          author: problem.author,
-          stats: problem.problemStats,
-        })),
+        problems: normalizedProblems,
       },
       { status: 200 },
     );
@@ -99,6 +139,17 @@ export async function POST(req: Request) {
     if (rank === undefined || rank === null || !initial || !correct) {
       return NextResponse.json(
         { message: "Missing required fields" },
+        { status: 400 },
+      );
+    }
+
+    // Validate initial and correct fields
+    try {
+      validateProblemInitial(initial);
+      validateProblemSolutions(correct);
+    } catch (error) {
+      return NextResponse.json(
+        { message: `Invalid problem in request. Error: ${error}` },
         { status: 400 },
       );
     }

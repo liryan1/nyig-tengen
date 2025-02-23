@@ -12,7 +12,6 @@ export async function POST(req: Request, { params }: Params) {
       create: {
         problemSetId: (await params).id,
         views: 1,
-        likes: 0,
       },
     });
     return NextResponse.json({ message: "Viewed" }, { status: 200 });

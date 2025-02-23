@@ -3,16 +3,31 @@ import { getRank } from "@/lib/go/display";
 import { PSetsProblemSet } from "@/lib/rtk/slices/problemSets";
 import Link from "next/link";
 import { InfoBar } from "../InfoBar";
-import { ProblemsCarousel } from "./ProblemsCarousel";
 import { StartButton } from "./StartButton";
+import dynamic from "next/dynamic";
+import { PageSpinner } from "@/components/labels/Spinner";
+
+const ProblemCarousel = dynamic(
+  () => import("@/components/learn/problem/ProblemCarousel"),
+  { ssr: false, loading: () => <PageSpinner /> },
+);
 
 interface ProblemSetCardProps {
   problemSet: PSetsProblemSet;
 }
 
 export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
-  const { id, name, author, problemCount, averageRank, views, problems } =
-    problemSet;
+  const {
+    id,
+    name,
+    author,
+    problemCount,
+    averageRank,
+    views,
+    problems,
+    likes,
+    userLiked,
+  } = problemSet;
 
   return (
     <div className="border rounded-lg shadow-sm">
@@ -33,14 +48,15 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
             author,
             rank: getRank(averageRank, true),
             count: problemCount,
+            userLiked,
             views,
-            likes: 0,
+            likes,
           }}
         />
       </div>
       <hr />
 
-      <ProblemsCarousel problems={problems} />
+      <ProblemCarousel problems={problems} />
     </div>
   );
 }

@@ -12,6 +12,7 @@ export interface BoardState {
 
 export interface ProblemStats {
   likes?: number;
+  userLiked?: boolean;
   correctCount?: number;
   submissionCount?: number;
   views: number;
@@ -22,6 +23,7 @@ export interface GoProblemMeta {
   description?: string;
   author: { id: string; name: string };
   stats?: ProblemStats;
+  userSolved?: boolean;
 }
 
 export interface GoProblem {

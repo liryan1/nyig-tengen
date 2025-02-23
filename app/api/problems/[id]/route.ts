@@ -7,9 +7,13 @@ import { authOptions } from "../../auth/authOptions";
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(req: Request, { params }: Params) {
-  const { id } = await params;
-
   try {
+    const [session, { id }] = await Promise.all([
+      getServerSession(authOptions),
+      params,
+    ]);
+    const userId = session?.user?.id;
+
     const problem = await db.problem.findUnique({
       where: { id },
       include: {
@@ -20,6 +24,11 @@ export async function GET(req: Request, { params }: Params) {
           },
         },
         problemStats: true,
+        problemLikes: {
+          select: {
+            userId: true,
+          },
+        },
       },
       omit: { correct: true },
     });
@@ -36,7 +45,13 @@ export async function GET(req: Request, { params }: Params) {
         rank: problem.rank,
         description: problem.description,
         author: problem.author,
-        stats: problem.problemStats,
+        stats: {
+          ...problem.problemStats,
+          likes: problem.problemLikes.length,
+          userLiked: problem.problemLikes.some(
+            (like) => like.userId === userId,
+          ),
+        },
       },
       { status: 200 },
     );

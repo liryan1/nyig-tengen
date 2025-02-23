@@ -14,7 +14,7 @@ import { Controller, useForm } from "react-hook-form";
 import { Spinner } from "../labels/Spinner";
 import { Button } from "../ui/button";
 import "./editFormStyle.scss";
-import { debounce } from "@/lib/debounce";
+import { debounce } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 

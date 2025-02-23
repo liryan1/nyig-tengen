@@ -1,5 +1,5 @@
 "use client";
-import { debounce } from "@/lib/debounce";
+import { debounce } from "@/lib/utils";
 import { useToggleLikeMutation } from "@/lib/rtk/slices/likes";
 import { HeartIcon } from "lucide-react";
 import React from "react";

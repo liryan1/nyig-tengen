@@ -13,7 +13,7 @@ export function ReadonlyGoBoard({
   const { boardPixelSize } = getPixelSize({ boardSize, cellSize });
   return (
     <div
-      className="overflow-hidden"
+      className="overflow-none"
       style={{
         position: "relative",
         height: boardPixelSize,

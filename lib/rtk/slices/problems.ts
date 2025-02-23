@@ -64,6 +64,12 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [PROBLEMS_TAG],
     }),
+    problemLike: builder.mutation<{ liked: boolean }, string>({
+      query: (id) => ({
+        url: `problems/${id}/like`,
+        method: "POST",
+      }),
+    }),
   }),
 });
 
@@ -72,4 +78,5 @@ export const {
   useSubmitMutation,
   useGetProblemsQuery,
   useCreateProblemMutation,
+  useProblemLikeMutation,
 } = problemsApiSlice;

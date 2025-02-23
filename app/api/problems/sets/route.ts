@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { authOptions } from "../../auth/authOptions";
 
 const DEFAULT_PAGE = "1";
-const DEFAULT_LIMIT = "20";
+const DEFAULT_LIMIT = "10";
 
 type QueryParams = {
   page?: string;
@@ -16,6 +16,10 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const params: QueryParams = Object.fromEntries(searchParams.entries());
+
+    // If logged in, fetch problem submissions
+    const session = await getServerSession(authOptions);
+    const userId = session?.user?.id;
 
     // Default pagination settings
     const page = parseInt(params.page || DEFAULT_PAGE, 10);
@@ -50,6 +54,26 @@ export async function GET(req: Request) {
             include: { problem: { select: { initial: true } } },
             take: 10,
           },
+          problemSetLikes: {
+            select: {
+              user: {
+                select: {
+                  id: true,
+                },
+              },
+            },
+          },
+          problemSetProgresses: userId
+            ? {
+                where: {
+                  userId,
+                  status: "completed",
+                },
+                select: {
+                  updatedAt: true,
+                },
+              }
+            : false,
           problemSetStats: { select: { views: true } },
           description: true,
           problemCount: true,
@@ -69,6 +93,11 @@ export async function GET(req: Request) {
           ...pset,
           problemSetProblems: undefined,
           views: pset.problemSetStats?.views,
+          likes: pset.problemSetLikes.length,
+          userLiked: userId
+            ? pset.problemSetLikes.findIndex((p) => p.user.id === userId) !== -1
+            : false,
+          userCompletions: pset.problemSetProgresses?.length,
           problems: pset.problemSetProblems.map((psp) => psp.problem.initial),
         })),
       },

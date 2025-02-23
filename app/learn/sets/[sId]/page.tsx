@@ -10,7 +10,11 @@ async function ProblemSetIdPage({ params }: Params) {
     cache: "no-store",
   });
 
-  return <ProblemSetPage sId={sId} />;
+  return (
+    <div className="px-1 sm:px-0">
+      <ProblemSetPage sId={sId} />
+    </div>
+  );
 }
 
 export default ProblemSetIdPage;

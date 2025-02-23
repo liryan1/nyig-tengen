@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { logStack } from "./error";
 
 export const BASE_INIT = {
@@ -13,6 +14,7 @@ export async function fetchData<T>(
     const res = await fetch(`${urlPrefix}/api/${url}`, {
       ...BASE_INIT,
       ...init,
+      next: { ...BASE_INIT.next, ...init?.next },
     });
     if (res.ok) {
       return res.json();
@@ -27,11 +29,18 @@ export async function fetchData<T>(
 export async function fetchSafe<T>(
   url: string,
   init?: RequestInit,
+  includeCookies?: boolean,
 ): Promise<{ response?: T; isError: boolean }> {
   let response: T | undefined;
   let isError = false;
   try {
-    response = await fetchData(url, init);
+    response = await fetchData(url, {
+      ...init,
+      headers: {
+        ...init?.headers,
+        ...(includeCookies && { cookie: (await cookies()).toString() }),
+      },
+    });
   } catch (error) {
     logStack(error);
     isError = true;

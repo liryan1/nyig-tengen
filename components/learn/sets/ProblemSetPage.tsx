@@ -1,15 +1,20 @@
 "use client";
 
+import { logStack } from "@/lib/error";
 import { getRank } from "@/lib/go/display";
-import { getBoardSize, getRootBoardState } from "@/lib/go/parser";
 import {
   useGetPSetProgressQuery,
   useGetPSetQuery,
+  usePSetLikeMutation,
 } from "@/lib/rtk/slices/problemSets";
+import { debounce } from "@/lib/utils";
 import { SubmissionStatus } from "@prisma/client";
-import { CircleCheckBigIcon, CircleHelpIcon, TrophyIcon } from "lucide-react";
+import { TrophyIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
+import dynamic from "next/dynamic";
 import { redirect } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 import { PageError } from "../../labels/Error";
 import { PageSpinner } from "../../labels/Spinner";
 import {
@@ -20,13 +25,16 @@ import {
   CardHeader,
   CardTitle,
 } from "../../ui/card";
-import { GoBoardView } from "../go/board/GoBoardView";
 import { InfoBar } from "../InfoBar";
 import { StartButton } from "./StartButton";
-import { ReadonlyGoBoard } from "../go/board/ReadonlyGoBoard";
-import { ProblemGrid } from "../problem/ProblemGrid";
+
+const ProblemGrid = dynamic(
+  () => import("@/components/learn/problem/ProblemGrid"),
+  { ssr: false, loading: () => <PageSpinner /> },
+);
 
 export function ProblemSetPage({ sId }: { sId?: string }) {
+  const [like] = usePSetLikeMutation();
   const { status: authStatus } = useSession();
   const {
     data: pset,
@@ -40,6 +48,8 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
   } = useGetPSetProgressQuery(sId ?? "", {
     skip: !sId || authStatus !== "authenticated",
   });
+  const [userLiked, setUserLiked] = useState(!!pset?.userLiked);
+  const [likes, setLikes] = useState(pset?.likes ?? 0);
   if (psetLoading || pgLoading) {
     return <PageSpinner />;
   }
@@ -53,7 +63,6 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
     id,
     name,
     views,
-    likes,
     description,
     problemCount,
     averageRank,
@@ -64,21 +73,42 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
   } = pset;
 
   const userSolved = progress?.completedCount;
-
-  const getIcon = (status?: SubmissionStatus) => {
-    if (status === "solved") {
-      return <CircleCheckBigIcon className="text-green-600" size={40} />;
-    }
-    if (status === "mismatch" || status === "partial") {
-      return <CircleHelpIcon size={40} strokeWidth={1.5} />;
-    }
-  };
+  const currentSolvedCount =
+    progress?.progress?.problemOrder?.reduce(
+      (acc, p) => (p.status === SubmissionStatus.solved ? acc + 1 : acc),
+      0,
+    ) || 0;
 
   const handleProblemClick = (pId: string) => {
     if (!progress?.progress) {
       return;
     }
     return redirect(`/learn/sets/${id}/${pId}`);
+  };
+
+  const toggleLike = async () => {
+    if (!sId) {
+      return;
+    }
+    if (authStatus !== "authenticated") {
+      toast.error("Please login to like the problem.");
+      return;
+    }
+    const likeProblem = async () => {
+      const { liked } = await like(sId).unwrap();
+      setUserLiked(!userLiked);
+      setLikes((prev) => (userLiked ? prev - 1 : prev + 1));
+      return liked;
+    };
+    try {
+      toast.promise(likeProblem, {
+        loading: userLiked ? "Removing like..." : "Liking problem set...",
+        success: userLiked ? "Removed like" : "Liked problem set",
+        error: (err) => err.message,
+      });
+    } catch (error) {
+      logStack(error);
+    }
   };
 
   return (
@@ -108,15 +138,20 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
             author,
             rank: getRank(averageRank, true),
             count: problemCount,
+            userLiked,
             views,
             likes,
             rate: completedCount / attemptedCount,
           }}
+          toggleLike={debounce(toggleLike, 300)}
         />
       </CardContent>
-      <div className="text-sm text-muted-foreground px-2 sm:px-4">
-        Problem count: <strong>{problemCount}</strong>
-      </div>
+      {progress?.progress && (
+        <div className="text-sm sm:text-lg text-muted-foreground px-2 sm:px-4 text-center">
+          Solved: <span className="font-semibold">{currentSolvedCount}</span> of{" "}
+          <span className="font-semibold">{problemCount}</span>
+        </div>
+      )}
       <CardFooter className="gap-2 sm:gap-4 p-2 sm:p-4 flex flex-wrap max-h-[1/2]">
         <ProblemGrid
           problems={problems}

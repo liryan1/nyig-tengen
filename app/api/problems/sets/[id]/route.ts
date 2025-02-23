@@ -1,13 +1,18 @@
+import { authOptions } from "@/app/api/auth/authOptions";
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
+import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(req: Request, { params }: Params) {
-  const { id } = await params;
-
   try {
+    const [session, { id }] = await Promise.all([
+      getServerSession(authOptions),
+      params,
+    ]);
+    const userId = session?.user?.id;
     const problemSet = await db.problemSet.findUnique({
       where: { id },
       include: {
@@ -16,6 +21,11 @@ export async function GET(req: Request, { params }: Params) {
           include: { problem: true },
         },
         problemSetStats: true,
+        problemSetLikes: {
+          select: {
+            userId: true,
+          },
+        },
       },
     });
 
@@ -31,6 +41,9 @@ export async function GET(req: Request, { params }: Params) {
     }));
 
     problems.sort((a, b) => a.position - b.position);
+    const userLiked = problemSet.problemSetLikes.some(
+      (like) => like.userId === userId,
+    );
 
     return NextResponse.json(
       {
@@ -42,7 +55,8 @@ export async function GET(req: Request, { params }: Params) {
         completedCount: problemSet.problemSetStats?.completed,
         attemptedCount: problemSet.problemSetStats?.attempted,
         views: problemSet.problemSetStats?.views,
-        likes: problemSet.problemSetStats?.likes,
+        likes: problemSet.problemSetLikes.length,
+        userLiked,
         author: problemSet.author,
         problems,
       },
