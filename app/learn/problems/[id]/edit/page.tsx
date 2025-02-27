@@ -7,7 +7,7 @@ async function ProblemEditPage({
 }) {
   const { id } = await params;
 
-  return <GoProblemEditPage />;
+  return <GoProblemEditPage pId={id} />;
 }
 
 export default ProblemEditPage;

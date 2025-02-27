@@ -33,12 +33,13 @@ export async function fetchSafe<T>(
 ): Promise<{ response?: T; isError: boolean }> {
   let response: T | undefined;
   let isError = false;
+  const cookie = (await cookies()).toString();
   try {
     response = await fetchData(url, {
       ...init,
       headers: {
         ...init?.headers,
-        ...(includeCookies && { cookie: (await cookies()).toString() }),
+        ...(includeCookies && { cookie }),
       },
     });
   } catch (error) {
