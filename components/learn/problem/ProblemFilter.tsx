@@ -1,7 +1,5 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -9,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { DualRangeSlider, Slider } from "@/components/ui/slider";
+import { DualRangeSlider } from "@/components/ui/slider";
 import { getRank } from "@/lib/go/display";
 import { X } from "lucide-react";
 import {
@@ -20,6 +18,7 @@ import {
   type Options,
 } from "nuqs";
 import { useCallback } from "react";
+import { ProblemCreatorInput } from "./ProblemCreatorInput";
 
 const parseRank = createParser({
   parse(queryValue) {
@@ -76,13 +75,7 @@ export function ProblemFilter() {
           step={1}
         />
       </div>
-      <div>
-        <Input
-          placeholder="Creator"
-          value={creator}
-          onChange={(e) => setCreator(e.target.value)}
-        />
-      </div>
+      <ProblemCreatorInput value={creator} onSelect={setCreator} />
       <div>
         <Select value={sort} onValueChange={setSort}>
           <SelectTrigger className="min-w-32 sm:min-w-36 h-8 sm:h-9">

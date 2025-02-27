@@ -31,6 +31,10 @@ export interface GetProblemsResponse {
   problems: GoProblemResponse[];
 }
 
+export interface ProblemCreator {
+  name: string;
+}
+
 const problemsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getProblems: builder.query<
@@ -38,7 +42,7 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       { page?: number; limit?: number }
     >({
       query: ({ page = 1, limit = 50 }) =>
-        `/problems?page=${page}&limit=${limit}`,
+        `problems?page=${page}&limit=${limit}`,
       providesTags: [PROBLEMS_TAG],
     }),
     getProblem: builder.query<GoProblemResponse, string>({
@@ -70,6 +74,9 @@ const problemsApiSlice = apiSlice.injectEndpoints({
         method: "POST",
       }),
     }),
+    getProblemCreators: builder.query<ProblemCreator[], void>({
+      query: () => `problems/creators`,
+    }),
   }),
 });
 
@@ -79,4 +86,5 @@ export const {
   useGetProblemsQuery,
   useCreateProblemMutation,
   useProblemLikeMutation,
+  useGetProblemCreatorsQuery,
 } = problemsApiSlice;

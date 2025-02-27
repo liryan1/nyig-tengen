@@ -74,7 +74,7 @@ export function GoProblemHeader({
           rank: getRank(rank),
           likes,
           userLiked,
-          views: stats?.views,
+          views: stats?.views ?? 0,
           rate: isNaN(successRate) || !successRate ? 0 : successRate,
         }}
         toggleLike={debounce(toggleLike, 300)}
