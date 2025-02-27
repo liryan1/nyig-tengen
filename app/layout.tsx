@@ -7,6 +7,8 @@ import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import ReduxProvider from "../components/providers/ReduxProvider";
 import { authOptions } from "./api/auth/authOptions";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
+
 import "./globals.css";
 
 const font = Inter({
@@ -32,8 +34,10 @@ export default async function RootLayout({
       <body className={`${font.className} antialiased`}>
         <SessionProvider session={session}>
           <ReduxProvider>
-            <Navbar />
-            <main className="mx-auto">{children}</main>
+            <NuqsAdapter>
+              <Navbar />
+              <main className="mx-auto">{children}</main>
+            </NuqsAdapter>
           </ReduxProvider>
         </SessionProvider>
         <Toaster closeButton richColors duration={3000} />

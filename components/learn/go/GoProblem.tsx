@@ -79,21 +79,25 @@ export function GoProblem({
     }).unwrap();
     if (evaluation.status === "solved") {
       setShowSuccess(true);
-      // setTimeout(() => setShowSuccess(false), 10_000);
+      setTimeout(() => setShowSuccess(false), 8_000);
       setMessage(
         <div className="flex items-center gap-1">
           {successIcon}
-          Congratulations! You solved the problem
+          Congratulations! You solved the problem.
+          {evaluation.mismatchIndex
+            ? ` Checked up to move ${evaluation.mismatchIndex}`
+            : ""}
         </div>,
       );
     } else if (evaluation.status === "mismatch") {
       const oppMove = evaluation.correctOpponentMove;
+      const i = evaluation.mismatchIndex;
       if (!oppMove) {
         setMessage(
           <>
             <div className="flex items-center gap-1">
               {infoIcon}
-              Your move {evaluation.mismatchIndex + 1} seems off track
+              Your move {i + 1} seems off track
             </div>
             <Button
               variant="secondary"
@@ -102,17 +106,15 @@ export function GoProblem({
               onClick={() => {
                 let userMovesLength = getMoves(currentNode).length;
                 let node = currentNode;
-                while (
-                  userMovesLength > evaluation.mismatchIndex &&
-                  node.parent
-                ) {
+                while (userMovesLength > i && node.parent) {
                   userMovesLength--;
                   node = node.parent;
                 }
                 handleSelectNode(node);
               }}
             >
-              Go to move {evaluation.mismatchIndex}
+              Go to
+              {i === 0 ? " the beginning" : ` move ${i}`}
               <MoveRightIcon />
             </Button>
           </>,

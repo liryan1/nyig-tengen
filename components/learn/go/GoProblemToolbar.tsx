@@ -6,6 +6,7 @@ import { GoBoardStepper } from "./board/GoBoardStepper";
 import { NodeVisualizer } from "./node/NodeVisualizer";
 
 interface GoProblemToolbarProps {
+  key?: number;
   rootNode: SgfNode;
   currentNode: SgfNode;
   onSelectNode: (node: SgfNode) => void;

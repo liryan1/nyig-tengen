@@ -91,7 +91,7 @@ export function useGo({ goGame, readonly, initialMode = "move" }: UseGoProps) {
         return getNextColor(color);
       }
     }
-    return 0;
+    return 1;
   };
 
   const handleMove = (row: number, col: number, node?: SgfNode) => {
@@ -99,16 +99,17 @@ export function useGo({ goGame, readonly, initialMode = "move" }: UseGoProps) {
       return;
     }
     const coord = indicesToCoord(row, col);
+    const np = node ? getNextPlayer(node) : nextPlayer;
 
     try {
       let newNode;
       if (!coord) {
-        newNode = goGame.playPass(node ?? currentNode, nextPlayer);
+        newNode = goGame.playPass(node ?? currentNode, np);
       } else {
-        newNode = goGame.playMove(node ?? currentNode, nextPlayer, coord);
+        newNode = goGame.playMove(node ?? currentNode, np, coord);
       }
       setCurrentNode(newNode);
-      setNextPlayer(getNextColor(nextPlayer));
+      setNextPlayer(getNextColor(np));
     } catch (error) {
       if (error instanceof SuicideError || error instanceof KoError) {
         toast.error(error.message);
@@ -178,7 +179,6 @@ export function useGo({ goGame, readonly, initialMode = "move" }: UseGoProps) {
     try {
       const parent = goGame.deleteNode(node);
       handleSelectNode(parent);
-      setNextPlayer(getNextPlayer(parent));
     } catch (error) {
       toast.error(`Failed to delete node: ${error}`);
     }

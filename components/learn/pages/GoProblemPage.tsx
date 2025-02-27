@@ -10,7 +10,7 @@ const GoProblem = dynamic(() => import("@/components/learn/go/GoProblem"), {
   loading: () => <PageSpinner />,
 });
 
-export function GoProblemWrapper({ id }: { id?: string }) {
+export function GoProblemPage({ id }: { id?: string }) {
   const { data, isLoading, isError } = useGetProblemQuery(id ?? "", {
     skip: !id,
   });
@@ -19,7 +19,7 @@ export function GoProblemWrapper({ id }: { id?: string }) {
   }
 
   if (isError || !data) {
-    return <PageError>Error loading problems.</PageError>;
+    return <PageError>Error loading problem.</PageError>;
   }
 
   return <GoProblem problem={data} />;

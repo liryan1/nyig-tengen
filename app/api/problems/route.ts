@@ -7,6 +7,7 @@ import {
   validateProblemInitial,
   validateProblemSolutions,
 } from "@/lib/go/validator";
+import { Prisma } from "@prisma/client";
 
 const DEFAULT_PAGE = "1";
 const DEFAULT_LIMIT = "20";
@@ -14,6 +15,10 @@ const DEFAULT_LIMIT = "20";
 type QueryParams = {
   page?: string;
   limit?: string;
+  rank_min?: string;
+  rank_max?: string;
+  creator?: string;
+  sort?: string;
 };
 
 export async function GET(req: Request) {
@@ -28,23 +33,59 @@ export async function GET(req: Request) {
     // Default pagination settings
     const page = parseInt(params.page || DEFAULT_PAGE, 10);
     const limit = parseInt(params.limit || DEFAULT_LIMIT, 10);
-
     if (isNaN(page) || isNaN(limit) || page < 1 || limit < 1) {
       return NextResponse.json(
         { message: "Invalid page or limit" },
         { status: 400 },
       );
     }
-
     const skip = (page - 1) * limit;
+
+    const lte = parseInt(params.rank_max || "8", 10);
+    const gte = parseInt(params.rank_min || "-30", 10);
+    // rank range must be valid ranks and overlapping
+    if (
+      isNaN(lte) ||
+      isNaN(gte) ||
+      lte < -30 ||
+      lte > 8 ||
+      gte < -30 ||
+      gte > 8 ||
+      lte < gte
+    ) {
+      return NextResponse.json(
+        { message: "Invalid rank range" },
+        { status: 400 },
+      );
+    }
+
+    const where: Prisma.ProblemWhereInput = {
+      rank: { gte, lte },
+    };
+
+    if (params.creator) {
+      where.author = {
+        name: params.creator,
+      };
+    }
+
+    const orderBy: Prisma.ProblemOrderByWithRelationInput[] = [
+      { createdAt: "desc" },
+    ];
+    if (params.sort === "likes") {
+      orderBy.push({ problemLikes: { _count: "desc" } });
+    } else if (params.sort === "views") {
+      orderBy.push({ problemStats: { views: "desc" } });
+    }
 
     // Fetch the problem sets with pagination and get count
     const [totalProblems, problems] = await db.$transaction([
       db.problem.count(),
       db.problem.findMany({
+        where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" },
+        orderBy: orderBy.toReversed(),
         select: {
           id: true,
           description: true,

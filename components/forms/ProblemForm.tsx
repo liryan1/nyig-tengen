@@ -32,8 +32,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { PageSpinner, Spinner } from "../labels/Spinner";
-import { revalidateTag } from "next/cache";
-import { ALL_PROBLEMS_TAG } from "@/lib/nextTags";
+import { GoProblemResponse } from "@/lib/go/interface";
 
 const GoProblemEditor = dynamic(
   () => import("@/components/learn/go/GoProblemEditor"),
@@ -48,11 +47,15 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
-  problemId?: string;
+  problem?: GoProblemResponse;
 }
 
-export function ProblemCreateForm({ problemId }: Props) {
+export function ProblemForm({ problem }: Props) {
+  const actionWord = problem ? "Update" : "Create";
   const goGameRef = useRef<GoGame | null>(null);
+  if (problem) {
+    goGameRef.current = GoGame.fromSgf(problem.initial);
+  }
   const [create, { isLoading: cLoading }] = useCreateProblemMutation();
   const isLoading = cLoading;
 
@@ -80,33 +83,35 @@ export function ProblemCreateForm({ problemId }: Props) {
       });
       return;
     }
-    const body: ProblemCreateRequest = {
-      ...values,
-      initial: rootNodeToSgf(goGame),
-      correct: goGameToSgf(goGame),
-    };
-    try {
-      if (problemId) {
+    const submit = async () => {
+      const body: ProblemCreateRequest = {
+        ...values,
+        initial: rootNodeToSgf(goGame),
+        correct: goGameToSgf(goGame),
+      };
+      if (problem) {
         console.warn("Update not implemented yet. body:", body);
       } else {
-        const createResponse = await create(body).unwrap();
-        toast.success("Successfully created new problem", {
-          duration: 5000,
-          action: {
-            label: "View",
-            onClick: () => {
-              window.location.href = "/learn/problems/" + createResponse.id;
-            },
-          },
-        });
-        // Creator should be able to see the new created problem
-        revalidateTag(ALL_PROBLEMS_TAG);
+        return create(body).unwrap();
       }
-    } catch (error) {
-      toast.error(
-        "Failed to " + (problemId ? "update" : "create") + " problem",
-      );
-    }
+    };
+
+    toast.promise(submit, {
+      duration: 5000,
+      error: (err) => `Failed to ${actionWord} problem: ${err?.message}`,
+      loading: `Successfully ${actionWord}d problem`,
+      success: (id) => ({
+        message: "Successfully created new problem",
+        action: id
+          ? {
+              label: "View",
+              onClick: () => {
+                window.location.href = "/learn/problems/" + id;
+              },
+            }
+          : undefined,
+      }),
+    });
   };
 
   return (
