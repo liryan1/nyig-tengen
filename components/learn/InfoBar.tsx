@@ -8,6 +8,8 @@ import {
   SwordsIcon,
 } from "lucide-react";
 import Link from "next/link";
+import { Button } from "../ui/button";
+import { ProblemCardSucessRate } from "./problem/ProblemCardSucessRate";
 
 interface InfoBarProps {
   info: {
@@ -18,16 +20,24 @@ interface InfoBarProps {
     views?: number;
     count?: number;
     rate?: number;
+    userSolved?: boolean;
   };
   size?: "sm";
   moreStuff?: React.ReactNode[];
   toggleLike?: () => void;
+  likeDisabled?: boolean;
 }
 
-export function InfoBar({ info, moreStuff, size, toggleLike }: InfoBarProps) {
-  const { rank, likes, views, author, count, rate } = info;
+export function InfoBar({
+  info,
+  moreStuff,
+  size,
+  toggleLike,
+  likeDisabled,
+}: InfoBarProps) {
+  const { rank, likes, views, author, count, rate, userSolved } = info;
 
-  const iconCN = "flex items-center space-x-1";
+  const iconCN = "flex items-center gap-1";
   const iconSize = size ? 16 : 18;
   const textSize = size ? "text-xs sm:text-sm" : "text-xs sm:text-base";
 
@@ -68,7 +78,7 @@ export function InfoBar({ info, moreStuff, size, toggleLike }: InfoBarProps) {
       {likes !== undefined && (
         <div
           className={cn(iconCN, toggleLike ? "cursor-pointer" : "")}
-          onClick={toggleLike}
+          onClick={!likeDisabled ? toggleLike : undefined}
         >
           <HeartIcon
             size={iconSize}
@@ -79,10 +89,7 @@ export function InfoBar({ info, moreStuff, size, toggleLike }: InfoBarProps) {
       )}
 
       {rate !== undefined && (
-        <div className={iconCN}>
-          <SquareActivityIcon size={iconSize} />
-          <span>{(rate * 100).toFixed(1)}%</span>
-        </div>
+        <ProblemCardSucessRate successRate={rate} userSolved={userSolved} />
       )}
 
       {moreStuff?.map((c, i) => (

@@ -33,12 +33,15 @@ async function AllProblemsPage({ searchParams }: PageProps) {
 
   return (
     <div className="px-1 sm:px-0">
-      <ProblemFilter />
-      <ProblemList problems={response.problems ?? []} />
-      <QueryPagination
-        className="my-4"
-        currentPage={response.currentPage}
-        totalPages={response.totalPages}
+      <ProblemList
+        problems={response.problems ?? []}
+        problemFilter={<ProblemFilter />}
+        pagination={
+          <QueryPagination
+            currentPage={response.currentPage}
+            totalPages={response.totalPages}
+          />
+        }
       />
     </div>
   );

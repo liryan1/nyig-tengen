@@ -100,13 +100,13 @@ export function ProblemForm({ problem }: Props) {
       duration: 5000,
       error: (err) => `Failed to ${actionWord} problem: ${err?.message}`,
       loading: `Successfully ${actionWord}d problem`,
-      success: (id) => ({
+      success: (res) => ({
         message: "Successfully created new problem",
-        action: id
+        action: res
           ? {
               label: "View",
               onClick: () => {
-                window.location.href = "/learn/problems/" + id;
+                window.location.href = "/learn/problems/" + res.id;
               },
             }
           : undefined,

@@ -99,7 +99,7 @@ export function useGo({ goGame, readonly, initialMode = "move" }: UseGoProps) {
       return;
     }
     const coord = indicesToCoord(row, col);
-    const np = node ? getNextPlayer(node) : nextPlayer;
+    const np = node ? getNextPlayer(node, true) : nextPlayer;
 
     try {
       let newNode;

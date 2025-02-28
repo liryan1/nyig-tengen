@@ -23,8 +23,8 @@ export function GoProblemHeader({
   initialColor = 1,
   className,
 }: GoProblemHeaderProps) {
-  const { rank, description, author, stats } = meta;
-  const [like] = useProblemLikeMutation();
+  const { rank, description, author, stats, userSolved } = meta;
+  const [like, { isLoading }] = useProblemLikeMutation();
   const [userLiked, setUserLiked] = useState(!!stats?.userLiked);
   const [likes, setLikes] = useState(stats?.likes ?? 0);
   const stoneColor = initialColor === 1 ? "black" : "white";
@@ -76,8 +76,10 @@ export function GoProblemHeader({
           userLiked,
           views: stats?.views ?? 0,
           rate: isNaN(successRate) || !successRate ? 0 : successRate,
+          userSolved,
         }}
-        toggleLike={debounce(toggleLike, 300)}
+        toggleLike={debounce(toggleLike, 500)}
+        likeDisabled={isLoading}
       />
 
       {description && (

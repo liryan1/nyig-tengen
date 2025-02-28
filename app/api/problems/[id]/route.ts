@@ -29,6 +29,18 @@ export async function GET(req: Request, { params }: Params) {
             userId: true,
           },
         },
+        submissions: userId
+          ? {
+              where: {
+                userId,
+                status: "solved",
+              },
+              select: {
+                status: true,
+              },
+              take: 1,
+            }
+          : false,
       },
       omit: { correct: true },
     });
@@ -45,6 +57,7 @@ export async function GET(req: Request, { params }: Params) {
         rank: problem.rank,
         description: problem.description,
         author: problem.author,
+        userSolved: problem.submissions?.at(0)?.status === "solved",
         stats: {
           ...problem.problemStats,
           likes: problem.problemLikes.length,

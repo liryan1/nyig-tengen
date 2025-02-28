@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { DualRangeSlider } from "@/components/ui/slider";
 import { getRank } from "@/lib/go/display";
-import { X } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import {
   createParser,
   parseAsInteger,
@@ -57,11 +57,11 @@ export function ProblemFilter() {
   }, [setRankRange, setCreator, setSort]);
 
   return (
-    <div className="flex flex-wrap gap-x-4 mb-4">
-      <div className="min-w-80 w-full max-w-[600px]">
+    <div className="flex flex-wrap gap-x-2 sm:gap-x-4 justify-center">
+      <div className="w-80">
         <DualRangeSlider
-          className="mt-1 mb-6"
-          labelPosition="bottom"
+          className="mt-5 mb-2"
+          labelPosition="top"
           label={(value) => (
             <span>{value !== undefined ? getRank(value) : ""}</span>
           )}
@@ -78,7 +78,7 @@ export function ProblemFilter() {
       <ProblemCreatorInput value={creator} onSelect={setCreator} />
       <div>
         <Select value={sort} onValueChange={setSort}>
-          <SelectTrigger className="min-w-32 sm:min-w-36 h-8 sm:h-9">
+          <SelectTrigger className="min-w-32 sm:min-w-36">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
@@ -87,8 +87,13 @@ export function ProblemFilter() {
           </SelectContent>
         </Select>
       </div>
-      <Button className="h-8 sm:h-9" variant="secondary" onClick={clearFilters}>
-        <X />
+      <Button
+        className="px-2 text-red-500"
+        variant="outline"
+        onClick={clearFilters}
+      >
+        Clear
+        <Trash2 />
       </Button>
     </div>
   );

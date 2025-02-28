@@ -84,7 +84,7 @@ export class GoGame {
     removeStones: [],
     labels: {},
     children: [],
-    moveColor: -1,
+    moveColor: 0,
   };
   public root: SgfNode;
   public boardSize;

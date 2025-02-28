@@ -22,7 +22,7 @@ export function GoProblemToolbar({
   children,
 }: GoProblemToolbarProps) {
   return (
-    <div className="h-full relative bg-yellow-50 dark:bg-slate-700 flex flex-col">
+    <div className="h-full relative bg-yellow-50 dark:bg-slate-700 flex flex-col min-h-48">
       <GoBoardStepper
         rootNode={rootNode}
         currentNode={currentNode}

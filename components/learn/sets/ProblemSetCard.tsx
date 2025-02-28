@@ -8,7 +8,7 @@ import dynamic from "next/dynamic";
 import { PageSpinner } from "@/components/labels/Spinner";
 
 const ProblemCarousel = dynamic(
-  () => import("@/components/learn/problem/ProblemCarousel"),
+  () => import("@/components/learn/sets/ProblemCarousel"),
   { ssr: false, loading: () => <PageSpinner /> },
 );
 

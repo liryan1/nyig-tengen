@@ -20,6 +20,7 @@ import { GoProblemHeader } from "./GoProblemHeader";
 import { GoProblemToolbar } from "./GoProblemToolbar";
 import { ExportSGFButton } from "./tools/ExportSGFButton";
 import { PassButton } from "./tools/PassButton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface GoProblemProps {
   problem: GoProblemResponse;
@@ -81,13 +82,17 @@ export function GoProblem({
       setShowSuccess(true);
       setTimeout(() => setShowSuccess(false), 8_000);
       setMessage(
-        <div className="flex items-center gap-1">
-          {successIcon}
-          Congratulations! You solved the problem.
-          {evaluation.mismatchIndex
-            ? ` Checked up to move ${evaluation.mismatchIndex}`
-            : ""}
-        </div>,
+        <>
+          <div className="flex items-center gap-1">
+            {successIcon}
+            Congratulations! You solved the problem.
+          </div>
+          {evaluation.mismatchIndex ? (
+            <div className="text-muted-foreground text-sm">
+              Checked up to move {evaluation.mismatchIndex}
+            </div>
+          ) : undefined}
+        </>,
       );
     } else if (evaluation.status === "mismatch") {
       const oppMove = evaluation.correctOpponentMove;
@@ -181,7 +186,12 @@ export function GoProblem({
         >
           <div className="relative p-2 text-sm sm:text-base min-h-20 max-h-20 sm:min-h-24 sm:max-h-24 sm:space-y-2 overflow-hidden">
             {message}
-            {isLoading && <PageSpinner />}
+            {isLoading && (
+              <div className="space-y-2">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-[180px]" />
+              </div>
+            )}
             {sError && (
               <div className="flex justify-center items-center p-10 text-xl text-red-500">
                 Failed to submit solution. Please try again later.

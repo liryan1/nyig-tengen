@@ -6,6 +6,8 @@ import { fromSgf } from "@/lib/go/parser";
 import { ProgressStatus, SubmissionStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
+import { revalidateTag } from "next/cache";
+import { ALL_PROBLEMS_TAG } from "@/lib/nextTags";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -42,6 +44,10 @@ export async function POST(req: Request, { params }: Params) {
 
     const root = fromSgf(problem.correct);
     const { evaluation, stats } = evaluate(userMoves, root);
+
+    if (evaluation.status === "solved") {
+      revalidateTag(ALL_PROBLEMS_TAG);
+    }
 
     // Creates the update data for the problem set progress saved in problemOrder
     // If all problems are completed, set the status

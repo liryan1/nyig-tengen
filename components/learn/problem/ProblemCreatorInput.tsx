@@ -1,5 +1,5 @@
 "use client";
-import { SearchSelect } from "@/components/ui/SearchSelect";
+import { SearchSelect } from "@/components/learn/SearchSelect";
 import { useGetProblemCreatorsQuery } from "@/lib/rtk/slices/problems";
 
 interface ProblemCreatorInputProps {

@@ -5,16 +5,12 @@ import { getRank } from "@/lib/go/display";
 import { GoProblemResponse } from "@/lib/go/interface";
 import { getBoardSize, getRootBoardState } from "@/lib/go/parser";
 import { formatLargeNumber } from "@/lib/utils";
-import {
-  CircleCheckBigIcon,
-  EyeIcon,
-  HeartIcon,
-  SwordsIcon,
-} from "lucide-react";
+import { EyeIcon, HeartIcon, SwordsIcon } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
 import { Card, CardContent, CardFooter, CardTitle } from "../../ui/card";
 import { ReadonlyGoBoard } from "../go/board/ReadonlyGoBoard";
+import { ProblemCardSucessRate } from "./ProblemCardSucessRate";
 
 type Props = {
   goProblemResponse: GoProblemResponse;
@@ -41,7 +37,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
               {author.name}
             </Link>
           </span>
-          <span className="flex items-center space-x-1 select-none">
+          <span className="flex items-center gap-0.5 select-none">
             <SwordsIcon size={16} />
             <span>{getRank(rank)}</span>
           </span>
@@ -63,34 +59,20 @@ export function ProblemCard({ goProblemResponse }: Props) {
         </Link>
       </CardContent>
       <CardFooter className="flex items-center justify-between text-xs text-muted-foreground p-0 sm:px-1 py-1 select-none">
-        <div className="flex gap-2">
-          <span className="flex items-center space-x-1">
+        <div className="flex gap-1">
+          <span className="flex items-center gap-0.5">
             <EyeIcon size={16} />
             <span>{stats?.views ? formatLargeNumber(stats.views) : "0"}</span>
           </span>
-          <span className="flex items-center space-x-1">
+          <span className="flex items-center gap-0.5">
             <HeartIcon size={16} fill={stats?.userLiked ? "#ff0000" : "none"} />
             <span>{stats?.likes ? formatLargeNumber(stats.likes) : "0"}</span>
           </span>
         </div>
-        <div
-          className="flex items-center space-x-1"
-          style={{
-            color: userSolved ? "#16a34a" : undefined,
-            fontWeight: userSolved ? 600 : undefined,
-          }}
-        >
-          <CircleCheckBigIcon
-            size={16}
-            strokeWidth={userSolved ? 3 : undefined}
-          />
-          <span>
-            {(
-              (!successRate || isNaN(successRate) ? 0 : successRate) * 100
-            ).toFixed(1)}
-            %
-          </span>
-        </div>
+        <ProblemCardSucessRate
+          successRate={successRate}
+          userSolved={userSolved}
+        />
       </CardFooter>
     </Card>
   );
