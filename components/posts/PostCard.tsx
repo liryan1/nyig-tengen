@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LikeButton } from "../LikeButton";
+import { LikeButton } from "./LikeButton";
 import { PostResponse } from "@/lib/rtk/slices/posts";
 import { Button } from "../ui/button";
 import { EditIcon, MoveRightIcon } from "lucide-react";

@@ -23,21 +23,31 @@ export function useCellSize({
   const [cellSize, setCellSize] = useState(2);
 
   useLayoutEffect(() => {
+    if (!boardContainerRef?.current) return;
+
     function updateSizes() {
       const containerWidth = Math.min(
         boardContainerRef?.current?.clientWidth || 0,
         window.innerWidth,
       );
-      const newBoardPixelSize = containerWidth; // Ensure board never overflows
+      const newBoardPixelSize = containerWidth;
       const newCellSize = newBoardPixelSize / (boardSize + 1);
 
       setBoardPixelSize(newBoardPixelSize);
       setCellSize(newCellSize);
     }
 
-    updateSizes(); // Run on mount
+    // Create a ResizeObserver to watch for container size changes
+    const resizeObserver = new ResizeObserver(updateSizes);
+    resizeObserver.observe(boardContainerRef.current);
+
+    // Also handle window resize
     window.addEventListener("resize", updateSizes);
-    return () => window.removeEventListener("resize", updateSizes);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener("resize", updateSizes);
+    };
   }, [boardSize, boardContainerRef]);
 
   return { boardPixelSize, cellSize };

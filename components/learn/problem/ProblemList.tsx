@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/authOptions";
-import { ProblemCardSkeleton } from "@/components/learn/problem/ProblemCardSkeleton";
+import { ProblemCardSkeleton } from "@/components/loading/ProblemCardSkeleton";
 import { GoProblemResponse } from "@/lib/go/interface";
 import { CirclePlusIcon } from "lucide-react";
 import { getServerSession } from "next-auth";

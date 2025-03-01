@@ -1,8 +1,9 @@
 "use client";
 
 import { infoIcon, successIcon } from "@/components/labels/icons";
-import { PageSpinner, Spinner } from "@/components/labels/Spinner";
+import { Spinner } from "@/components/labels/Spinner";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/isMobile";
 import { coordToIndices, GoGame } from "@/lib/go/goGame";
 import { GoProblemResponse } from "@/lib/go/interface";
@@ -15,12 +16,11 @@ import { toast } from "sonner";
 import { useCellSize } from "../../../hooks/useCellSize";
 import { useGo } from "../../../hooks/useGo";
 import { getMoves } from "../../../lib/go/evaluate";
+import { GoBoardMenu } from "./GoBoardMenu";
 import { GoProblemBoard } from "./GoProblemBoard";
 import { GoProblemHeader } from "./GoProblemHeader";
 import { GoProblemToolbar } from "./GoProblemToolbar";
-import { ExportSGFButton } from "./tools/ExportSGFButton";
 import { PassButton } from "./tools/PassButton";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface GoProblemProps {
   problem: GoProblemResponse;
@@ -162,7 +162,7 @@ export function GoProblem({
   };
 
   return (
-    <div className="sm:max-w-6xl mx-auto border rounded-md shadow-sm m-2 px-1 sm:px-0">
+    <div className="sm:max-w-6xl mx-auto border rounded-md shadow-sm">
       <GoProblemHeader pId={problem.id} meta={problem} />
       <hr />
       <div className="grid md:grid-cols-2">
@@ -197,6 +197,10 @@ export function GoProblem({
                 Failed to submit solution. Please try again later.
               </div>
             )}
+            <GoBoardMenu
+              className="absolute right-1 bottom-1 aspect-square"
+              handleExportSgf={() => toSgf(goGame.root, boardSize)}
+            />
           </div>
           <GoProblemToolbar
             rootNode={goGame.root}
@@ -208,9 +212,6 @@ export function GoProblem({
               <PassButton onClick={() => handleMove(-1, -1)} />
             </div>
             <div className="flex items-end gap-2">
-              <ExportSGFButton
-                getSgfString={() => toSgf(goGame.root, boardSize)}
-              />
               <Button
                 size="sm"
                 onClick={handleSubmitAnswer}

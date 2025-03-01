@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/authOptions";
-import { LikeButton } from "@/components/LikeButton";
+import { LikeButton } from "@/components/posts/LikeButton";
 import { PostResponse } from "@/lib/rtk/slices/posts";
 import { EditIcon, MessageCircleMoreIcon } from "lucide-react";
 import { getServerSession } from "next-auth";

@@ -290,8 +290,9 @@ model Endorsement {
 // -------------------- Team models --------------------
 model Team {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  slug        String   @unique
   name        String
-  description String? // optional or required, up to you
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

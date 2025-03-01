@@ -7,6 +7,7 @@ export const POST_TAG = "Post"; // single post
 export const COMMENTS_TAG = "Comments";
 export const LIKES_TAG = "Likes";
 export const AUTH_TAG = "Auth";
+export const TEAMS_TAG = "Teams";
 export const PROBLEMS_TAG = "Problems";
 export const PROBLEM_SETS_TAG = "ProblemSets";
 export const PROBLEM_SET_PROGRESS_TAG = "ProblemSetProgress";
@@ -28,5 +29,6 @@ export const apiSlice = createApi({
     COMMENTS_TAG,
     LIKES_TAG,
     AUTH_TAG,
+    TEAMS_TAG,
   ],
 });

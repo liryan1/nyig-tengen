@@ -8,19 +8,24 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { buttonVariants } from "../ui/button";
+import { cn } from "@/lib/utils";
 
-export function ShowCoordButton() {
+export function ShowCoordButton({ className }: { className?: string }) {
   const { toggleShowCoord, showCoord } = useShowCoord();
+  const text = (showCoord ? "Hide" : "Show") + " coordinates";
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger
           onClick={toggleShowCoord}
-          className={buttonVariants({ variant: "outline", size: "sm" })}
+          className={cn(
+            buttonVariants({ variant: "outline", size: "sm" }),
+            className,
+          )}
         >
-          <span className={showCoord ? "line-through" : ""}>A1</span>
+          <span className={showCoord ? "" : "line-through"}>A1</span>
         </TooltipTrigger>
-        <TooltipContent>Show coordinates</TooltipContent>
+        <TooltipContent>{text}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );

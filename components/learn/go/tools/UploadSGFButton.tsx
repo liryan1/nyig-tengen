@@ -23,7 +23,7 @@ import { CircleAlertIcon, FolderUpIcon } from "lucide-react";
 import { GoGame } from "@/lib/go/goGame";
 
 interface UploadSGFButtonProps {
-  goGameRef?: RefObject<GoGame | null>;
+  notEmpty?: boolean;
   onUpload: (sgfContent: string) => void;
   className?: string;
 }
@@ -31,7 +31,7 @@ interface UploadSGFButtonProps {
 export function UploadSGFButton({
   onUpload,
   className,
-  goGameRef,
+  notEmpty,
 }: UploadSGFButtonProps) {
   const [fileContent, setFileContent] = useState<string>("");
   const [open, setOpen] = useState(false);
@@ -78,7 +78,7 @@ export function UploadSGFButton({
         <DialogHeader>
           <DialogTitle>Upload SGF File</DialogTitle>
         </DialogHeader>
-        {goGameRef?.current && !goGameRef.current.isEmpty() && (
+        {notEmpty && (
           <div className="text-sm flex items-center gap-1 text-red-500">
             <CircleAlertIcon />
             Warning: This will overwrite all existing data.

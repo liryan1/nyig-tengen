@@ -22,7 +22,7 @@ async function AllProblemsPage({ searchParams }: PageProps) {
   }).toString();
 
   const { response, isError } = await fetchSafe<GetProblemsResponse>(
-    `/problems?${queryString}`,
+    `problems?${queryString}`,
     { next: { tags: [ALL_PROBLEMS_TAG] } },
     true,
   );

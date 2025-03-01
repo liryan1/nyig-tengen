@@ -1,14 +1,15 @@
-import { Navbar } from "@/components/nav/Navbar";
+import { AppSidebar } from "@/components/nav/root/AppSidebar";
+import { NavHeader } from "@/components/nav/root/NavHeader";
 import SessionProvider from "@/components/providers/SessionProvider";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import "@/styles/globals.scss";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { Inter } from "next/font/google";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Toaster } from "sonner";
 import ReduxProvider from "../components/providers/ReduxProvider";
 import { authOptions } from "./api/auth/authOptions";
-import { NuqsAdapter } from "nuqs/adapters/next/app";
-
 import "./globals.css";
 
 const font = Inter({
@@ -35,8 +36,10 @@ export default async function RootLayout({
         <SessionProvider session={session}>
           <ReduxProvider>
             <NuqsAdapter>
-              <Navbar />
-              <main className="mx-auto">{children}</main>
+              <SidebarProvider>
+                <AppSidebar />
+                <NavHeader>{children}</NavHeader>
+              </SidebarProvider>
             </NuqsAdapter>
           </ReduxProvider>
         </SessionProvider>

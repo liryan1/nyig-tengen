@@ -11,11 +11,11 @@ import { GoProblemBoard } from "./GoProblemBoard";
 import { GoProblemToolbar } from "./GoProblemToolbar";
 import { BoardSizeSelect } from "./tools/BoardSizeSelect";
 import { EditButton } from "./tools/EditButton";
-import { ExportSGFButton } from "./tools/ExportSGFButton";
 import { StoneSwitch } from "./tools/StoneSwitch";
 import { UploadSGFButton } from "./tools/UploadSGFButton";
 import { PassButton } from "./tools/PassButton";
 import { useLocalStorage } from "@/hooks/useLocalStorage";
+import { GoBoardMenu } from "./GoBoardMenu";
 
 const BOARD_SIZE_KEY = "tengen-problem-create-board-size";
 
@@ -144,17 +144,17 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
             />
           </div>
           <div className="flex items-end gap-1">
-            <ExportSGFButton
-              getSgfString={() => toSgf(goGame.root, goGame.boardSize)}
-            />
-            <UploadSGFButton
-              onUpload={handleUploadSgfChange}
-              goGameRef={goGameRef}
-            />
             <BoardSizeSelect
               size={boardSize}
               onChange={handleBoardSizeChange}
               isBoardEmpty={goGame.isEmpty()}
+            />
+            <GoBoardMenu
+              className="aspect-square"
+              handleExportSgf={() => toSgf(goGame.root, boardSize)}
+              dropdownMenuSide="top"
+              onUpload={handleUploadSgfChange}
+              boardIsNotEmpty={!goGame.isEmpty()}
             />
           </div>
         </GoProblemToolbar>
