@@ -1,12 +1,12 @@
+import { Button } from "@/components/ui/button";
 import { logStack } from "@/lib/error";
 import { getRank } from "@/lib/go/display";
 import { GoProblemMeta, StoneColor } from "@/lib/go/interface";
 import { useProblemLikeMutation } from "@/lib/rtk/slices/problems";
 import { cn, debounce } from "@/lib/utils";
-import { CircleIcon } from "lucide-react";
+import { CircleIcon, EditIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { useState } from "react";
 import { toast } from "sonner";
 import { InfoBar } from "../InfoBar";
 
@@ -15,6 +15,7 @@ type GoProblemHeaderProps = {
   meta: GoProblemMeta;
   initialColor?: StoneColor;
   className?: string;
+  hasProblemSetProgressId?: boolean;
 };
 
 export function GoProblemHeader({
@@ -22,16 +23,16 @@ export function GoProblemHeader({
   meta,
   initialColor = 1,
   className,
+  hasProblemSetProgressId,
 }: GoProblemHeaderProps) {
   const { rank, description, author, stats, userSolved } = meta;
   const [like, { isLoading }] = useProblemLikeMutation();
-  const [userLiked, setUserLiked] = useState(!!stats?.userLiked);
-  const [likes, setLikes] = useState(stats?.likes ?? 0);
   const stoneColor = initialColor === 1 ? "black" : "white";
   const successRate =
     (stats?.correctCount ?? 0) / (stats?.submissionCount ?? 1);
 
-  const { status: authStatus } = useSession();
+  const { data: session, status: authStatus } = useSession();
+  const userOwnsProblem = session?.user.id === author.id;
 
   const toggleLike = async () => {
     if (authStatus !== "authenticated") {
@@ -39,15 +40,12 @@ export function GoProblemHeader({
       return;
     }
     const likeProblem = async () => {
-      const { liked } = await like(pId).unwrap();
-      setUserLiked(!userLiked);
-      setLikes((prev) => (userLiked ? prev - 1 : prev + 1));
-      return liked;
+      return like(pId).unwrap();
     };
     try {
       toast.promise(likeProblem, {
-        loading: userLiked ? "Removing like..." : "Liking problem...",
-        success: userLiked ? "Removed like" : "Liked problem",
+        loading: stats?.userLiked ? "Removing like..." : "Liking problem...",
+        success: stats?.userLiked ? "Removed like" : "Liked problem",
         error: (err) => err.message,
       });
     } catch (error) {
@@ -65,6 +63,14 @@ export function GoProblemHeader({
               {author.name}
             </Link>
           </div>
+          {!hasProblemSetProgressId && userOwnsProblem && (
+            <Link href={`/learn/problems/${pId}/edit`}>
+              <Button size="sm" className="gap-1">
+                Edit
+                <EditIcon />
+              </Button>
+            </Link>
+          )}
           <CircleIcon size={24} fill={stoneColor} />
         </div>
       </div>
@@ -72,8 +78,8 @@ export function GoProblemHeader({
       <InfoBar
         info={{
           rank: getRank(rank),
-          likes,
-          userLiked,
+          likes: stats?.likes || 0,
+          userLiked: stats?.userLiked,
           views: stats?.views ?? 0,
           rate: isNaN(successRate) || !successRate ? 0 : successRate,
           userSolved,

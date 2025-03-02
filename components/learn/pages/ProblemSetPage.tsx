@@ -1,5 +1,6 @@
 "use client";
 
+import Confetti from "react-confetti-boom";
 import { logStack } from "@/lib/error";
 import { getRank } from "@/lib/go/display";
 import {
@@ -13,7 +14,7 @@ import { TrophyIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { redirect } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PageError } from "../../labels/Error";
 import { PageSpinner } from "../../labels/Spinner";
@@ -26,7 +27,12 @@ import {
   CardTitle,
 } from "../../ui/card";
 import { InfoBar } from "../InfoBar";
-import { StartButton } from "./StartButton";
+import { StartButton } from "../sets/StartButton";
+import { useAppDispatch, useAppSelector } from "@/lib/rtk/slices/hooks";
+import {
+  clearCompletion,
+  selectPsetCompletion,
+} from "@/lib/rtk/slices/psetCompletion";
 
 const ProblemGrid = dynamic(
   () => import("@/components/learn/problem/ProblemGrid"),
@@ -34,6 +40,16 @@ const ProblemGrid = dynamic(
 );
 
 export function ProblemSetPage({ sId }: { sId?: string }) {
+  const [showConfetti, setShowConfetti] = useState(false);
+  const { psetId: completedPsetId } = useAppSelector(selectPsetCompletion);
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    if (completedPsetId === sId) {
+      setShowConfetti(true);
+      console.log("Showing confetti inside useEffect");
+      dispatch(clearCompletion());
+    }
+  }, [completedPsetId, sId]);
   const [like] = usePSetLikeMutation();
   const { status: authStatus } = useSession();
   const {
@@ -48,8 +64,6 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
   } = useGetPSetProgressQuery(sId ?? "", {
     skip: !sId || authStatus !== "authenticated",
   });
-  const [userLiked, setUserLiked] = useState(!!pset?.userLiked);
-  const [likes, setLikes] = useState(pset?.likes ?? 0);
   if (psetLoading || pgLoading) {
     return <PageSpinner />;
   }
@@ -96,14 +110,12 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
     }
     const likeProblem = async () => {
       const { liked } = await like(sId).unwrap();
-      setUserLiked(!userLiked);
-      setLikes((prev) => (userLiked ? prev - 1 : prev + 1));
       return liked;
     };
     try {
       toast.promise(likeProblem, {
-        loading: userLiked ? "Removing like..." : "Liking problem set...",
-        success: userLiked ? "Removed like" : "Liked problem set",
+        loading: pset.userLiked ? "Removing like..." : "Liking problem set...",
+        success: pset.userLiked ? "Removed like" : "Liked problem set",
         error: (err) => err.message,
       });
     } catch (error) {
@@ -114,6 +126,17 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
   return (
     <Card className="shadow-sm rounded-lg my-6">
       <CardHeader className="p-2 sm:p-4 border-b">
+        {showConfetti && (
+          <div className="z-50">
+            <Confetti
+              x={0.4}
+              effectInterval={3000}
+              effectCount={5}
+              particleCount={800}
+              launchSpeed={2.5}
+            />
+          </div>
+        )}
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-md sm:text-xl font-medium">{name}</span>
@@ -138,9 +161,9 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
             author,
             rank: getRank(averageRank, true),
             count: problemCount,
-            userLiked,
+            userLiked: pset.userLiked,
             views,
-            likes,
+            likes: pset.likes,
             rate: completedCount / attemptedCount,
           }}
           toggleLike={debounce(toggleLike, 300)}

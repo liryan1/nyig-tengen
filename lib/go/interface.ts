@@ -32,6 +32,7 @@ export interface GoProblemMeta {
 export interface GoProblem {
   id: string;
   initial: string;
+  correct?: string;
 }
 
 export type GoProblemResponse = GoProblem & GoProblemMeta;

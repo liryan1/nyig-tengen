@@ -9,7 +9,9 @@ export const LIKES_TAG = "Likes";
 export const AUTH_TAG = "Auth";
 export const TEAMS_TAG = "Teams";
 export const PROBLEMS_TAG = "Problems";
+export const PROBLEM_TAG = "Problem";
 export const PROBLEM_SETS_TAG = "ProblemSets";
+export const PROBLEM_SET_TAG = "ProblemSet";
 export const PROBLEM_SET_PROGRESS_TAG = "ProblemSetProgress";
 
 const baseQuery = fetchBaseQuery({
@@ -23,7 +25,9 @@ export const apiSlice = createApi({
   tagTypes: [
     PROBLEM_SET_PROGRESS_TAG,
     PROBLEM_SETS_TAG,
+    PROBLEM_SET_TAG,
     PROBLEMS_TAG,
+    PROBLEM_TAG,
     POST_TAG,
     POSTS_TAG,
     COMMENTS_TAG,

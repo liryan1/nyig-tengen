@@ -11,9 +11,12 @@ const GoProblem = dynamic(() => import("@/components/learn/go/GoProblem"), {
 });
 
 export function GoProblemPage({ id }: { id?: string }) {
-  const { data, isLoading, isError } = useGetProblemQuery(id ?? "", {
-    skip: !id,
-  });
+  const { data, isLoading, isError } = useGetProblemQuery(
+    { id: id ?? "" },
+    {
+      skip: !id,
+    },
+  );
   if (isLoading) {
     return <PageSpinner />;
   }

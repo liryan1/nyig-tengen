@@ -23,6 +23,7 @@ import { goGameToSgf, rootNodeToSgf } from "@/lib/go/parser";
 import {
   ProblemCreateRequest,
   useCreateProblemMutation,
+  useUpdateProblemMutation,
 } from "@/lib/rtk/slices/problems";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleAlertIcon, SendHorizonalIcon } from "lucide-react";
@@ -57,10 +58,11 @@ export function ProblemForm({ problem }: Props) {
   const actionWord = problem ? "Update" : "Create";
   const goGameRef = useRef<GoGame | null>(null);
   if (problem) {
-    goGameRef.current = GoGame.fromSgf(problem.initial);
+    goGameRef.current = GoGame.fromSgf(problem.correct || problem.initial);
   }
   const [create, { isLoading: cLoading }] = useCreateProblemMutation();
-  const isLoading = cLoading;
+  const [update, { isLoading: uLoading }] = useUpdateProblemMutation();
+  const isLoading = cLoading || uLoading;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -94,7 +96,7 @@ export function ProblemForm({ problem }: Props) {
         correct: goGameToSgf(goGame),
       };
       if (problem) {
-        console.warn("Update not implemented yet. body:", body);
+        return update({ id: problem.id, ...body }).unwrap();
       } else {
         return create(body).unwrap();
       }
@@ -103,14 +105,14 @@ export function ProblemForm({ problem }: Props) {
     toast.promise(submit, {
       duration: 5000,
       error: (err) => `Failed to ${actionWord} problem: ${err?.message}`,
-      loading: `Successfully ${actionWord}d problem`,
+      loading: `Attempting to ${actionWord} problem`,
       success: (res) => {
         setButtonDisabled(true);
         setTimeout(() => {
           setButtonDisabled(false);
         }, 10000);
         return {
-          message: "Successfully created new problem",
+          message: `Successfully ${actionWord}d problem`,
           action: res
             ? {
                 label: "View",
@@ -189,7 +191,10 @@ export function ProblemForm({ problem }: Props) {
             {form.formState.errors.root.message}
           </div>
         )}
-        <GoProblemEditor goGameRef={goGameRef} />
+        <GoProblemEditor
+          goGameRef={goGameRef}
+          initialMode={problem ? "move" : "edit"}
+        />
 
         <FormField
           control={form.control}
@@ -214,7 +219,7 @@ export function ProblemForm({ problem }: Props) {
           type="submit"
           disabled={isLoading || buttonDisabled}
         >
-          Create
+          {actionWord}
           {isLoading ? <Spinner className="h-4 w-4" /> : <SendHorizonalIcon />}
         </Button>
       </form>

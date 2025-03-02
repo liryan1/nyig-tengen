@@ -5,7 +5,7 @@ import { ALL_PROBLEM_SETS_TAG, ALL_PROBLEMS_TAG } from "@/lib/nextTags";
 import { GetProblemsResponse } from "@/lib/rtk/slices/problems";
 import { GetPSetsResponse } from "@/lib/rtk/slices/problemSets";
 
-export default async function ProblemsPage() {
+async function LearnPage() {
   const [
     { response: resP, isError: isErrorP },
     { response: resPS, isError: isErrorPS },
@@ -16,7 +16,7 @@ export default async function ProblemsPage() {
       true,
     ),
     fetchSafe<GetPSetsResponse>(
-      "problems/sets?page=1&limit=4",
+      "problems/sets?page=1&limit=3",
       { next: { tags: [ALL_PROBLEM_SETS_TAG] } },
       true,
     ),
@@ -37,3 +37,5 @@ export default async function ProblemsPage() {
     </div>
   );
 }
+
+export default LearnPage;

@@ -1,6 +1,12 @@
 "use client";
 
-import { ChevronsUpDown, LogOut, Sparkles, User2Icon } from "lucide-react";
+import {
+  ChevronsUpDown,
+  LogInIcon,
+  LogOut,
+  Sparkles,
+  User2Icon,
+} from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -33,9 +39,12 @@ export function NavUser() {
     return (
       <SidebarMenu>
         <SidebarMenuItem>
-          <Button size="sm">
-            <Link href="/login">Sign in</Link>
-          </Button>
+          <Link href="/login">
+            <SidebarMenuButton>
+              <LogInIcon />
+              <span>Sign in</span>
+            </SidebarMenuButton>
+          </Link>
         </SidebarMenuItem>
       </SidebarMenu>
     );

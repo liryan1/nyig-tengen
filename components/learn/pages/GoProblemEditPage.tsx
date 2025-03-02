@@ -12,9 +12,12 @@ export function GoProblemEditPage({ pId }: { pId: string }) {
     data: problem,
     isLoading,
     isError,
-  } = useGetProblemQuery(pId ?? "", {
-    skip: !pId || status !== "authenticated" || !userId,
-  });
+  } = useGetProblemQuery(
+    { id: pId ?? "", isEdit: true },
+    {
+      skip: !pId || status !== "authenticated" || !userId,
+    },
+  );
 
   if (isLoading) {
     return <PageSpinner />;

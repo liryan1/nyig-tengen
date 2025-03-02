@@ -53,6 +53,7 @@ export async function POST(req: Request, { params }: Params) {
     // If all problems are completed, set the status
     let updateProgressData: any = { updatedAt: new Date() };
     let updateProblemSetStats: any;
+    let problemSetCompleted: string | undefined = undefined;
     if (problemSetProgressId) {
       const progress = await db.problemSetProgress.findUnique({
         where: { id: problemSetProgressId },
@@ -77,6 +78,7 @@ export async function POST(req: Request, { params }: Params) {
       );
       updateProgressData["problemOrder"] = problemOrder;
       if (problemOrder.every((p) => p.status === "solved")) {
+        problemSetCompleted = progress.problemSetId;
         updateProgressData["status"] = ProgressStatus.completed;
         updateProblemSetStats = {
           data: { completed: { increment: 1 } },
@@ -123,7 +125,10 @@ export async function POST(req: Request, { params }: Params) {
       }),
     ]);
 
-    return NextResponse.json({ evaluation }, { status: 201 });
+    return NextResponse.json(
+      { evaluation, problemSetCompleted },
+      { status: 201 },
+    );
   } catch (error) {
     logStack(error);
     return NextResponse.json(

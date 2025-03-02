@@ -26,11 +26,8 @@ export async function ProblemSetList({
         <div className="flex items-center gap-2 sm:gap-6">
           <span className="text-2xl font-medium">Problem Sets</span>
           {session?.user?.role === "ADMIN" && (
-            <Button size="sm" variant="outline" disabled>
-              <Link
-                href="/learn/sets/create"
-                className="flex items-center gap-2"
-              >
+            <Button size="sm" disabled>
+              <Link href="/learn/sets/new" className="flex items-center gap-2">
                 <CirclePlusIcon />
                 Create
               </Link>

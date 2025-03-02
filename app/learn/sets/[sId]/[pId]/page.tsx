@@ -1,4 +1,4 @@
-import { ProblemSetDoPage } from "@/components/learn/sets/ProblemSetDoPage";
+import { ProblemSetDoPage } from "@/components/learn/pages/ProblemSetDoPage";
 
 type Params = { params: Promise<{ sId: string; pId: string }> };
 

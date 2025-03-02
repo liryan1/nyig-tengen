@@ -31,7 +31,7 @@ export async function ProblemList({
   const session = await getServerSession(authOptions);
   const createButton = (
     <Button size="sm">
-      <Link href="/learn/problems/create" className="flex items-center gap-2">
+      <Link href="/learn/problems/new" className="flex items-center gap-2">
         <CirclePlusIcon />
         Create
       </Link>

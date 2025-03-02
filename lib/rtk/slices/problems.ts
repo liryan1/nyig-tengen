@@ -1,5 +1,10 @@
 import { Evaluation, GoProblemResponse } from "@/lib/go/interface";
-import { apiSlice, PROBLEM_SET_PROGRESS_TAG, PROBLEMS_TAG } from "../api";
+import {
+  apiSlice,
+  PROBLEM_SET_PROGRESS_TAG,
+  PROBLEM_TAG,
+  PROBLEMS_TAG,
+} from "../api";
 
 interface SubmissionRequest {
   id: string;
@@ -9,7 +14,7 @@ interface SubmissionRequest {
 
 interface SubmissionResponse {
   evaluation: Evaluation;
-  submissionId: string;
+  problemSetCompleted?: boolean;
 }
 
 export interface ProblemCreateRequest {
@@ -45,10 +50,16 @@ const problemsApiSlice = apiSlice.injectEndpoints({
         `problems?page=${page}&limit=${limit}`,
       providesTags: [PROBLEMS_TAG],
     }),
-    getProblem: builder.query<GoProblemResponse, string>({
-      query: (id) => `problems/${id}`,
-      providesTags: [PROBLEMS_TAG],
+
+    getProblem: builder.query<
+      GoProblemResponse,
+      { id: string; isEdit?: boolean }
+    >({
+      query: ({ id, isEdit }) =>
+        `problems/${id}${isEdit ? "?isEdit=true" : ""}`,
+      providesTags: (result, error, arg) => [{ type: PROBLEM_TAG, id: arg.id }],
     }),
+
     submit: builder.mutation<SubmissionResponse, SubmissionRequest>({
       query: ({ id, ...body }) => ({
         url: `problems/${id}/submit`,
@@ -57,6 +68,7 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [PROBLEM_SET_PROGRESS_TAG],
     }),
+
     createProblem: builder.mutation<
       ProblemCreateResponse,
       ProblemCreateRequest
@@ -68,12 +80,29 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [PROBLEMS_TAG],
     }),
+
+    updateProblem: builder.mutation<
+      ProblemCreateResponse,
+      ProblemCreateRequest & { id: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `problems/${id}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: PROBLEM_TAG, id: arg.id },
+      ],
+    }),
+
     problemLike: builder.mutation<{ liked: boolean }, string>({
       query: (id) => ({
         url: `problems/${id}/like`,
         method: "POST",
       }),
+      invalidatesTags: (result, error, arg) => [{ type: PROBLEM_TAG, id: arg }],
     }),
+
     getProblemCreators: builder.query<ProblemCreator[], void>({
       query: () => `problems/creators`,
     }),
@@ -85,6 +114,7 @@ export const {
   useSubmitMutation,
   useGetProblemsQuery,
   useCreateProblemMutation,
+  useUpdateProblemMutation,
   useProblemLikeMutation,
   useGetProblemCreatorsQuery,
 } = problemsApiSlice;

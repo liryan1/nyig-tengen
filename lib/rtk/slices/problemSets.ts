@@ -3,7 +3,12 @@ import {
   ProgressStatus,
   SubmissionStatus,
 } from "@prisma/client";
-import { apiSlice, PROBLEM_SET_PROGRESS_TAG, PROBLEM_SETS_TAG } from "../api";
+import {
+  apiSlice,
+  PROBLEM_SET_PROGRESS_TAG,
+  PROBLEM_SET_TAG,
+  PROBLEM_SETS_TAG,
+} from "../api";
 
 export interface ProblemSetResponse {
   id: string;
@@ -91,7 +96,9 @@ const problemsApiSlice = apiSlice.injectEndpoints({
     }),
     getPSet: builder.query<PSetResponse, string>({
       query: (id) => `/problems/sets/${id}`,
-      providesTags: [PROBLEM_SETS_TAG],
+      providesTags: (result, error, arg) => [
+        { type: PROBLEM_SET_TAG, id: arg },
+      ],
     }),
     getPSetProgress: builder.query<GetPSetProgressResponse, string>({
       query: (id) => `/problems/sets/${id}/progress`,
@@ -108,11 +115,14 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: [PROBLEM_SET_PROGRESS_TAG],
     }),
-    PSetLike: builder.mutation<{ liked: boolean }, string>({
+    pSetLike: builder.mutation<{ liked: boolean }, string>({
       query: (id) => ({
         url: `problems/sets/${id}/like`,
         method: "POST",
       }),
+      invalidatesTags: (result, error, arg) => [
+        { type: PROBLEM_SET_TAG, id: arg },
+      ],
     }),
   }),
 });

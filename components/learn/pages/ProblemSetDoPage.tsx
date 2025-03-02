@@ -5,7 +5,7 @@ import { useGetPSetProgressQuery } from "@/lib/rtk/slices/problemSets";
 import { redirect } from "next/navigation";
 import { PageError } from "../../labels/Error";
 import { PageSpinner } from "../../labels/Spinner";
-import { ProblemSetDoPageHeader } from "./ProblemSetDoPageHeader";
+import { ProblemSetDoPageHeader } from "../sets/ProblemSetDoPageHeader";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 
@@ -33,7 +33,7 @@ export function ProblemSetDoPage({
     data: problem,
     isLoading: pLoading,
     isError: pError,
-  } = useGetProblemQuery(problemId, { skip: !problemId });
+  } = useGetProblemQuery({ id: problemId }, { skip: !problemId });
 
   const isLoading = pgLoading || pLoading;
   if (isLoading) {
@@ -41,7 +41,7 @@ export function ProblemSetDoPage({
   }
 
   if (pError || pgError) {
-    return <PageError>Error loading posts!</PageError>;
+    return <PageError>Error loading problem!</PageError>;
   }
 
   if (!problem) {
@@ -51,7 +51,7 @@ export function ProblemSetDoPage({
   if (!progressResponse?.progress) {
     return redirect(`/learn/sets/${psetId}`);
   }
-  const currentIndex = progressResponse.progress.problemOrder.findIndex(
+  const currentIndex = progressResponse.progress.problemOrder?.findIndex(
     (p) => p.problemId === problemId,
   );
   if (currentIndex === -1) {
@@ -67,9 +67,9 @@ export function ProblemSetDoPage({
       />
       <GoProblem
         problem={problem}
-        problemSetProgressId={progressResponse.progress?.id}
+        problemSetProgressId={progressResponse.progress.id}
         initialSuccess={
-          progressResponse.progress.problemOrder[currentIndex].status ===
+          progressResponse.progress.problemOrder[currentIndex]?.status ===
           "solved"
         }
       />

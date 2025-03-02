@@ -1,4 +1,4 @@
-import { ProblemSetPage } from "@/components/learn/sets/ProblemSetPage";
+import { ProblemSetPage } from "@/components/learn/pages/ProblemSetPage";
 import { fetchSafe } from "@/lib/fetch";
 
 type Params = { params: Promise<{ sId: string }> };

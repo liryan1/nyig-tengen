@@ -2,7 +2,7 @@
 
 import { useIsMobile } from "@/hooks/isMobile";
 import { useCellSize } from "@/hooks/useCellSize";
-import { useGo } from "@/hooks/useGo";
+import { BoardMode, useGo } from "@/hooks/useGo";
 import { GoGame, SgfNode } from "@/lib/go/goGame";
 import { toSgf } from "@/lib/go/parser";
 import { RefObject, useEffect, useRef, useState } from "react";
@@ -21,9 +21,13 @@ const BOARD_SIZE_KEY = "tengen-problem-create-board-size";
 
 interface GoProblemEditorProps {
   goGameRef: RefObject<GoGame | null>;
+  initialMode?: BoardMode;
 }
 
-export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
+export function GoProblemEditor({
+  goGameRef,
+  initialMode = "edit",
+}: GoProblemEditorProps) {
   const [boardSize, setBoardSize] = useLocalStorage(BOARD_SIZE_KEY, 19);
   const [goGame, setGoGame] = useState(
     () => goGameRef.current || new GoGame({ boardSize }),
@@ -59,7 +63,7 @@ export function GoProblemEditor({ goGameRef }: GoProblemEditorProps) {
     handleClickBoard,
   } = useGo({
     goGame,
-    initialMode: "edit",
+    initialMode,
   });
   const boardContainerRef = useRef<HTMLDivElement>(null);
   const { cellSize, boardPixelSize } = useCellSize({

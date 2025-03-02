@@ -42,7 +42,7 @@ export function BreadcrumbNav({ children }: BreadcrumbNavProps) {
   return (
     <Breadcrumb className="flex justify-between items-center">
       <BreadcrumbList>
-        <BreadcrumbItem className="hover:text-primary-foreground hover:underline">
+        <BreadcrumbItem className="hover:text-primary hover:underline">
           <BreadcrumbLink href="/">
             <HomeIcon size={16} />
           </BreadcrumbLink>
@@ -56,7 +56,7 @@ export function BreadcrumbNav({ children }: BreadcrumbNavProps) {
             <BreadcrumbItem
               className={cn(
                 isLastIndex(index) ? undefined : "hidden md:block",
-                "hover:text-primary-foreground hover:underline",
+                "hover:text-primary hover:underline",
               )}
             >
               {isLastIndex(index) ? (

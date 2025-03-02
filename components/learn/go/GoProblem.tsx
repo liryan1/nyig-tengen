@@ -8,7 +8,9 @@ import { useIsMobile } from "@/hooks/isMobile";
 import { coordToIndices, GoGame } from "@/lib/go/goGame";
 import { GoProblemResponse } from "@/lib/go/interface";
 import { getBoardSize, toSgf } from "@/lib/go/parser";
+import { useAppDispatch } from "@/lib/rtk/slices/hooks";
 import { useSubmitMutation } from "@/lib/rtk/slices/problems";
+import { setPsetCompletion } from "@/lib/rtk/slices/psetCompletion";
 import { MoveRightIcon, SendHorizonalIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
@@ -22,6 +24,8 @@ import { GoProblemHeader } from "./GoProblemHeader";
 import { GoProblemToolbar } from "./GoProblemToolbar";
 import { PassButton } from "./tools/PassButton";
 
+const successTimeout = 3_000; // ms
+
 interface GoProblemProps {
   problem: GoProblemResponse;
   problemSetProgressId?: string;
@@ -33,6 +37,7 @@ export function GoProblem({
   problemSetProgressId,
   initialSuccess,
 }: GoProblemProps) {
+  const dispatch = useAppDispatch();
   const boardSize = getBoardSize(problem.initial);
   const goGameRef = useRef<GoGame | null>(null);
   if (goGameRef.current === null) {
@@ -73,14 +78,14 @@ export function GoProblem({
       return;
     }
     setMessage("");
-    const { evaluation } = await submit({
+    const { evaluation, problemSetCompleted } = await submit({
       id: problem.id,
       problemSetProgressId,
       userMoves,
     }).unwrap();
     if (evaluation.status === "solved") {
       setShowSuccess(true);
-      setTimeout(() => setShowSuccess(false), 8_000);
+      setTimeout(() => setShowSuccess(false), successTimeout);
       setMessage(
         <>
           <div className="flex items-center gap-1">
@@ -94,6 +99,9 @@ export function GoProblem({
           ) : undefined}
         </>,
       );
+      if (problemSetProgressId && problemSetCompleted) {
+        dispatch(setPsetCompletion(problemSetCompleted));
+      }
     } else if (evaluation.status === "mismatch") {
       const oppMove = evaluation.correctOpponentMove;
       const i = evaluation.mismatchIndex;
@@ -163,7 +171,11 @@ export function GoProblem({
 
   return (
     <div className="sm:max-w-6xl mx-auto border rounded-md shadow-sm">
-      <GoProblemHeader pId={problem.id} meta={problem} />
+      <GoProblemHeader
+        pId={problem.id}
+        meta={problem}
+        hasProblemSetProgressId={!!problemSetProgressId}
+      />
       <hr />
       <div className="grid md:grid-cols-2">
         <div

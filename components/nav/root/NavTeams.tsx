@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  CircleUserRoundIcon,
   Forward,
   LogOutIcon,
   MoreHorizontal,
@@ -47,7 +48,7 @@ export function NavTeams() {
   ];
 
   return (
-    <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+    <SidebarGroup>
       <SidebarGroupLabel>Teams</SidebarGroupLabel>
       <SidebarMenu>
         {isLoading ? (
@@ -55,9 +56,13 @@ export function NavTeams() {
         ) : (
           teams.map((item) => (
             <SidebarMenuItem key={item.name}>
-              <SidebarMenuButton asChild>
+              <SidebarMenuButton asChild tooltip={item.name}>
                 <Link href={`/teams/${item.slug}`}>
-                  <Logo h={16} />
+                  {item.slug === "me" ? (
+                    <CircleUserRoundIcon />
+                  ) : (
+                    <Logo h={16} />
+                  )}
                   <span>{item.name}</span>
                 </Link>
               </SidebarMenuButton>
@@ -92,7 +97,7 @@ export function NavTeams() {
             </SidebarMenuItem>
           ))
         )}
-        <SidebarMenuItem>
+        <SidebarMenuItem className="group-data-[collapsible=icon]:hidden">
           <Link href="/teams">
             <SidebarMenuButton className="text-sidebar-foreground/70">
               <MoreHorizontal className="text-sidebar-foreground/70" />

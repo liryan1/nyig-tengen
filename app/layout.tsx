@@ -32,6 +32,9 @@ export default async function RootLayout({
   const session = await getServerSession(authOptions);
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/logo.png" sizes="any" />
+      </head>
       <body className={`${font.className} antialiased`}>
         <SessionProvider session={session}>
           <ReduxProvider>
