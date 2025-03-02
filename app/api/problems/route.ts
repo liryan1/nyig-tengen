@@ -118,7 +118,7 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const [session, { description, rank, initial, correct }] =
+    const [session, { description, rank, initial, correct, visibility }] =
       await Promise.all([getServerSession(authOptions), req.json()]);
     const userId = session?.user?.id;
     if (!userId) {
@@ -128,6 +128,13 @@ export async function POST(req: Request) {
     if (rank === undefined || rank === null || !initial || !correct) {
       return NextResponse.json(
         { message: "Missing required fields" },
+        { status: 400 },
+      );
+    }
+
+    if (visibility && !Object.values(Visibility).includes(visibility)) {
+      return NextResponse.json(
+        { message: "Invalid visibility" },
         { status: 400 },
       );
     }
@@ -150,6 +157,7 @@ export async function POST(req: Request) {
         initial,
         correct,
         authorId: userId,
+        visibility,
       },
       select: {
         id: true,

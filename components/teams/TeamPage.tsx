@@ -54,7 +54,7 @@ export const TeamPage = () => {
     team.members?.some((member) => member.id === session?.user?.id);
 
   return (
-    <div className="container mx-auto space-y-8">
+    <div className="container mx-auto space-y-6">
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
@@ -68,7 +68,7 @@ export const TeamPage = () => {
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2 max-w-3xl">
         <Card className="p-0">
           <CardContent className="p-0 pl-6 flex items-center space-x-4 h-full">
             <Avatar>

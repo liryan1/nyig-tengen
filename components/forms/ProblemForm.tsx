@@ -27,12 +27,13 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import { CircleAlertIcon, SendHorizonalIcon } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { PageSpinner, Spinner } from "../labels/Spinner";
 import { GoProblemResponse } from "@/lib/go/interface";
+import { Visibility } from "@prisma/client";
 
 const GoProblemEditor = dynamic(
   () => import("@/components/learn/go/GoProblemEditor"),
@@ -42,6 +43,7 @@ const GoProblemEditor = dynamic(
 const formSchema = z.object({
   rank: z.coerce.number().int().min(-30).max(8),
   description: z.string().optional(),
+  visibility: z.nativeEnum(Visibility),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -51,6 +53,7 @@ interface Props {
 }
 
 export function ProblemForm({ problem }: Props) {
+  const [buttonDisabled, setButtonDisabled] = useState(false);
   const actionWord = problem ? "Update" : "Create";
   const goGameRef = useRef<GoGame | null>(null);
   if (problem) {
@@ -64,6 +67,7 @@ export function ProblemForm({ problem }: Props) {
     defaultValues: {
       rank: -5,
       description: "",
+      visibility: Visibility.PUBLIC,
     },
   });
 
@@ -100,50 +104,84 @@ export function ProblemForm({ problem }: Props) {
       duration: 5000,
       error: (err) => `Failed to ${actionWord} problem: ${err?.message}`,
       loading: `Successfully ${actionWord}d problem`,
-      success: (res) => ({
-        message: "Successfully created new problem",
-        action: res
-          ? {
-              label: "View",
-              onClick: () => {
-                window.location.href = "/learn/problems/" + res.id;
-              },
-            }
-          : undefined,
-      }),
+      success: (res) => {
+        setButtonDisabled(true);
+        setTimeout(() => {
+          setButtonDisabled(false);
+        }, 10000);
+        return {
+          message: "Successfully created new problem",
+          action: res
+            ? {
+                label: "View",
+                onClick: () => {
+                  window.location.href = "/learn/problems/" + res.id;
+                },
+              }
+            : undefined,
+        };
+      },
     });
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="rank"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Difficulty</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value.toString()}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="max-w-32">
-                    <SelectValue placeholder="Select rank" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RANK_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="grid grid-cols-2">
+          <FormField
+            control={form.control}
+            name="rank"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Difficulty</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value.toString()}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="max-w-32">
+                      <SelectValue placeholder="Select rank" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {RANK_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="visibility"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Visibility</FormLabel>
+                <FormControl>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger className="max-w-40">
+                      <SelectValue placeholder="Select visibility" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.values(Visibility)
+                        .filter((v) => v !== Visibility.TEAM)
+                        .map((o) => (
+                          <SelectItem key={o} value={o}>
+                            {o.toLowerCase()}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {form.formState.errors.root && (
           <div className="flex items-center text-red-600 text-sm gap-1">
@@ -171,7 +209,11 @@ export function ProblemForm({ problem }: Props) {
           )}
         />
 
-        <Button className="gap-1" type="submit" disabled={isLoading}>
+        <Button
+          className="gap-1"
+          type="submit"
+          disabled={isLoading || buttonDisabled}
+        >
           Create
           {isLoading ? <Spinner className="h-4 w-4" /> : <SendHorizonalIcon />}
         </Button>
