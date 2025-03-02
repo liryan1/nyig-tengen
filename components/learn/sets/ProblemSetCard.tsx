@@ -1,6 +1,6 @@
 "use client";
 import { getRank } from "@/lib/go/display";
-import { PSetsProblemSet } from "@/lib/rtk/slices/problemSets";
+import { ProblemSetResponse } from "@/lib/rtk/slices/problemSets";
 import Link from "next/link";
 import { InfoBar } from "../InfoBar";
 import { StartButton } from "./StartButton";
@@ -13,7 +13,7 @@ const ProblemCarousel = dynamic(
 );
 
 interface ProblemSetCardProps {
-  problemSet: PSetsProblemSet;
+  problemSet: ProblemSetResponse;
 }
 
 export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {

@@ -3,6 +3,8 @@ import { logStack } from "@/lib/error";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../auth/authOptions";
+import { getProblemSetSelect, mapProblemSetResponse } from "../problemSetQuery";
+import { Visibility } from "@prisma/client";
 
 const DEFAULT_PAGE = "1";
 const DEFAULT_LIMIT = "10";
@@ -38,48 +40,18 @@ export async function GET(req: Request) {
     const [totalProblemSets, problemSets] = await db.$transaction([
       db.problemSet.count(),
       db.problemSet.findMany({
+        where: {
+          OR: [
+            { visibility: Visibility.PUBLIC },
+            {
+              authorId: userId,
+            },
+          ],
+        },
         skip,
         take: limit,
         orderBy: { createdAt: "desc" }, // Most recent first
-        select: {
-          id: true,
-          name: true,
-          author: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          problemSetProblems: {
-            include: { problem: { select: { initial: true } } },
-            take: 10,
-          },
-          problemSetLikes: {
-            select: {
-              user: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-          problemSetProgresses: userId
-            ? {
-                where: {
-                  userId,
-                  status: "completed",
-                },
-                select: {
-                  updatedAt: true,
-                },
-              }
-            : false,
-          problemSetStats: { select: { views: true } },
-          description: true,
-          problemCount: true,
-          averageRank: true,
-          createdAt: true,
-        },
+        select: getProblemSetSelect(userId),
       }),
     ]);
 
@@ -89,17 +61,7 @@ export async function GET(req: Request) {
         limit,
         totalPages: Math.ceil(totalProblemSets / limit),
         totalProblemSets,
-        problemSets: problemSets.map((pset) => ({
-          ...pset,
-          problemSetProblems: undefined,
-          views: pset.problemSetStats?.views,
-          likes: pset.problemSetLikes.length,
-          userLiked: userId
-            ? pset.problemSetLikes.findIndex((p) => p.user.id === userId) !== -1
-            : false,
-          userCompletions: pset.problemSetProgresses?.length,
-          problems: pset.problemSetProblems.map((psp) => psp.problem.initial),
-        })),
+        problemSets: mapProblemSetResponse(problemSets, userId),
       },
       { status: 200 },
     );

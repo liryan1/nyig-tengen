@@ -3,8 +3,13 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -18,9 +23,20 @@ import { useGetTeamQuery } from "@/lib/rtk/slices/teams";
 import { UserPlus2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
+import { useState } from "react";
+import ProblemCard from "../learn/problem/ProblemCard";
+import { ProblemSetCard } from "../learn/sets/ProblemSetCard";
 import { TeamPageSkeleton } from "../loading/TeamSkeleton";
+import { StatefulPagination } from "../nav/StatefulPagination";
+import { ScrollArea } from "../ui/scroll-area";
+import { PageError } from "../labels/Error";
+
+const problemLimit = 20;
+const problemSetLimit = 4;
 
 export const TeamPage = () => {
+  const [problemPageIndex, setProblemPageIndex] = useState(1);
+  const [problemSetPageIndex, setProblemSetPageIndex] = useState(1);
   const { slug } = useParams();
   const { data: session } = useSession();
   const { data: team, isLoading } = useGetTeamQuery(slug as string);
@@ -30,12 +46,12 @@ export const TeamPage = () => {
   }
 
   if (!team) {
-    return <div>Team not found</div>;
+    return <PageError>Team not found</PageError>;
   }
 
-  const isTeamMember = team.members?.some(
-    (member) => member.id === session?.user?.id,
-  );
+  const isTeamMember =
+    team.owner.id === session?.user?.id ||
+    team.members?.some((member) => member.id === session?.user?.id);
 
   return (
     <div className="container mx-auto space-y-8">
@@ -53,11 +69,22 @@ export const TeamPage = () => {
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
+        <Card className="p-0">
+          <CardContent className="p-0 pl-6 flex items-center space-x-4 h-full">
+            <Avatar>
+              <AvatarFallback>
+                {team.owner.name?.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium">{team.owner.name}</p>
+              <p className="text-sm text-muted-foreground">Owner</p>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
-          <CardHeader>
-            <CardTitle>Team Stats</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+          <CardContent className="p-6">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Members</span>
               <span className="font-medium">{team.memberCount}</span>
@@ -74,27 +101,10 @@ export const TeamPage = () => {
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Team Owner</CardTitle>
-          </CardHeader>
-          <CardContent className="flex items-center space-x-4">
-            <Avatar>
-              <AvatarFallback>
-                {team.owner.name?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-medium">{team.owner.name}</p>
-              <p className="text-sm text-muted-foreground">Owner</p>
-            </div>
-          </CardContent>
-        </Card>
       </div>
 
       {isTeamMember && (
-        <Tabs defaultValue="members">
+        <Tabs defaultValue="problems">
           <TabsList>
             <TabsTrigger value="members">Members</TabsTrigger>
             <TabsTrigger value="problems">Problems</TabsTrigger>
@@ -132,7 +142,9 @@ export const TeamPage = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(member.joinedAt).toLocaleDateString()}
+                        {member.joinedAt
+                          ? new Date(member.joinedAt).toLocaleDateString()
+                          : "-"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -144,27 +156,31 @@ export const TeamPage = () => {
           <TabsContent value="problems">
             <Card>
               <CardHeader>
-                <CardTitle>Team Problems</CardTitle>
+                <CardTitle>Problems</CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[400px]">
-                  {team.problems?.map((problem) => (
-                    <div
-                      key={problem.id}
-                      className="flex items-center justify-between p-4 border-b last:border-0"
-                    >
-                      <div>
-                        <p className="text-sm text-muted-foreground">
-                          Rank: {problem.rank}
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        View
-                      </Button>
-                    </div>
-                  ))}
+                <ScrollArea className="h-[450px]">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pr-2">
+                    {team.problems.map((problem) => (
+                      <ProblemCard
+                        key={problem.id}
+                        goProblemResponse={problem}
+                      />
+                    ))}
+                  </div>
                 </ScrollArea>
               </CardContent>
+              <CardFooter>
+                <StatefulPagination
+                  currentPage={problemPageIndex}
+                  onPageChange={setProblemPageIndex}
+                  totalPages={
+                    team.problems?.length
+                      ? Math.ceil(team.problems.length / problemLimit)
+                      : 1
+                  }
+                />
+              </CardFooter>
             </Card>
           </TabsContent>
 
@@ -174,25 +190,28 @@ export const TeamPage = () => {
                 <CardTitle>Problem Sets</CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[400px]">
-                  {team.problemSets?.map((set) => (
-                    <div
-                      key={set.id}
-                      className="flex items-center justify-between p-4 border-b last:border-0"
-                    >
-                      <div>
-                        <h3 className="font-medium">{set.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {set.problemCount} problems
-                        </p>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        Start
-                      </Button>
-                    </div>
-                  ))}
+                <ScrollArea className="h-[450px]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 4xl:grid-cols-4 6xl:grid-cols-5 gap-4">
+                    {team.problemSets.map((problemSet) => (
+                      <ProblemSetCard
+                        key={problemSet.id}
+                        problemSet={problemSet}
+                      />
+                    ))}
+                  </div>
                 </ScrollArea>
               </CardContent>
+              <CardFooter>
+                <StatefulPagination
+                  currentPage={problemSetPageIndex}
+                  onPageChange={setProblemSetPageIndex}
+                  totalPages={
+                    team.problems?.length
+                      ? Math.ceil(team.problems.length / problemSetLimit)
+                      : 1
+                  }
+                />
+              </CardFooter>
             </Card>
           </TabsContent>
         </Tabs>

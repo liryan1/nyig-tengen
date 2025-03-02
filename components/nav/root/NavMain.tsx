@@ -4,8 +4,6 @@ import {
   ChartNoAxesCombinedIcon,
   ChevronRight,
   NewspaperIcon,
-  UsersRound,
-  type LucideIcon,
 } from "lucide-react";
 
 import {
@@ -49,17 +47,6 @@ const items = [
       },
     ],
   },
-  // {
-  //   title: "Teams",
-  //   url: "/teams",
-  //   icon: UsersRound,
-  //   items: [
-  //     {
-  //       title: "Home",
-  //       url: "/teams",
-  //     },
-  //   ],
-  // },
   {
     title: "Posts",
     url: "/posts",

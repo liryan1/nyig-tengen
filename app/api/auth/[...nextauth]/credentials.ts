@@ -1,47 +1,49 @@
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 
 const credentials = {
-  email: { label: 'email', type: 'text' },
-  password: { label: 'password', type: 'password' }
-}
+  email: { label: "email", type: "text" },
+  password: { label: "password", type: "password" },
+};
 
-async function authorize(credentials: Record<"email" | "password", string> | undefined) {
-  const error = Error('Invalid credentials');
+async function authorize(
+  credentials: Record<"email" | "password", string> | undefined,
+) {
+  const error = Error("Invalid credentials");
   try {
     if (!credentials?.email || !credentials?.password) {
-      throw error
+      throw error;
     }
 
     const user = await db.user.findUnique({
       where: {
-        email: credentials.email
-      }
+        email: credentials.email,
+      },
     });
 
     if (!user || !user?.password) {
-      throw error
+      throw error;
     }
 
     const isCorrectPassword = await bcrypt.compare(
       credentials.password,
-      user.password
+      user.password,
     );
 
     if (!isCorrectPassword) {
-      throw error
+      throw error;
     }
 
     return user;
   } catch (error) {
-    logStack(error)
+    logStack(error);
   }
   return null;
 }
 
 export const credentialsOptions = {
-  name: 'credentials',
+  name: "credentials",
   credentials,
   authorize,
-}
+};

@@ -1,7 +1,9 @@
 import { InviteStatus, TeamRole } from "@prisma/client";
 import { apiSlice, TEAMS_TAG } from "../api";
+import { GoProblemResponse } from "@/lib/go/interface";
+import { ProblemSetResponse } from "./problemSets";
 
-export interface Team {
+export interface TeamResponse {
   id: string;
   name: string;
   description?: string;
@@ -12,11 +14,16 @@ export interface Team {
     id: string;
     name: string;
   };
-  members?: { id: string; name: string; role: TeamRole; joinedAt: string }[];
-  problems?: { id: string; rank: number }[];
-  problemSets?: { id: string; name: string; problemCount: number }[];
+  members?: { id: string; name: string; role: TeamRole; joinedAt?: string }[];
+  problems: GoProblemResponse[];
+  problemSets: ProblemSetResponse[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface MyTeamsResponse {
+  slug: string;
+  name: string;
 }
 
 export interface TeamMember {
@@ -43,7 +50,7 @@ export interface GetTeamsResponse {
   limit: number;
   totalPages: number;
   totalTeams: number;
-  teams: Team[];
+  teams: TeamResponse[];
 }
 
 export interface TeamCreateRequest {
@@ -66,8 +73,13 @@ const teamsApiSlice = apiSlice.injectEndpoints({
       providesTags: [TEAMS_TAG],
     }),
 
-    getTeam: builder.query<Team, string>({
+    getTeam: builder.query<TeamResponse, string>({
       query: (slug) => `teams/${slug}`,
+      providesTags: [TEAMS_TAG],
+    }),
+
+    getMyTeams: builder.query<MyTeamsResponse[], void>({
+      query: () => `teams/my-teams`,
       providesTags: [TEAMS_TAG],
     }),
 
@@ -121,6 +133,7 @@ const teamsApiSlice = apiSlice.injectEndpoints({
 
 export const {
   useGetTeamsQuery,
+  useGetMyTeamsQuery,
   useGetTeamQuery,
   useCreateTeamMutation,
   useUpdateTeamMutation,

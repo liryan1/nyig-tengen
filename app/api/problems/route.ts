@@ -7,7 +7,8 @@ import {
   validateProblemInitial,
   validateProblemSolutions,
 } from "@/lib/go/validator";
-import { Prisma } from "@prisma/client";
+import { Prisma, Visibility } from "@prisma/client";
+import { getProblemSelect, mapProblemResponse } from "./problemQuery";
 
 const DEFAULT_PAGE = "1";
 const DEFAULT_LIMIT = "20";
@@ -61,6 +62,12 @@ export async function GET(req: Request) {
 
     const where: Prisma.ProblemWhereInput = {
       rank: { gte, lte },
+      OR: [
+        { visibility: Visibility.PUBLIC },
+        {
+          authorId: userId,
+        },
+      ],
     };
 
     if (params.creator) {
@@ -86,68 +93,9 @@ export async function GET(req: Request) {
         skip,
         take: limit,
         orderBy: orderBy.toReversed(),
-        select: {
-          id: true,
-          description: true,
-          initial: true,
-          author: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          rank: true,
-          problemStats: {
-            select: {
-              id: true,
-              views: true,
-              submissionCount: true,
-              correctCount: true,
-            },
-          },
-          problemLikes: {
-            select: {
-              user: {
-                select: {
-                  id: true,
-                },
-              },
-            },
-          },
-          // If the user is logged in, fetch the first solved submission
-          submissions: userId
-            ? {
-                where: {
-                  userId,
-                  status: "solved",
-                },
-                select: {
-                  status: true,
-                },
-                take: 1,
-              }
-            : false,
-        },
+        select: getProblemSelect(userId),
       }),
     ]);
-
-    const normalizedProblems = problems.map((problem) => {
-      const userLiked =
-        problem.problemLikes.findIndex((p) => p.user.id === userId) !== -1;
-      return {
-        id: problem.id,
-        initial: problem.initial,
-        rank: problem.rank,
-        description: problem.description,
-        author: problem.author,
-        userSolved: problem.submissions?.at(0)?.status === "solved",
-        stats: {
-          ...problem.problemStats,
-          userLiked,
-          likes: problem.problemLikes.length,
-        },
-      };
-    });
 
     return NextResponse.json(
       {
@@ -155,7 +103,7 @@ export async function GET(req: Request) {
         limit,
         totalPages: Math.ceil(totalProblems / limit),
         totalProblems,
-        problems: normalizedProblems,
+        problems: mapProblemResponse(problems, userId),
       },
       { status: 200 },
     );

@@ -11,6 +11,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../../ui/breadcrumb";
+import { cn } from "@/lib/utils";
 
 interface BreadcrumbNavProps {
   children?: React.ReactNode;
@@ -41,7 +42,7 @@ export function BreadcrumbNav({ children }: BreadcrumbNavProps) {
   return (
     <Breadcrumb className="flex justify-between items-center">
       <BreadcrumbList>
-        <BreadcrumbItem>
+        <BreadcrumbItem className="hover:text-primary-foreground hover:underline">
           <BreadcrumbLink href="/">
             <HomeIcon size={16} />
           </BreadcrumbLink>
@@ -53,7 +54,10 @@ export function BreadcrumbNav({ children }: BreadcrumbNavProps) {
               className={isLastIndex(index) ? undefined : "hidden md:block"}
             />
             <BreadcrumbItem
-              className={isLastIndex(index) ? undefined : "hidden md:block"}
+              className={cn(
+                isLastIndex(index) ? undefined : "hidden md:block",
+                "hover:text-primary-foreground hover:underline",
+              )}
             >
               {isLastIndex(index) ? (
                 <BreadcrumbPage>{crumb.label}</BreadcrumbPage>

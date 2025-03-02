@@ -2,13 +2,13 @@ import { ProblemSetCard } from "@/components/learn/sets/ProblemSetCard";
 import { PageError } from "../../labels/Error";
 import { Button } from "../../ui/button";
 import Link from "next/link";
-import { PSetsProblemSet } from "@/lib/rtk/slices/problemSets";
+import { ProblemSetResponse } from "@/lib/rtk/slices/problemSets";
 import { CirclePlusIcon } from "lucide-react";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/authOptions";
 
 interface ProblemSetListProps {
-  problemSets: PSetsProblemSet[];
+  problemSets: ProblemSetResponse[];
   isError?: boolean;
   showMoreButton?: boolean;
 }

@@ -3,6 +3,16 @@ import { logStack } from "@/lib/error";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../auth/authOptions";
+import { TeamResponse } from "@/lib/rtk/slices/teams";
+import { TeamRole, Visibility } from "@prisma/client";
+import {
+  getProblemSelect,
+  mapProblemResponse,
+} from "../../problems/problemQuery";
+import {
+  getProblemSetSelect,
+  mapProblemSetResponse,
+} from "../../problems/problemSetQuery";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -15,6 +25,48 @@ export async function GET(req: Request, { params }: Params) {
     const userId = session?.user?.id;
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (slug === "me") {
+      // Get personal data, private problem sets and problems
+      const [problems, problemSets] = await db.$transaction([
+        db.problem.findMany({
+          where: {
+            author: {
+              id: userId,
+            },
+            visibility: Visibility.PRIVATE,
+          },
+          select: getProblemSelect(userId),
+        }),
+        db.problemSet.findMany({
+          where: {
+            author: {
+              id: userId,
+            },
+            visibility: Visibility.PRIVATE,
+          },
+          select: getProblemSetSelect(userId),
+        }),
+      ]);
+
+      const you = {
+        id: userId,
+        name: session?.user?.name ?? "You",
+        role: TeamRole.OWNER,
+      };
+      const personalData: TeamResponse = {
+        id: "me",
+        name: "My Personal Team",
+        memberCount: 1,
+        members: [you],
+        problemCount: problems.length,
+        problems: mapProblemResponse(problems, userId),
+        problemSetCount: problemSets.length,
+        problemSets: mapProblemSetResponse(problemSets, userId),
+        owner: you,
+      };
+      return NextResponse.json(personalData, { status: 200 });
     }
 
     const team = await db.team.findUnique({
@@ -36,22 +88,10 @@ export async function GET(req: Request, { params }: Params) {
         name: true,
         description: true,
         problems: {
-          select: {
-            id: true,
-            rank: true,
-            initial: true,
-          },
+          select: getProblemSelect(userId),
         },
         problemSets: {
-          select: {
-            id: true,
-            name: true,
-            _count: {
-              select: {
-                problemSetProblems: true,
-              },
-            },
-          },
+          select: getProblemSetSelect(userId),
         },
       },
     });
@@ -61,7 +101,7 @@ export async function GET(req: Request, { params }: Params) {
     }
 
     const owner = team.memberships.find(
-      (membership) => membership.role === "OWNER",
+      (membership) => membership.role === TeamRole.OWNER,
     );
     if (!owner) {
       return NextResponse.json(
@@ -74,14 +114,17 @@ export async function GET(req: Request, { params }: Params) {
     const problemCount = team.problems.length;
     const problemSetCount = team.problemSets.length;
 
-    const publicResponse = {
+    const publicResponse: TeamResponse = {
       id: slug,
       name: team.name,
-      description: team.description,
+      description: team.description || undefined,
       owner: {
         id: owner.user.id,
         name: owner.user.name,
       },
+      members: [],
+      problems: [],
+      problemSets: [],
       memberCount,
       problemCount,
       problemSetCount,
@@ -99,12 +142,8 @@ export async function GET(req: Request, { params }: Params) {
           role: membership.role,
           joinedAt: membership.createdAt,
         })),
-        problems: team.problems,
-        problemSets: team.problemSets.map((problemSet) => ({
-          id: problemSet.id,
-          name: problemSet.name,
-          problemCount: problemSet._count.problemSetProblems,
-        })),
+        problems: mapProblemResponse(team.problems),
+        problemSets: mapProblemSetResponse(team.problemSets),
       },
       { status: 200 },
     );
@@ -117,6 +156,7 @@ export async function GET(req: Request, { params }: Params) {
   }
 }
 
+// Modify team name or description
 export async function PATCH(req: Request, { params }: Params) {
   try {
     const [{ slug }, session, { name, description }] = await Promise.all([
@@ -143,7 +183,7 @@ export async function PATCH(req: Request, { params }: Params) {
       where: {
         teamId: team.id,
         userId,
-        role: { in: ["OWNER", "ADMIN"] },
+        role: { in: [TeamRole.OWNER, TeamRole.ADMIN] },
       },
     });
 

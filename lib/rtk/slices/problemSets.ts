@@ -5,7 +5,7 @@ import {
 } from "@prisma/client";
 import { apiSlice, PROBLEM_SET_PROGRESS_TAG, PROBLEM_SETS_TAG } from "../api";
 
-export interface PSetsProblemSet {
+export interface ProblemSetResponse {
   id: string;
   name: string;
   author: { id: string; name: string };
@@ -25,7 +25,7 @@ export interface GetPSetsResponse {
   limit: number;
   totalPages: number;
   totalProblems: number;
-  problemSets: PSetsProblemSet[];
+  problemSets: ProblemSetResponse[];
 }
 
 interface PSetProblem {
@@ -35,7 +35,7 @@ interface PSetProblem {
   initial: string;
 }
 
-export interface PSetResponse extends Omit<PSetsProblemSet, "problems"> {
+export interface PSetResponse extends Omit<ProblemSetResponse, "problems"> {
   completedCount: number;
   attemptedCount: number;
   views: number;

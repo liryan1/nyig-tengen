@@ -20,13 +20,6 @@ export async function GET(req: Request) {
 
     const [teams, totalTeams] = await Promise.all([
       db.team.findMany({
-        where: {
-          memberships: {
-            some: {
-              userId,
-            },
-          },
-        },
         include: {
           memberships: {
             include: {
@@ -43,15 +36,7 @@ export async function GET(req: Request) {
         skip,
         take: limit,
       }),
-      db.team.count({
-        where: {
-          memberships: {
-            some: {
-              userId,
-            },
-          },
-        },
-      }),
+      db.team.count(),
     ]);
 
     return NextResponse.json({

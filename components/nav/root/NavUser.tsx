@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Sparkles,
-  User2Icon,
-} from "lucide-react";
+import { ChevronsUpDown, LogOut, Sparkles, User2Icon } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -26,14 +18,16 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { Button } from "../../ui/button";
-import Link from "next/link";
-import { User } from "next-auth";
 import { logStack } from "@/lib/error";
+import { signOut, useSession } from "next-auth/react";
+import Link from "next/link";
 import { toast } from "sonner";
-import { signOut } from "next-auth/react";
+import { Button } from "../../ui/button";
 
-export function NavUser({ user }: { user?: User }) {
+export function NavUser() {
+  const { data: session } = useSession();
+  const user = session?.user;
+
   const { isMobile } = useSidebar();
   if (!user) {
     return (

@@ -1,3 +1,5 @@
+import { Visibility } from "@prisma/client";
+
 export type StoneColor = -1 | 0 | 1;
 export type Coord = [number, number];
 
@@ -24,6 +26,7 @@ export interface GoProblemMeta {
   author: { id: string; name: string };
   stats?: ProblemStats;
   userSolved?: boolean;
+  visibility: Visibility;
 }
 
 export interface GoProblem {
