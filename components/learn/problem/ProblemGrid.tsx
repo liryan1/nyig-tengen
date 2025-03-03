@@ -1,20 +1,25 @@
 import { StatefulPagination } from "@/components/nav/StatefulPagination";
 import { getBoardSize, getRootBoardState } from "@/lib/go/parser";
+import {
+  ProblemOrderItem,
+  PSetProblem,
+  PSetProgressResponse,
+} from "@/lib/rtk/slices/problemSets";
+import { cn } from "@/lib/utils";
 import { SubmissionStatus } from "@prisma/client";
 import { CircleCheckBigIcon, CircleHelpIcon } from "lucide-react";
 import { useLayoutEffect, useRef, useState } from "react";
 import { ReadonlyGoBoard } from "../go/board/ReadonlyGoBoard";
-import { cn } from "@/lib/utils";
 
 interface ProblemGridProps {
-  problems: any[];
-  progress: any;
+  problems: PSetProblem[];
+  problemOrder?: ProblemOrderItem[];
   onProblemClick: (id: string) => void;
 }
 
 export function ProblemGrid({
   problems,
-  progress,
+  problemOrder,
   onProblemClick,
 }: ProblemGridProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -80,7 +85,7 @@ export function ProblemGrid({
               key={problem.id}
               className={cn(
                 "overflow-hidden",
-                progress?.progress ? "cursor-pointer" : "",
+                problemOrder ? "cursor-pointer" : "",
               )}
               onClick={() => onProblemClick(problem.id)}
             >
@@ -89,9 +94,9 @@ export function ProblemGrid({
                 boardState={getRootBoardState(problem.initial)}
                 boardSize={boardSize}
                 cellSize={cellSize}
-                icon={getIcon(
-                  progress?.progress?.problemOrder[problemIndex]?.status,
-                )}
+                icon={
+                  problemOrder && getIcon(problemOrder[problemIndex]?.status)
+                }
               />
             </div>
           );

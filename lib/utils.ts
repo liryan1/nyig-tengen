@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx";
+import { Session } from "next-auth";
 import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
@@ -25,4 +26,10 @@ export const debounce = (fn: Function, ms: number) => {
     clearTimeout(timeoutId);
     timeoutId = setTimeout(() => fn.apply(this, args), ms);
   };
+};
+
+export const isUserAdmin = (session?: Session | null) => {
+  return (
+    session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN"
+  );
 };

@@ -61,9 +61,13 @@ export async function GET(req: Request, { params }: Params) {
         memberCount: 1,
         members: [you],
         problemCount: problems.length,
-        problems: mapProblemResponse(problems, userId),
+        problems: problems.map((problem) =>
+          mapProblemResponse(problem, userId),
+        ),
         problemSetCount: problemSets.length,
-        problemSets: mapProblemSetResponse(problemSets, userId),
+        problemSets: problemSets.map((pset) =>
+          mapProblemSetResponse(pset, userId),
+        ),
         owner: you,
       };
       return NextResponse.json(personalData, { status: 200 });
@@ -142,8 +146,12 @@ export async function GET(req: Request, { params }: Params) {
           role: membership.role,
           joinedAt: membership.createdAt,
         })),
-        problems: mapProblemResponse(team.problems),
-        problemSets: mapProblemSetResponse(team.problemSets),
+        problems: team.problems.map((problem) =>
+          mapProblemResponse(problem, userId),
+        ),
+        problemSets: team.problemSets.map((pset) =>
+          mapProblemSetResponse(pset, userId),
+        ),
       },
       { status: 200 },
     );

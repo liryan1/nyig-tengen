@@ -1,18 +1,22 @@
-import { PSetProgressResponse } from "@/lib/rtk/slices/problemSets";
+import {
+  ProblemOrderItem,
+  PSetProgressResponse,
+} from "@/lib/rtk/slices/problemSets";
 import { MoveLeftIcon, MoveRightIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../../ui/button";
 
 export function ProblemSetDoPageHeader({
-  progress,
+  problemSetName,
+  problemOrder,
   currentIndex,
   pSetClientUrl,
 }: {
-  progress: PSetProgressResponse;
+  problemSetName: string;
+  problemOrder: ProblemOrderItem[];
   currentIndex: number;
   pSetClientUrl: string;
 }) {
-  const { problemSet, problemOrder } = progress;
   const prevIndex = currentIndex - 1;
   const nextIndex = currentIndex + 1;
 
@@ -23,8 +27,8 @@ export function ProblemSetDoPageHeader({
   const nextLink = `${pSetClientUrl}/${hasNext ? problemOrder[nextIndex].problemId : ""}`;
 
   return (
-    <div className="px-1 sm:px-0 space-y-2 sm:space-y-6">
-      <div className="font-normal text-lg md:text-2xl">{problemSet.name}</div>
+    <div className="space-y-2 sm:space-y-6 overflow-x-auto">
+      <div className="font-semibold text-lg md:text-2xl">{problemSetName}</div>
       <div className="flex items-center justify-between">
         <Button size="sm" color="secondary" disabled={!hasPrev}>
           <Link href={prevLink} className="flex items-center gap-1">

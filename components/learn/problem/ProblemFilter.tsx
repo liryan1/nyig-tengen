@@ -31,7 +31,7 @@ const parseRank = createParser({
     return parseAsInteger.serialize(value);
   },
 });
-const options: Options = { shallow: false, throttleMs: 800 };
+const options: Options = { throttleMs: 800 };
 
 export function ProblemFilter() {
   const [rankRange, setRankRange] = useQueryStates(

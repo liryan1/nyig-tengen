@@ -1,13 +1,16 @@
 "use client";
 
-import Confetti from "react-confetti-boom";
 import { logStack } from "@/lib/error";
 import { getRank } from "@/lib/go/display";
+import { useAppDispatch, useAppSelector } from "@/lib/rtk/slices/hooks";
 import {
-  useGetPSetProgressQuery,
   useGetPSetQuery,
   usePSetLikeMutation,
 } from "@/lib/rtk/slices/problemSets";
+import {
+  selectPsetCompletion,
+  setPsetCompletion,
+} from "@/lib/rtk/slices/psetCompletion";
 import { debounce } from "@/lib/utils";
 import { SubmissionStatus } from "@prisma/client";
 import { TrophyIcon } from "lucide-react";
@@ -15,6 +18,7 @@ import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { redirect } from "next/navigation";
 import { useEffect, useState } from "react";
+import Confetti from "react-confetti-boom";
 import { toast } from "sonner";
 import { PageError } from "../../labels/Error";
 import { PageSpinner } from "../../labels/Spinner";
@@ -28,11 +32,7 @@ import {
 } from "../../ui/card";
 import { InfoBar } from "../InfoBar";
 import { StartButton } from "../sets/StartButton";
-import { useAppDispatch, useAppSelector } from "@/lib/rtk/slices/hooks";
-import {
-  clearCompletion,
-  selectPsetCompletion,
-} from "@/lib/rtk/slices/psetCompletion";
+import { ProblemSetCardSkeleton } from "@/components/loading/ProblemSetCardSkeleton";
 
 const ProblemGrid = dynamic(
   () => import("@/components/learn/problem/ProblemGrid"),
@@ -46,8 +46,7 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
   useEffect(() => {
     if (completedPsetId === sId) {
       setShowConfetti(true);
-      console.log("Showing confetti inside useEffect");
-      dispatch(clearCompletion());
+      dispatch(setPsetCompletion(null));
     }
   }, [completedPsetId, sId]);
   const [like] = usePSetLikeMutation();
@@ -57,22 +56,14 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
     isLoading: psetLoading,
     isError: psetError,
   } = useGetPSetQuery(sId ?? "", { skip: !sId });
-  const {
-    data: progress,
-    isLoading: pgLoading,
-    isError: pgError,
-  } = useGetPSetProgressQuery(sId ?? "", {
-    skip: !sId || authStatus !== "authenticated",
-  });
-  if (psetLoading || pgLoading) {
-    return <PageSpinner />;
+
+  if (psetLoading) {
+    return <ProblemSetCardSkeleton />;
   }
   if (psetError || !pset) {
     return <PageError>Error getting problem set</PageError>;
   }
-  if (pgError) {
-    return <PageError>Error getting problem set progress</PageError>;
-  }
+
   const {
     id,
     name,
@@ -86,15 +77,16 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
     problems,
   } = pset;
 
-  const userSolved = progress?.completedCount;
+  const userSolved = pset?.userCompletions;
+
   const currentSolvedCount =
-    progress?.progress?.problemOrder?.reduce(
+    pset?.userProgress?.problemOrder?.reduce(
       (acc, p) => (p.status === SubmissionStatus.solved ? acc + 1 : acc),
       0,
     ) || 0;
 
   const handleProblemClick = (pId: string) => {
-    if (!progress?.progress) {
+    if (!pset?.userProgress) {
       return;
     }
     return redirect(`/learn/sets/${id}/${pId}`);
@@ -139,7 +131,7 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
         )}
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="text-md sm:text-xl font-medium">{name}</span>
+            <span className="text-lg md:text-2xl font-semibold">{name}</span>
             {userSolved !== undefined && userSolved > 0 && (
               <div className="flex items-center text-muted-foreground">
                 <TrophyIcon className="text-yellow-500" />
@@ -147,7 +139,10 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
               </div>
             )}
           </div>
-          <StartButton sId={sId} />
+          <StartButton
+            sId={sId}
+            problemOrder={pset?.userProgress?.problemOrder}
+          />
         </CardTitle>
         {description && (
           <CardDescription className="mt-2 text-xs sm:text-sm text-muted-foreground">
@@ -169,7 +164,7 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
           toggleLike={debounce(toggleLike, 300)}
         />
       </CardContent>
-      {progress?.progress && (
+      {pset?.userProgress && (
         <div className="text-sm sm:text-lg text-muted-foreground px-2 sm:px-4 text-center">
           Solved: <span className="font-semibold">{currentSolvedCount}</span> of{" "}
           <span className="font-semibold">{problemCount}</span>
@@ -178,7 +173,7 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
       <CardFooter className="gap-2 sm:gap-4 p-2 sm:p-4 flex flex-wrap max-h-[1/2]">
         <ProblemGrid
           problems={problems}
-          progress={progress}
+          problemOrder={pset?.userProgress?.problemOrder}
           onProblemClick={handleProblemClick}
         />
       </CardFooter>

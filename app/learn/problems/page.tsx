@@ -1,50 +1,31 @@
-import { PageError } from "@/components/labels/Error";
+import { authOptions } from "@/app/api/auth/authOptions";
 import { ProblemFilter } from "@/components/learn/problem/ProblemFilter";
 import { ProblemList } from "@/components/learn/problem/ProblemList";
-import { QueryPagination } from "@/components/nav/QueryPagination";
-import { fetchSafe } from "@/lib/fetch";
-import { ALL_PROBLEMS_TAG } from "@/lib/nextTags";
-import { GetProblemsResponse } from "@/lib/rtk/slices/problems";
+import { Button } from "@/components/ui/button";
+import { isUserAdmin } from "@/lib/utils";
+import { CirclePlusIcon } from "lucide-react";
+import { getServerSession } from "next-auth";
+import Link from "next/link";
 
-interface PageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-async function AllProblemsPage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const currentPage = Number(params.page) || 1;
-  const limit = 20;
-
-  const queryString = new URLSearchParams({
-    ...params,
-    page: currentPage.toString(),
-    limit: limit.toString(),
-  }).toString();
-
-  const { response, isError } = await fetchSafe<GetProblemsResponse>(
-    `problems?${queryString}`,
-    { next: { tags: [ALL_PROBLEMS_TAG] } },
-    true,
-  );
-
-  if (isError || !response) {
-    return <PageError>Error getting problems</PageError>;
-  }
-
+export default async function AllProblemsPage() {
+  const session = await getServerSession(authOptions);
   return (
-    <div className="px-1 sm:px-0">
-      <ProblemList
-        problems={response.problems ?? []}
-        problemFilter={<ProblemFilter />}
-        pagination={
-          <QueryPagination
-            currentPage={response.currentPage}
-            totalPages={response.totalPages}
-          />
-        }
-      />
+    <div className="container space-y-6 mx-auto">
+      <div className="flex items-center justify-between">
+        <span className="text-2xl font-medium">Problems</span>
+        {isUserAdmin(session) && (
+          <Button size="sm">
+            <Link
+              href="/learn/problems/new"
+              className="flex items-center gap-2"
+            >
+              <CirclePlusIcon />
+              Create
+            </Link>
+          </Button>
+        )}
+      </div>
+      <ProblemList filter={<ProblemFilter />} />
     </div>
   );
 }
-
-export default AllProblemsPage;

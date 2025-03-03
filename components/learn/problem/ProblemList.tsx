@@ -1,68 +1,74 @@
-import { authOptions } from "@/app/api/auth/authOptions";
-import { ProblemCardSkeleton } from "@/components/loading/ProblemCardSkeleton";
-import { GoProblemResponse } from "@/lib/go/interface";
-import { CirclePlusIcon } from "lucide-react";
-import { getServerSession } from "next-auth";
-import dynamic from "next/dynamic";
-import Link from "next/link";
+"use client";
+import { StatefulPagination } from "@/components/nav/StatefulPagination";
+import { useGetProblemsQuery } from "@/lib/rtk/slices/problems";
+import { type Options, parseAsInteger, useQueryState } from "nuqs";
 import { PageError } from "../../labels/Error";
-import { Button } from "../../ui/button";
+import ProblemCard from "./ProblemCard";
+import { useSearchParams } from "next/navigation";
+import ProblemCardSkeleton from "@/components/loading/ProblemCardSkeleton";
 
-const ProblemCard = dynamic(
-  () => import("@/components/learn/problem/ProblemCard"),
-  { ssr: true, loading: () => <ProblemCardSkeleton /> },
-);
+const options: Options = { throttleMs: 800 };
+const limit = 20;
+
+const appendLimit = (qs: string) => {
+  return [`limit=${limit}`, ...(qs.length ? [qs] : [])].join("&");
+};
 
 interface ProblemListProps {
-  problems: GoProblemResponse[];
-  problemFilter?: React.ReactNode;
-  pagination?: React.ReactNode;
-  isError?: boolean;
-  showMoreButton?: boolean;
+  filter?: React.ReactNode;
+  /**
+   * If true, ignores all query params and uses the fixed limit to fetch
+   * useful for summary pages that don't need pagination
+   */
+  fixedLimit?: number;
 }
 
-export async function ProblemList({
-  problems,
-  problemFilter,
-  pagination,
-  isError,
-  showMoreButton,
-}: ProblemListProps) {
-  const session = await getServerSession(authOptions);
-  const createButton = (
-    <Button size="sm">
-      <Link href="/learn/problems/new" className="flex items-center gap-2">
-        <CirclePlusIcon />
-        Create
-      </Link>
-    </Button>
+export function ProblemList({ filter, fixedLimit }: ProblemListProps) {
+  const searchParams = useSearchParams();
+  const [currentPage, setCurrentPage] = useQueryState("page", {
+    ...options,
+    defaultValue: 1,
+    parse: (value) => {
+      const parsed = parseAsInteger.parse(value);
+      return parsed !== null ? parsed : 1;
+    },
+    serialize: (value) => value.toString(),
+  });
+
+  const { data, isError, isLoading } = useGetProblemsQuery(
+    appendLimit(searchParams.toString()),
   );
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2 sm:gap-6">
-          <span className="text-2xl font-medium">Problems</span>
-          {session?.user?.role === "ADMIN" && showMoreButton && createButton}
-        </div>
-        {showMoreButton && (
-          <Button variant="link" size="sm" className="px-0">
-            <Link href="/learn/problems">All problems</Link>
-          </Button>
-        )}
-        {session?.user?.role === "ADMIN" && !showMoreButton && createButton}
-      </div>
-      {problemFilter}
-      {pagination}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+    <>
+      {filter}
+      {fixedLimit === undefined && (
+        <StatefulPagination
+          currentPage={currentPage}
+          totalPages={data?.totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {isError ? (
           <PageError>Error getting problems</PageError>
+        ) : isLoading ? (
+          Array.from({ length: limit / 2 }, (_, i) => i).map((i) => (
+            <ProblemCardSkeleton key={i} />
+          ))
         ) : (
-          problems.map((problem) => (
+          data?.problems?.map((problem) => (
             <ProblemCard key={problem.id} goProblemResponse={problem} />
           ))
         )}
       </div>
-      {pagination}
-    </div>
+      {fixedLimit === undefined && (
+        <StatefulPagination
+          currentPage={currentPage}
+          totalPages={data?.totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
+    </>
   );
 }

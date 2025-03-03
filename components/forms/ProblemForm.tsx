@@ -19,6 +19,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { RANK_OPTIONS } from "@/lib/go/constants";
 import { GoGame } from "@/lib/go/goGame";
+import { GoProblemResponse } from "@/lib/go/interface";
 import { goGameToSgf, rootNodeToSgf } from "@/lib/go/parser";
 import {
   ProblemCreateRequest,
@@ -26,19 +27,19 @@ import {
   useUpdateProblemMutation,
 } from "@/lib/rtk/slices/problems";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Visibility } from "@prisma/client";
 import { CircleAlertIcon, SendHorizonalIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { PageSpinner, Spinner } from "../labels/Spinner";
-import { GoProblemResponse } from "@/lib/go/interface";
-import { Visibility } from "@prisma/client";
+import { Spinner } from "../labels/Spinner";
+import { GoProblemSkeleton } from "../loading/GoProblemSkeleton";
 
 const GoProblemEditor = dynamic(
   () => import("@/components/learn/go/GoProblemEditor"),
-  { ssr: false, loading: () => <PageSpinner /> },
+  { ssr: false, loading: () => <GoProblemSkeleton /> },
 );
 
 const formSchema = z.object({
@@ -71,6 +72,13 @@ export function ProblemForm({ problem }: Props) {
       description: "",
       visibility: Visibility.PUBLIC,
     },
+    values: problem
+      ? {
+          rank: problem.rank,
+          description: problem.description || "",
+          visibility: problem.visibility,
+        }
+      : undefined,
   });
 
   const onSubmit = async (values: FormValues) => {

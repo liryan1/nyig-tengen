@@ -1,7 +1,9 @@
 "use client";
 import { Spinner } from "@/components/labels/Spinner";
 import { Button, ButtonProps } from "@/components/ui/button";
+import { useIsMobile } from "@/hooks/isMobile";
 import {
+  ProblemOrderItem,
   PSetProgressResponse,
   useCreatePSetProgressMutation,
   useGetPSetProgressQuery,
@@ -13,24 +15,24 @@ import { toast } from "sonner";
 
 interface StartButtonProps extends ButtonProps {
   sId?: string;
+  problemOrder?: ProblemOrderItem[];
 }
 
-export function StartButton({ sId, ...buttonProps }: StartButtonProps) {
+export function StartButton({
+  sId,
+  problemOrder,
+  ...buttonProps
+}: StartButtonProps) {
+  const isMobile = useIsMobile();
   const { status: authStatus } = useSession();
   const router = useRouter();
-  const {
-    data: progress,
-    isLoading: pgLoading,
-    isError: pgError,
-  } = useGetPSetProgressQuery(sId ?? "", {
-    skip: !sId || authStatus !== "authenticated",
-  });
+
   const [create, { isLoading: cLoading, isError: cError }] =
     useCreatePSetProgressMutation();
-  const isLoading = pgLoading || cLoading || authStatus === "loading";
+  const isLoading = cLoading || authStatus === "loading";
 
-  const getRedirectUrl = (progress?: PSetProgressResponse) => {
-    const currentProblemId = progress?.problemOrder?.find(
+  const getRedirectUrl = (problemOrder?: ProblemOrderItem[]) => {
+    const currentProblemId = problemOrder?.find(
       (p) => !p.status || p.status !== "solved",
     )?.problemId;
     return currentProblemId
@@ -50,23 +52,24 @@ export function StartButton({ sId, ...buttonProps }: StartButtonProps) {
     }
     // If a progress exists, direct the user continues to work on it
     // Falls back to the problem set page if no problemId is found
-    if (progress?.progress) {
-      router.push(getRedirectUrl(progress.progress));
+    if (problemOrder) {
+      router.push(getRedirectUrl(problemOrder));
       return;
     }
     // No current progress exists and the user is starting a new progress
     const response = await create({ id: sId ?? "" }).unwrap();
-    router.push(getRedirectUrl(response));
+    router.push(getRedirectUrl(response.problemOrder));
   };
 
   return (
     <Button
+      size={isMobile ? "sm" : "default"}
       className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-800 text-white"
-      disabled={isLoading || pgError || cError || !sId}
+      disabled={isLoading || cError || !sId}
       onClick={handleClick}
       {...buttonProps}
     >
-      {progress?.progress ? "Continue" : "Start"}
+      {problemOrder ? "Continue" : "Start"}
       {icon}
     </Button>
   );

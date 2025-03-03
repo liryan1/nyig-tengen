@@ -4,7 +4,6 @@ import { getServerSession } from "next-auth";
 import { logStack } from "@/lib/error";
 import { authOptions } from "@/app/api/auth/authOptions";
 import { revalidateTag } from "next/cache";
-import { ALL_PROBLEM_SETS_TAG } from "@/lib/nextTags";
 
 type Params = { params: Promise<{ id: string }> };
 /**
@@ -65,7 +64,5 @@ export async function POST(request: NextRequest, { params }: Params) {
       { message: "An unknown error occurred" },
       { status: 500 },
     );
-  } finally {
-    revalidateTag(ALL_PROBLEM_SETS_TAG);
   }
 }

@@ -11,18 +11,9 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "../../ui/breadcrumb";
-import { cn } from "@/lib/utils";
 
 interface BreadcrumbNavProps {
   children?: React.ReactNode;
-}
-
-function normalizeSegment(segment: string) {
-  const n = 4;
-  if (segment.length > 10) {
-    return segment.slice(0, n) + ".." + segment.slice(segment.length - n);
-  }
-  return segment;
 }
 
 export function BreadcrumbNav({ children }: BreadcrumbNavProps) {
@@ -34,7 +25,7 @@ export function BreadcrumbNav({ children }: BreadcrumbNavProps) {
     .filter(Boolean)
     .map((segment, index, array) => {
       const href = "/" + array.slice(0, index + 1).join("/");
-      return { label: normalizeSegment(segment), href };
+      return { label: segment, href };
     });
 
   const isLastIndex = (index: number) => index === breadcrumbs.length - 1;
@@ -54,10 +45,11 @@ export function BreadcrumbNav({ children }: BreadcrumbNavProps) {
               className={isLastIndex(index) ? undefined : "hidden md:block"}
             />
             <BreadcrumbItem
-              className={cn(
-                isLastIndex(index) ? undefined : "hidden md:block",
-                "hover:text-primary hover:underline",
-              )}
+              className={
+                isLastIndex(index)
+                  ? undefined
+                  : "hidden md:block hover:text-primary hover:underline"
+              }
             >
               {isLastIndex(index) ? (
                 <BreadcrumbPage>{crumb.label}</BreadcrumbPage>

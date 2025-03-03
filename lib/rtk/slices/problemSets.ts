@@ -3,12 +3,7 @@ import {
   ProgressStatus,
   SubmissionStatus,
 } from "@prisma/client";
-import {
-  apiSlice,
-  PROBLEM_SET_PROGRESS_TAG,
-  PROBLEM_SET_TAG,
-  PROBLEM_SETS_TAG,
-} from "../api";
+import { apiSlice, PROBLEM_SET_TAG, PROBLEM_SETS_TAG } from "../api";
 
 export interface ProblemSetResponse {
   id: string;
@@ -16,10 +11,11 @@ export interface ProblemSetResponse {
   author: { id: string; name: string };
   description?: string;
   problems: string[];
-  views?: number;
+  views: number;
   likes: number;
-  userLiked: boolean;
-  userCompletions: number;
+  userLiked?: boolean;
+  userProgress?: { id: string; problemOrder: ProblemOrderItem[] };
+  userCompletions?: number;
   problemCount: number;
   averageRank: number;
   createdAt: string;
@@ -33,7 +29,7 @@ export interface GetPSetsResponse {
   problemSets: ProblemSetResponse[];
 }
 
-interface PSetProblem {
+export interface PSetProblem {
   id: string;
   rank: number;
   position: number;
@@ -60,7 +56,7 @@ export interface GetPSetProgressResponse {
   completedCount: number;
 }
 
-export interface ProblemOrder {
+export interface ProblemOrderItem {
   problemId: string;
   status?: SubmissionStatus;
 }
@@ -69,7 +65,7 @@ export interface CreatePSetProgressResponse {
   id: string;
   createdAt: string;
   status: ProgressStatus;
-  problemOrder: ProblemOrder[];
+  problemOrder: ProblemOrderItem[];
   problemSet: {
     name: string;
     id: string;
@@ -80,18 +76,14 @@ export interface PSetProgressResponse {
   id: string;
   createdAt: string;
   problemSet: { name: string; id: string };
-  problemOrder: ProblemOrder[];
+  problemOrder: ProblemOrderItem[];
   status: ProgressStatus;
 }
 
 const problemsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getPSets: builder.query<
-      GetPSetsResponse,
-      { page?: number; limit?: number }
-    >({
-      query: ({ page = 1, limit = 20 }) =>
-        `/problems/sets?page=${page}&limit=${limit}`,
+    getPSets: builder.query<GetPSetsResponse, string>({
+      query: (search) => `/problems/sets?${search}`,
       providesTags: [PROBLEM_SETS_TAG],
     }),
     getPSet: builder.query<PSetResponse, string>({
@@ -102,7 +94,9 @@ const problemsApiSlice = apiSlice.injectEndpoints({
     }),
     getPSetProgress: builder.query<GetPSetProgressResponse, string>({
       query: (id) => `/problems/sets/${id}/progress`,
-      providesTags: [PROBLEM_SET_PROGRESS_TAG],
+      providesTags: (result, error, arg) => [
+        { type: PROBLEM_SET_TAG, id: arg },
+      ],
     }),
     createPSetProgress: builder.mutation<
       CreatePSetProgressResponse,
@@ -113,7 +107,9 @@ const problemsApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body: { randomize },
       }),
-      invalidatesTags: [PROBLEM_SET_PROGRESS_TAG],
+      invalidatesTags: (result, error, arg) => [
+        { type: PROBLEM_SET_TAG, id: arg.id },
+      ],
     }),
     pSetLike: builder.mutation<{ liked: boolean }, string>({
       query: (id) => ({

@@ -1,4 +1,3 @@
-import { FeaturedSites } from "@/components/home/FeaturedSites";
 import { Button } from "@/components/ui/button";
 import {
   ChartNoAxesCombinedIcon,
@@ -58,7 +57,6 @@ export default async function Home() {
           </Button>
         )}
       </div>
-      <FeaturedSites />
     </div>
   );
 }

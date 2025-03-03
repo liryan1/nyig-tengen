@@ -21,50 +21,58 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
-
-const items = [
-  {
-    title: "Learn",
-    url: "/learn",
-    icon: ChartNoAxesCombinedIcon,
-    isActive: true,
-    items: [
-      {
-        title: "Home",
-        url: "/learn",
-      },
-      {
-        title: "Problems",
-        url: "/learn/problems",
-      },
-      {
-        title: "Problem sets",
-        url: "/learn/sets",
-      },
-      {
-        title: "Create problem",
-        url: "/learn/problems/new",
-      },
-    ],
-  },
-  {
-    title: "Posts",
-    url: "/posts",
-    icon: NewspaperIcon,
-    items: [
-      {
-        title: "Posts",
-        url: "/posts",
-      },
-      {
-        title: "Create",
-        url: "/posts/new",
-      },
-    ],
-  },
-];
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 export function NavMain({ title }: { title: string }) {
+  const { data: session } = useSession();
+  const items = [
+    {
+      title: "Learn",
+      url: "/learn",
+      icon: ChartNoAxesCombinedIcon,
+      isActive: true,
+      items: [
+        {
+          title: "Home",
+          url: "/learn",
+        },
+        {
+          title: "Problems",
+          url: "/learn/problems",
+        },
+        {
+          title: "Problem sets",
+          url: "/learn/sets",
+        },
+        ...(session?.user?.role === "ADMIN" ||
+        session?.user?.role === "SUPERADMIN"
+          ? [
+              {
+                title: "Create problem",
+                url: "/learn/problems/new",
+              },
+            ]
+          : []),
+      ],
+    },
+    {
+      title: "Posts",
+      url: "/posts",
+      icon: NewspaperIcon,
+      items: [
+        {
+          title: "Posts",
+          url: "/posts",
+        },
+        {
+          title: "Create",
+          url: "/posts/new",
+        },
+      ],
+    },
+  ];
+
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{title}</SidebarGroupLabel>
@@ -89,9 +97,9 @@ export function NavMain({ title }: { title: string }) {
                   {item.items?.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title}>
                       <SidebarMenuSubButton asChild>
-                        <a href={subItem.url}>
+                        <Link href={subItem.url}>
                           <span>{subItem.title}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
                   ))}

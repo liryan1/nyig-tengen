@@ -10,12 +10,9 @@ export const completionSlice = createSlice({
     setPsetCompletion: (state, action) => {
       state.psetId = action.payload;
     },
-    clearCompletion: (state) => {
-      state.psetId = null;
-    },
   },
 });
 
 export const selectPsetCompletion = (state: RootState) => state.completion;
-export const { setPsetCompletion, clearCompletion } = completionSlice.actions;
+export const { setPsetCompletion } = completionSlice.actions;
 export default completionSlice.reducer;

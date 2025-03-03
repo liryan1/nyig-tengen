@@ -66,7 +66,7 @@ export function GoProblemHeader({
           {!hasProblemSetProgressId && userOwnsProblem && (
             <Link href={`/learn/problems/${pId}/edit`}>
               <Button size="sm" className="gap-1">
-                Edit
+                Edit Problem
                 <EditIcon />
               </Button>
             </Link>

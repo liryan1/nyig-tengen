@@ -9,15 +9,15 @@ import {
 } from "@/components/ui/pagination";
 
 interface StatefulPaginationProps {
-  currentPage: number;
-  totalPages: number;
+  currentPage?: number;
+  totalPages?: number;
   onPageChange: (page: number) => void;
   className?: string;
 }
 
 export function StatefulPagination({
-  currentPage,
-  totalPages,
+  currentPage = 1,
+  totalPages = 1,
   onPageChange,
   className,
 }: StatefulPaginationProps) {

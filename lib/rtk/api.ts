@@ -12,7 +12,6 @@ export const PROBLEMS_TAG = "Problems";
 export const PROBLEM_TAG = "Problem";
 export const PROBLEM_SETS_TAG = "ProblemSets";
 export const PROBLEM_SET_TAG = "ProblemSet";
-export const PROBLEM_SET_PROGRESS_TAG = "ProblemSetProgress";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -23,7 +22,6 @@ export const apiSlice = createApi({
   baseQuery: baseQuery,
   endpoints: () => ({}), // Endpoints are injected in features
   tagTypes: [
-    PROBLEM_SET_PROGRESS_TAG,
     PROBLEM_SETS_TAG,
     PROBLEM_SET_TAG,
     PROBLEMS_TAG,

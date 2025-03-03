@@ -1,9 +1,9 @@
 "use client";
-import { useGetProblemQuery } from "@/lib/rtk/slices/problems";
-import { ProblemForm } from "../../forms/ProblemForm";
-import { PageSpinner } from "@/components/labels/Spinner";
 import { PageError } from "@/components/labels/Error";
+import { GoProblemSkeleton } from "@/components/loading/GoProblemSkeleton";
+import { useGetProblemQuery } from "@/lib/rtk/slices/problems";
 import { useSession } from "next-auth/react";
+import { ProblemForm } from "../../forms/ProblemForm";
 
 export function GoProblemEditPage({ pId }: { pId: string }) {
   const { data, status } = useSession();
@@ -20,7 +20,7 @@ export function GoProblemEditPage({ pId }: { pId: string }) {
   );
 
   if (isLoading) {
-    return <PageSpinner />;
+    return <GoProblemSkeleton />;
   }
 
   if (!userId) {

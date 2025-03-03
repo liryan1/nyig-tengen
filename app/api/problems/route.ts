@@ -87,7 +87,9 @@ export async function GET(req: Request) {
 
     // Fetch the problem sets with pagination and get count
     const [totalProblems, problems] = await db.$transaction([
-      db.problem.count(),
+      db.problem.count({
+        where,
+      }),
       db.problem.findMany({
         where,
         skip,
@@ -103,7 +105,9 @@ export async function GET(req: Request) {
         limit,
         totalPages: Math.ceil(totalProblems / limit),
         totalProblems,
-        problems: mapProblemResponse(problems, userId),
+        problems: problems.map((problem) =>
+          mapProblemResponse(problem, userId),
+        ),
       },
       { status: 200 },
     );

@@ -1,10 +1,18 @@
 import { authOptions } from "@/app/api/auth/authOptions";
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
+import { Prisma } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
 type Params = { params: Promise<{ id: string }> };
+const psetProgressSelect: Prisma.ProblemSetProgressSelect = {
+  id: true,
+  createdAt: true,
+  status: true,
+  problemOrder: true,
+  problemSet: { select: { name: true, id: true } },
+};
 
 export async function GET(req: Request, { params }: Params) {
   try {
@@ -23,13 +31,7 @@ export async function GET(req: Request, { params }: Params) {
         problemSetId: id,
       },
       orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        createdAt: true,
-        status: true,
-        problemOrder: true,
-        problemSet: { select: { name: true, id: true } },
-      },
+      select: psetProgressSelect,
     });
 
     const progress = progresses.find((p) => p.status === "inprogress");
@@ -54,6 +56,19 @@ export async function POST(req: Request, { params }: Params) {
     const userId = session?.user?.id;
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    // If the user has an existing progress, return it
+    const existingProgress = await db.problemSetProgress.findFirst({
+      where: {
+        userId,
+        problemSetId: id,
+        status: "inprogress",
+      },
+      select: psetProgressSelect,
+    });
+    if (existingProgress) {
+      return NextResponse.json(existingProgress, { status: 200 });
     }
 
     // Get the problem set and its default order
@@ -89,13 +104,7 @@ export async function POST(req: Request, { params }: Params) {
           status: "inprogress",
           problemOrder: orderArray,
         },
-        select: {
-          id: true,
-          createdAt: true,
-          status: true,
-          problemOrder: true,
-          problemSet: { select: { name: true, id: true } },
-        },
+        select: psetProgressSelect,
       }),
       db.problemSetStats.upsert({
         where: { problemSetId: id },

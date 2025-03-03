@@ -78,7 +78,7 @@ export function GoProblem({
       return;
     }
     setMessage("");
-    const { evaluation, problemSetCompleted } = await submit({
+    const { evaluation, problemSetCompleted, problemSetId } = await submit({
       id: problem.id,
       problemSetProgressId,
       userMoves,
@@ -100,7 +100,7 @@ export function GoProblem({
         </>,
       );
       if (problemSetProgressId && problemSetCompleted) {
-        dispatch(setPsetCompletion(problemSetCompleted));
+        dispatch(setPsetCompletion(problemSetId));
       }
     } else if (evaluation.status === "mismatch") {
       const oppMove = evaluation.correctOpponentMove;

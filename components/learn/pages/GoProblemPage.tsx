@@ -1,13 +1,13 @@
 "use client";
 
-import { useGetProblemQuery } from "@/lib/rtk/slices/problems";
-import { PageSpinner } from "@/components/labels/Spinner";
 import { PageError } from "@/components/labels/Error";
+import { GoProblemSkeleton } from "@/components/loading/GoProblemSkeleton";
+import { useGetProblemQuery } from "@/lib/rtk/slices/problems";
 import dynamic from "next/dynamic";
 
 const GoProblem = dynamic(() => import("@/components/learn/go/GoProblem"), {
   ssr: false,
-  loading: () => <PageSpinner />,
+  loading: () => <GoProblemSkeleton />,
 });
 
 export function GoProblemPage({ id }: { id?: string }) {
@@ -18,7 +18,7 @@ export function GoProblemPage({ id }: { id?: string }) {
     },
   );
   if (isLoading) {
-    return <PageSpinner />;
+    return <GoProblemSkeleton />;
   }
 
   if (isError || !data) {

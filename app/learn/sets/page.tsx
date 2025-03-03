@@ -1,37 +1,30 @@
-import { PageError } from "@/components/labels/Error";
+import { authOptions } from "@/app/api/auth/authOptions";
 import { ProblemSetList } from "@/components/learn/sets/ProblemSetList";
-import { QueryPagination } from "@/components/nav/QueryPagination";
-import { fetchSafe } from "@/lib/fetch";
-import { ALL_PROBLEM_SETS_TAG } from "@/lib/nextTags";
-import { GetPSetsResponse } from "@/lib/rtk/slices/problemSets";
+import { Button } from "@/components/ui/button";
+import { isUserAdmin } from "@/lib/utils";
+import { CirclePlusIcon } from "lucide-react";
+import { getServerSession } from "next-auth";
+import Link from "next/link";
 
-interface PageProps {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
-export default async function ProblemSetsPage({ searchParams }: PageProps) {
-  const { page } = await searchParams;
-  const currentPage = Number(page) || 1;
-  const limit = 20;
-
-  const { response, isError } = await fetchSafe<GetPSetsResponse>(
-    `/problems/sets?page=${currentPage}&limit=${limit}`,
-    { next: { tags: [ALL_PROBLEM_SETS_TAG] } },
-    true,
-  );
-
-  if (isError || !response) {
-    return <PageError>Error getting problems</PageError>;
-  }
-
+export default async function ProblemSetsPage() {
+  const session = await getServerSession(authOptions);
   return (
-    <div className="flex flex-col gap-6">
-      <ProblemSetList problemSets={response.problemSets} isError={isError} />
-      <QueryPagination
-        className="my-4"
-        currentPage={response.currentPage}
-        totalPages={response.totalPages}
-      />
+    <div className="container space-y-6 mx-auto">
+      <div className="flex items-center justify-between">
+        <span className="text-2xl font-medium">Problems</span>
+        {isUserAdmin(session) && (
+          <Button size="sm">
+            <Link
+              href="/learn/problems/new"
+              className="flex items-center gap-2"
+            >
+              <CirclePlusIcon />
+              Create
+            </Link>
+          </Button>
+        )}
+      </div>
+      <ProblemSetList />
     </div>
   );
 }

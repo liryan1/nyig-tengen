@@ -1,10 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/lib/db";
-import { getServerSession } from "next-auth";
-import { logStack } from "@/lib/error";
 import { authOptions } from "@/app/api/auth/authOptions";
-import { revalidateTag } from "next/cache";
-import { ALL_PROBLEMS_TAG } from "@/lib/nextTags";
+import { db } from "@/lib/db";
+import { logStack } from "@/lib/error";
+import { getServerSession } from "next-auth";
+import { NextRequest, NextResponse } from "next/server";
 
 type Params = { params: Promise<{ id: string }> };
 /**
@@ -65,7 +63,5 @@ export async function POST(request: NextRequest, { params }: Params) {
       { message: "An unknown error occurred" },
       { status: 500 },
     );
-  } finally {
-    revalidateTag(ALL_PROBLEMS_TAG);
   }
 }

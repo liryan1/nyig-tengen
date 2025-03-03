@@ -1,17 +1,17 @@
 "use client";
 
+import { GoProblemSkeleton } from "@/components/loading/GoProblemSkeleton";
 import { useGetProblemQuery } from "@/lib/rtk/slices/problems";
 import { useGetPSetProgressQuery } from "@/lib/rtk/slices/problemSets";
-import { redirect } from "next/navigation";
-import { PageError } from "../../labels/Error";
-import { PageSpinner } from "../../labels/Spinner";
-import { ProblemSetDoPageHeader } from "../sets/ProblemSetDoPageHeader";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
+import { redirect } from "next/navigation";
+import { PageError } from "../../labels/Error";
+import { ProblemSetDoPageHeader } from "../sets/ProblemSetDoPageHeader";
 
 const GoProblem = dynamic(() => import("@/components/learn/go/GoProblem"), {
   ssr: false,
-  loading: () => <PageSpinner />,
+  loading: () => <GoProblemSkeleton />,
 });
 
 export function ProblemSetDoPage({
@@ -37,7 +37,7 @@ export function ProblemSetDoPage({
 
   const isLoading = pgLoading || pLoading;
   if (isLoading) {
-    return <PageSpinner />;
+    return <GoProblemSkeleton />;
   }
 
   if (pError || pgError) {
@@ -62,7 +62,8 @@ export function ProblemSetDoPage({
     <div className="space-y-2 md:space-y-6">
       <ProblemSetDoPageHeader
         currentIndex={currentIndex}
-        progress={progressResponse.progress}
+        problemOrder={progressResponse.progress.problemOrder}
+        problemSetName={progressResponse.progress.problemSet.name}
         pSetClientUrl={`/learn/sets/${psetId}`}
       />
       <GoProblem

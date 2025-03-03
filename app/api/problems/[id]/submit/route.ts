@@ -7,7 +7,6 @@ import { ProgressStatus, SubmissionStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { revalidateTag } from "next/cache";
-import { ALL_PROBLEMS_TAG } from "@/lib/nextTags";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -45,15 +44,12 @@ export async function POST(req: Request, { params }: Params) {
     const root = fromSgf(problem.correct);
     const { evaluation, stats } = evaluate(userMoves, root);
 
-    if (evaluation.status === "solved") {
-      revalidateTag(ALL_PROBLEMS_TAG);
-    }
-
     // Creates the update data for the problem set progress saved in problemOrder
     // If all problems are completed, set the status
     let updateProgressData: any = { updatedAt: new Date() };
     let updateProblemSetStats: any;
-    let problemSetCompleted: string | undefined = undefined;
+    let problemSetCompleted: boolean | undefined = undefined;
+    let problemSetId: string | undefined = undefined;
     if (problemSetProgressId) {
       const progress = await db.problemSetProgress.findUnique({
         where: { id: problemSetProgressId },
@@ -68,6 +64,7 @@ export async function POST(req: Request, { params }: Params) {
           { status: 400 },
         );
       }
+      problemSetId = progress.problemSetId;
       const problemOrder = ((progress?.problemOrder ?? []) as any[]).map(
         (p: { problemId: string; status: SubmissionStatus }) => {
           if (p.problemId === id && p.status !== "solved") {
@@ -78,7 +75,7 @@ export async function POST(req: Request, { params }: Params) {
       );
       updateProgressData["problemOrder"] = problemOrder;
       if (problemOrder.every((p) => p.status === "solved")) {
-        problemSetCompleted = progress.problemSetId;
+        problemSetCompleted = true;
         updateProgressData["status"] = ProgressStatus.completed;
         updateProblemSetStats = {
           data: { completed: { increment: 1 } },
@@ -126,7 +123,7 @@ export async function POST(req: Request, { params }: Params) {
     ]);
 
     return NextResponse.json(
-      { evaluation, problemSetCompleted },
+      { evaluation, problemSetCompleted, problemSetId },
       { status: 201 },
     );
   } catch (error) {

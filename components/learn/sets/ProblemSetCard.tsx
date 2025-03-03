@@ -1,15 +1,17 @@
 "use client";
+import { ProblemSetCardCarouselSkeleton } from "@/components/loading/ProblemSetCardSkeleton";
 import { getRank } from "@/lib/go/display";
 import { ProblemSetResponse } from "@/lib/rtk/slices/problemSets";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { InfoBar } from "../InfoBar";
 import { StartButton } from "./StartButton";
-import dynamic from "next/dynamic";
-import { PageSpinner } from "@/components/labels/Spinner";
+import { Card } from "@/components/ui/card";
+import { CalendarPlusIcon } from "lucide-react";
 
 const ProblemCarousel = dynamic(
   () => import("@/components/learn/sets/ProblemCarousel"),
-  { ssr: false, loading: () => <PageSpinner /> },
+  { ssr: false, loading: () => <ProblemSetCardCarouselSkeleton /> },
 );
 
 interface ProblemSetCardProps {
@@ -27,19 +29,31 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
     problems,
     likes,
     userLiked,
+    createdAt,
   } = problemSet;
 
   return (
-    <div className="border rounded-lg shadow-sm">
+    <Card>
       <div className="p-2 space-y-2">
         <div className="flex items-center justify-between">
-          <Link
-            href={`/learn/sets/${id}`}
-            className="text-md font-medium hover:underline"
-          >
-            {name}
-          </Link>
-          <StartButton sId={problemSet.id} size="sm" />
+          <div className="flex gap-2 items-center">
+            <Link
+              href={`/learn/sets/${id}`}
+              className="text-md font-semibold hover:underline"
+            >
+              {name}
+            </Link>
+            <div className="flex items-center text-[11px] gap-x-0.5 text-muted-foreground">
+              <CalendarPlusIcon size={12} />
+              <span>{new Date(createdAt).toLocaleDateString()}</span>
+            </div>
+          </div>
+
+          <StartButton
+            sId={problemSet.id}
+            problemOrder={problemSet.userProgress?.problemOrder}
+            size="sm"
+          />
         </div>
 
         <InfoBar
@@ -57,6 +71,6 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
       <hr />
 
       <ProblemCarousel problems={problems} />
-    </div>
+    </Card>
   );
 }

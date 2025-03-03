@@ -42,23 +42,22 @@ export const getProblemSelect = (userId?: string): Prisma.ProblemSelect => ({
 });
 
 export const mapProblemResponse = (
-  problems: any[],
+  problem: any,
   userId?: string,
-): GoProblemResponse[] =>
-  problems.map((problem) => ({
-    id: problem.id,
-    initial: problem.initial,
-    rank: problem.rank,
-    description: problem.description,
-    author: problem.author,
-    userSolved: problem.submissions?.at(0)?.status === "solved",
-    stats: {
-      ...problem.problemStats,
-      userLiked:
-        problem.problemLikes.findIndex(
-          (p: { userId: string }) => p.userId === userId,
-        ) !== -1,
-      likes: problem.problemLikes.length,
-    },
-    visibility: problem.visibility,
-  }));
+): GoProblemResponse => ({
+  id: problem.id,
+  initial: problem.initial,
+  rank: problem.rank,
+  description: problem.description,
+  author: problem.author,
+  userSolved: problem.submissions?.at(0)?.status === "solved",
+  stats: {
+    ...problem.problemStats,
+    userLiked:
+      problem.problemLikes.findIndex(
+        (p: { userId: string }) => p.userId === userId,
+      ) !== -1,
+    likes: problem.problemLikes.length,
+  },
+  visibility: problem.visibility,
+});

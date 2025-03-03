@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../auth/authOptions";
 import { getProblemSetSelect, mapProblemSetResponse } from "../problemSetQuery";
-import { Visibility } from "@prisma/client";
+import { Prisma, Visibility } from "@prisma/client";
 
 const DEFAULT_PAGE = "1";
 const DEFAULT_LIMIT = "10";
@@ -35,19 +35,20 @@ export async function GET(req: Request) {
     }
 
     const skip = (page - 1) * limit;
+    const where: Prisma.ProblemSetWhereInput = {
+      OR: [
+        { visibility: Visibility.PUBLIC },
+        {
+          authorId: userId,
+        },
+      ],
+    };
 
     // Fetch the problem sets with pagination and get count
     const [totalProblemSets, problemSets] = await db.$transaction([
-      db.problemSet.count(),
+      db.problemSet.count({ where }),
       db.problemSet.findMany({
-        where: {
-          OR: [
-            { visibility: Visibility.PUBLIC },
-            {
-              authorId: userId,
-            },
-          ],
-        },
+        where,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" }, // Most recent first
@@ -61,7 +62,9 @@ export async function GET(req: Request) {
         limit,
         totalPages: Math.ceil(totalProblemSets / limit),
         totalProblemSets,
-        problemSets: mapProblemSetResponse(problemSets, userId),
+        problemSets: problemSets.map((pset) =>
+          mapProblemSetResponse(pset, userId),
+        ),
       },
       { status: 200 },
     );

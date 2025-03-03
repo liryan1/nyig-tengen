@@ -1,10 +1,5 @@
 import { Evaluation, GoProblemResponse } from "@/lib/go/interface";
-import {
-  apiSlice,
-  PROBLEM_SET_PROGRESS_TAG,
-  PROBLEM_TAG,
-  PROBLEMS_TAG,
-} from "../api";
+import { apiSlice, PROBLEM_SET_TAG, PROBLEM_TAG, PROBLEMS_TAG } from "../api";
 
 interface SubmissionRequest {
   id: string;
@@ -14,6 +9,14 @@ interface SubmissionRequest {
 
 interface SubmissionResponse {
   evaluation: Evaluation;
+  /**
+   * if problemSetProgressId is passed, response returns problemSetId
+   */
+  problemSetId?: string;
+  /**
+   * Used for knowing if user completed the last problem in this submission
+   * Triggers confetti
+   */
   problemSetCompleted?: boolean;
 }
 
@@ -42,12 +45,8 @@ export interface ProblemCreator {
 
 const problemsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getProblems: builder.query<
-      GetProblemsResponse,
-      { page?: number; limit?: number }
-    >({
-      query: ({ page = 1, limit = 50 }) =>
-        `problems?page=${page}&limit=${limit}`,
+    getProblems: builder.query<GetProblemsResponse, string>({
+      query: (search) => `problems?${search}`,
       providesTags: [PROBLEMS_TAG],
     }),
 
@@ -66,7 +65,10 @@ const problemsApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: [PROBLEM_SET_PROGRESS_TAG],
+      invalidatesTags: (result, error, arg) => [
+        { type: PROBLEM_SET_TAG, id: result?.problemSetId },
+        { type: PROBLEM_TAG, id: arg.id },
+      ],
     }),
 
     createProblem: builder.mutation<

@@ -1,4 +1,5 @@
-import { Prisma } from "@prisma/client";
+import { ProblemSetResponse } from "@/lib/rtk/slices/problemSets";
+import { Prisma, ProgressStatus } from "@prisma/client";
 
 export const getProblemSetSelect = (
   userId?: string,
@@ -24,11 +25,13 @@ export const getProblemSetSelect = (
     ? {
         where: {
           userId,
-          status: "completed",
+          status: ProgressStatus.inprogress,
         },
         select: {
-          updatedAt: true,
+          id: true,
+          problemOrder: true,
         },
+        take: 1,
       }
     : false,
   problemSetStats: { select: { views: true } },
@@ -38,18 +41,31 @@ export const getProblemSetSelect = (
   createdAt: true,
 });
 
-export const mapProblemSetResponse = (problemSets: any[], userId?: string) =>
-  problemSets.map((pset) => ({
-    ...pset,
-    problemSetProblems: undefined,
-    views: pset.problemSetStats?.views,
-    likes: pset.problemSetLikes.length,
-    userLiked: userId
-      ? pset.problemSetLikes.findIndex(
-          (p: { userId: string }) => p.userId === userId,
-        ) !== -1
-      : false,
-    userCompletions: pset.problemSetProgresses?.length,
-    // prisma type is incorrect with include statements
+export const mapProblemSetResponse = (
+  pset: any,
+  userId?: string,
+): ProblemSetResponse => {
+  const userProgress = pset.problemSetProgresses?.length
+    ? pset.problemSetProgresses[0]
+    : undefined;
+  const userLiked = userId
+    ? pset.problemSetLikes.findIndex(
+        (p: { userId: string }) => p.userId === userId,
+      ) !== -1
+    : false;
+
+  return {
+    id: pset.id,
+    name: pset.name,
+    author: pset.author,
+    description: pset.description,
     problems: pset.problemSetProblems.map((psp: any) => psp.problem.initial),
-  }));
+    views: pset.problemSetStats?.views ?? 0,
+    likes: pset.problemSetLikes.length,
+    userLiked,
+    problemCount: pset.problemCount,
+    averageRank: pset.averageRank,
+    createdAt: pset.createdAt,
+    userProgress,
+  };
+};

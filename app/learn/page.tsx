@@ -1,39 +1,75 @@
 import { ProblemList } from "@/components/learn/problem/ProblemList";
 import { ProblemSetList } from "@/components/learn/sets/ProblemSetList";
-import { fetchSafe } from "@/lib/fetch";
-import { ALL_PROBLEM_SETS_TAG, ALL_PROBLEMS_TAG } from "@/lib/nextTags";
-import { GetProblemsResponse } from "@/lib/rtk/slices/problems";
-import { GetPSetsResponse } from "@/lib/rtk/slices/problemSets";
+import { Button } from "@/components/ui/button";
+import { isUserAdmin } from "@/lib/utils";
+import { CirclePlusIcon } from "lucide-react";
+import { getServerSession } from "next-auth";
+import Link from "next/link";
+import { authOptions } from "../api/auth/authOptions";
 
 async function LearnPage() {
-  const [
-    { response: resP, isError: isErrorP },
-    { response: resPS, isError: isErrorPS },
-  ] = await Promise.all([
-    fetchSafe<GetProblemsResponse>(
-      "problems?page=1&limit=20",
-      { next: { tags: [ALL_PROBLEMS_TAG] } },
-      true,
-    ),
-    fetchSafe<GetPSetsResponse>(
-      "problems/sets?page=1&limit=3",
-      { next: { tags: [ALL_PROBLEM_SETS_TAG] } },
-      true,
-    ),
-  ]);
+  const session = await getServerSession(authOptions);
 
   return (
-    <div className="px-1 sm:px-0 space-y-12">
-      <ProblemSetList
-        problemSets={resPS?.problemSets ?? []}
-        isError={isErrorPS}
-        showMoreButton
-      />
-      <ProblemList
-        problems={resP?.problems ?? []}
-        isError={isErrorP}
-        showMoreButton
-      />
+    <div className="container space-y-12 mx-auto">
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <span className="text-2xl font-medium">Problem Sets</span>
+            {isUserAdmin(session) && (
+              <Button size="sm" disabled>
+                <Link
+                  href="/learn/sets/new"
+                  className="flex items-center gap-2"
+                >
+                  <CirclePlusIcon />
+                  Create
+                </Link>
+              </Button>
+            )}
+          </div>
+          <Button size="sm" variant="outline">
+            <Link
+              href="/learn/problems/sets"
+              className="flex items-center gap-2"
+            >
+              All problem sets
+            </Link>
+          </Button>
+        </div>
+        <ProblemSetList fixedLimit={4} />
+      </div>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <span className="text-2xl font-medium">Problems</span>
+            {isUserAdmin(session) && (
+              <Button size="sm">
+                <Link
+                  href="/learn/problems/new"
+                  className="flex items-center gap-2"
+                >
+                  <CirclePlusIcon />
+                  Create
+                </Link>
+              </Button>
+            )}
+          </div>
+          <Button size="sm" variant="outline">
+            <Link href="/learn/problems" className="flex items-center gap-2">
+              All problems
+            </Link>
+          </Button>
+        </div>
+        <ProblemList fixedLimit={20} />
+        <div className="flex justify-end">
+          <Button size="sm" variant="outline">
+            <Link href="/learn/problems" className="flex items-center gap-2">
+              More problems
+            </Link>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

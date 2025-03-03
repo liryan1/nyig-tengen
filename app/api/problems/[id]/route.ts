@@ -53,6 +53,7 @@ export async function GET(req: Request, { params }: Params) {
               take: 1,
             }
           : false,
+        visibility: true,
       },
     });
     if (!problem) {
@@ -72,6 +73,7 @@ export async function GET(req: Request, { params }: Params) {
         author: problem.author,
         userSolved: problem.submissions?.at(0)?.status === "solved",
         correct: includeCorrect ? problem.correct : undefined,
+        visibility: includeCorrect ? problem.visibility : undefined,
         stats: {
           ...problem.problemStats,
           likes: problem.problemLikes.length,

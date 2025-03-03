@@ -1,6 +1,7 @@
 import { authOptions } from "@/app/api/auth/authOptions";
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
+import { ProgressStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -15,10 +16,16 @@ export async function GET(req: Request, { params }: Params) {
     const userId = session?.user?.id;
     const problemSet = await db.problemSet.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        problemCount: true,
+        averageRank: true,
+        createdAt: true,
         author: { select: { id: true, name: true } },
         problemSetProblems: {
-          include: { problem: true },
+          select: { problem: true, position: true },
         },
         problemSetStats: true,
         problemSetLikes: {
@@ -26,6 +33,22 @@ export async function GET(req: Request, { params }: Params) {
             userId: true,
           },
         },
+        problemSetProgresses: userId
+          ? {
+              where: {
+                userId,
+                OR: [
+                  { status: ProgressStatus.inprogress },
+                  { status: ProgressStatus.completed },
+                ],
+              },
+              select: {
+                id: true,
+                problemOrder: true,
+                status: true,
+              },
+            }
+          : false,
       },
     });
 
@@ -45,6 +68,13 @@ export async function GET(req: Request, { params }: Params) {
       (like) => like.userId === userId,
     );
 
+    const userProgress = problemSet.problemSetProgresses?.find(
+      (psp) => psp.status === "inprogress",
+    );
+    const userCompletions = problemSet.problemSetProgresses?.filter(
+      (psp) => psp.status === "completed",
+    )?.length;
+
     return NextResponse.json(
       {
         id: problemSet.id,
@@ -59,6 +89,9 @@ export async function GET(req: Request, { params }: Params) {
         userLiked,
         author: problemSet.author,
         problems,
+        userProgress,
+        userCompletions,
+        createdAt: problemSet.createdAt,
       },
       { status: 200 },
     );
