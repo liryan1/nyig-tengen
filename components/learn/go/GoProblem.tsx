@@ -78,8 +78,8 @@ export function GoProblem({
       return;
     }
     setMessage("");
-    const { evaluation, problemSetCompleted, problemSetId } = await submit({
-      id: problem.id,
+    const { evaluation, problemSetCompleted, problemSetNum } = await submit({
+      num: problem.num,
       problemSetProgressId,
       userMoves,
     }).unwrap();
@@ -100,7 +100,7 @@ export function GoProblem({
         </>,
       );
       if (problemSetProgressId && problemSetCompleted) {
-        dispatch(setPsetCompletion(problemSetId));
+        dispatch(setPsetCompletion(problemSetNum));
       }
     } else if (evaluation.status === "mismatch") {
       const oppMove = evaluation.correctOpponentMove;
@@ -172,7 +172,7 @@ export function GoProblem({
   return (
     <div className="sm:max-w-6xl mx-auto border rounded-md shadow-sm">
       <GoProblemHeader
-        pId={problem.id}
+        num={problem.num}
         meta={problem}
         hasProblemSetProgressId={!!problemSetProgressId}
       />

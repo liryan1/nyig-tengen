@@ -1,8 +1,9 @@
 import { Evaluation, GoProblemResponse } from "@/lib/go/interface";
 import { apiSlice, PROBLEM_SET_TAG, PROBLEM_TAG, PROBLEMS_TAG } from "../api";
+import { Visibility } from "@prisma/client";
 
 interface SubmissionRequest {
-  id: string;
+  num: string;
   userMoves: string[];
   problemSetProgressId?: string;
 }
@@ -12,7 +13,7 @@ interface SubmissionResponse {
   /**
    * if problemSetProgressId is passed, response returns problemSetId
    */
-  problemSetId?: string;
+  problemSetNum?: string;
   /**
    * Used for knowing if user completed the last problem in this submission
    * Triggers confetti
@@ -25,10 +26,12 @@ export interface ProblemCreateRequest {
   description?: string;
   initial: string;
   correct: string;
+  visibility?: Visibility;
+  teamSlug?: string;
 }
 
 export interface ProblemCreateResponse {
-  id: string;
+  num: string;
 }
 
 export interface GetProblemsResponse {
@@ -52,22 +55,24 @@ const problemsApiSlice = apiSlice.injectEndpoints({
 
     getProblem: builder.query<
       GoProblemResponse,
-      { id: string; isEdit?: boolean }
+      { num: string; isEdit?: boolean }
     >({
-      query: ({ id, isEdit }) =>
-        `problems/${id}${isEdit ? "?isEdit=true" : ""}`,
-      providesTags: (result, error, arg) => [{ type: PROBLEM_TAG, id: arg.id }],
+      query: ({ num, isEdit }) =>
+        `problems/${num}${isEdit ? "?isEdit=true" : ""}`,
+      providesTags: (result, error, arg) => [
+        { type: PROBLEM_TAG, id: arg.num },
+      ],
     }),
 
     submit: builder.mutation<SubmissionResponse, SubmissionRequest>({
-      query: ({ id, ...body }) => ({
-        url: `problems/${id}/submit`,
+      query: ({ num, ...body }) => ({
+        url: `problems/${num}/submit`,
         method: "POST",
         body,
       }),
       invalidatesTags: (result, error, arg) => [
-        { type: PROBLEM_SET_TAG, id: result?.problemSetId },
-        { type: PROBLEM_TAG, id: arg.id },
+        { type: PROBLEM_SET_TAG, id: result?.problemSetNum },
+        { type: PROBLEM_TAG, id: arg.num },
       ],
     }),
 
@@ -85,21 +90,21 @@ const problemsApiSlice = apiSlice.injectEndpoints({
 
     updateProblem: builder.mutation<
       ProblemCreateResponse,
-      ProblemCreateRequest & { id: string }
+      ProblemCreateRequest & { num: string }
     >({
-      query: ({ id, ...body }) => ({
-        url: `problems/${id}`,
+      query: ({ num, ...body }) => ({
+        url: `problems/${num}`,
         method: "PATCH",
         body,
       }),
       invalidatesTags: (result, error, arg) => [
-        { type: PROBLEM_TAG, id: arg.id },
+        { type: PROBLEM_TAG, id: arg.num },
       ],
     }),
 
     problemLike: builder.mutation<{ liked: boolean }, string>({
-      query: (id) => ({
-        url: `problems/${id}/like`,
+      query: (num) => ({
+        url: `problems/${num}/like`,
         method: "POST",
       }),
       invalidatesTags: (result, error, arg) => [{ type: PROBLEM_TAG, id: arg }],

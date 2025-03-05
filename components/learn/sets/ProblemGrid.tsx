@@ -1,10 +1,6 @@
 import { StatefulPagination } from "@/components/nav/StatefulPagination";
 import { getBoardSize, getRootBoardState } from "@/lib/go/parser";
-import {
-  ProblemOrderItem,
-  PSetProblem,
-  PSetProgressResponse,
-} from "@/lib/rtk/slices/problemSets";
+import { ProblemOrderItem, PSetProblem } from "@/lib/rtk/slices/problemSets";
 import { cn } from "@/lib/utils";
 import { SubmissionStatus } from "@prisma/client";
 import { CircleCheckBigIcon, CircleHelpIcon } from "lucide-react";
@@ -82,12 +78,12 @@ export function ProblemGrid({
           const problemIndex = startIndex + i;
           return (
             <div
-              key={problem.id}
+              key={problem.num}
               className={cn(
                 "overflow-hidden",
                 problemOrder ? "cursor-pointer" : "",
               )}
-              onClick={() => onProblemClick(problem.id)}
+              onClick={() => onProblemClick(problem.num)}
             >
               <ReadonlyGoBoard
                 className="hover:shadow-lg"

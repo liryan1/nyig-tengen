@@ -1,9 +1,12 @@
 "use client";
 
+import { ProblemGridSkeleton } from "@/components/loading/ProblemGridSkeleton";
+import { ProblemSetPageSkeleton } from "@/components/loading/ProblemSetPageSkeleton";
 import { logStack } from "@/lib/error";
 import { getRank } from "@/lib/go/display";
 import { useAppDispatch, useAppSelector } from "@/lib/rtk/slices/hooks";
 import {
+  useCreatePSetProgressMutation,
   useGetPSetQuery,
   usePSetLikeMutation,
 } from "@/lib/rtk/slices/problemSets";
@@ -16,12 +19,11 @@ import { SubmissionStatus } from "@prisma/client";
 import { TrophyIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Confetti from "react-confetti-boom";
 import { toast } from "sonner";
 import { PageError } from "../../labels/Error";
-import { PageSpinner } from "../../labels/Spinner";
 import {
   Card,
   CardContent,
@@ -32,40 +34,54 @@ import {
 } from "../../ui/card";
 import { InfoBar } from "../InfoBar";
 import { StartButton } from "../sets/StartButton";
-import { ProblemSetCardSkeleton } from "@/components/loading/ProblemSetCardSkeleton";
 
 const ProblemGrid = dynamic(
-  () => import("@/components/learn/problem/ProblemGrid"),
-  { ssr: false, loading: () => <PageSpinner /> },
+  () => import("@/components/learn/sets/ProblemGrid"),
+  { ssr: false, loading: () => <ProblemGridSkeleton /> },
 );
 
-export function ProblemSetPage({ sId }: { sId?: string }) {
+export function ProblemSetPage({ sNum }: { sNum?: string }) {
+  const router = useRouter();
   const [showConfetti, setShowConfetti] = useState(false);
   const { psetId: completedPsetId } = useAppSelector(selectPsetCompletion);
   const dispatch = useAppDispatch();
   useEffect(() => {
-    if (completedPsetId === sId) {
+    if (completedPsetId === sNum) {
       setShowConfetti(true);
-      dispatch(setPsetCompletion(null));
+      toast("Congratulations 🎉", {
+        icon: <TrophyIcon />,
+        description:
+          "You completed the problem set and earned a trophy! Keep up the great work!",
+        duration: 5_000,
+      });
     }
-  }, [completedPsetId, sId]);
+    return () => {
+      if (completedPsetId === sNum) {
+        dispatch(setPsetCompletion(null));
+      }
+    };
+  }, [completedPsetId, sNum]);
   const [like] = usePSetLikeMutation();
   const { status: authStatus } = useSession();
   const {
     data: pset,
     isLoading: psetLoading,
     isError: psetError,
-  } = useGetPSetQuery(sId ?? "", { skip: !sId });
+  } = useGetPSetQuery(sNum ?? "", { skip: !sNum });
+  const [createPSetProgress, { isLoading: cLoading, isError: cError }] =
+    useCreatePSetProgressMutation();
+  const isLoading = cLoading || psetLoading || authStatus === "loading";
+  const isError = cError || psetError;
 
-  if (psetLoading) {
-    return <ProblemSetCardSkeleton />;
+  if (isLoading) {
+    return <ProblemSetPageSkeleton />;
   }
-  if (psetError || !pset) {
+  if (isError || !pset) {
     return <PageError>Error getting problem set</PageError>;
   }
 
   const {
-    id,
+    num,
     name,
     views,
     description,
@@ -85,15 +101,15 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
       0,
     ) || 0;
 
-  const handleProblemClick = (pId: string) => {
+  const handleProblemClick = (pNum: string) => {
     if (!pset?.userProgress) {
       return;
     }
-    return redirect(`/learn/sets/${id}/${pId}`);
+    return router.push(`/learn/sets/${num}/${pNum}`);
   };
 
   const toggleLike = async () => {
-    if (!sId) {
+    if (!sNum) {
       return;
     }
     if (authStatus !== "authenticated") {
@@ -101,7 +117,7 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
       return;
     }
     const likeProblem = async () => {
-      const { liked } = await like(sId).unwrap();
+      const { liked } = await like(sNum).unwrap();
       return liked;
     };
     try {
@@ -140,7 +156,10 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
             )}
           </div>
           <StartButton
-            sId={sId}
+            onCreatePSetProgress={createPSetProgress}
+            isLoading={isLoading}
+            isError={isError}
+            sNum={sNum}
             problemOrder={pset?.userProgress?.problemOrder}
           />
         </CardTitle>
@@ -160,6 +179,7 @@ export function ProblemSetPage({ sId }: { sId?: string }) {
             views,
             likes: pset.likes,
             rate: completedCount / attemptedCount,
+            userSolved: userSolved !== undefined && userSolved > 0,
           }}
           toggleLike={debounce(toggleLike, 300)}
         />

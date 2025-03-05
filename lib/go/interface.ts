@@ -30,7 +30,7 @@ export interface GoProblemMeta {
 }
 
 export interface GoProblem {
-  id: string;
+  num: string;
   initial: string;
   correct?: string;
 }

@@ -4,8 +4,14 @@ import { ProblemList } from "@/components/learn/problem/ProblemList";
 import { Button } from "@/components/ui/button";
 import { isUserAdmin } from "@/lib/utils";
 import { CirclePlusIcon } from "lucide-react";
+import { type Metadata } from "next";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Problems",
+  description: "A unique experience for practicing Go problems.",
+};
 
 export default async function AllProblemsPage() {
   const session = await getServerSession(authOptions);

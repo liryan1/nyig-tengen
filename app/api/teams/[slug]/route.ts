@@ -77,6 +77,12 @@ export async function GET(req: Request, { params }: Params) {
       where: { slug },
       select: {
         id: true,
+        owner: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
         memberships: {
           select: {
             user: {
@@ -91,11 +97,15 @@ export async function GET(req: Request, { params }: Params) {
         },
         name: true,
         description: true,
-        problems: {
-          select: getProblemSelect(userId),
+        teamProblems: {
+          select: {
+            problem: { select: getProblemSelect(userId) },
+          },
         },
-        problemSets: {
-          select: getProblemSetSelect(userId),
+        teamProblemSets: {
+          select: {
+            problemSet: { select: getProblemSetSelect(userId) },
+          },
         },
       },
     });
@@ -104,27 +114,18 @@ export async function GET(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Team not found" }, { status: 404 });
     }
 
-    const owner = team.memberships.find(
-      (membership) => membership.role === TeamRole.OWNER,
-    );
-    if (!owner) {
-      return NextResponse.json(
-        { message: "Team owner not found" },
-        { status: 404 },
-      );
-    }
-    const userIsInTeam = owner.user.id === userId;
+    const userIsInTeam = team.memberships.find((m) => m.user.id === userId);
     const memberCount = team.memberships.length;
-    const problemCount = team.problems.length;
-    const problemSetCount = team.problemSets.length;
+    const problemCount = team.teamProblems.length;
+    const problemSetCount = team.teamProblemSets.length;
 
     const publicResponse: TeamResponse = {
       id: slug,
       name: team.name,
       description: team.description || undefined,
       owner: {
-        id: owner.user.id,
-        name: owner.user.name,
+        id: team.owner.id,
+        name: team.owner.name,
       },
       members: [],
       problems: [],
@@ -146,11 +147,11 @@ export async function GET(req: Request, { params }: Params) {
           role: membership.role,
           joinedAt: membership.createdAt,
         })),
-        problems: team.problems.map((problem) =>
-          mapProblemResponse(problem, userId),
+        problems: team.teamProblems.map((problem) =>
+          mapProblemResponse(problem.problem, userId),
         ),
-        problemSets: team.problemSets.map((pset) =>
-          mapProblemSetResponse(pset, userId),
+        problemSets: team.teamProblemSets.map((pset) =>
+          mapProblemSetResponse(pset.problemSet, userId),
         ),
       },
       { status: 200 },

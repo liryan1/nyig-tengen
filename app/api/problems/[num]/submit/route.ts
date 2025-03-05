@@ -1,18 +1,17 @@
 import { authOptions } from "@/app/api/auth/authOptions";
-import { evaluate } from "@/lib/go/evaluate";
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
+import { evaluate } from "@/lib/go/evaluate";
 import { fromSgf } from "@/lib/go/parser";
 import { ProgressStatus, SubmissionStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
 
-type Params = { params: Promise<{ id: string }> };
+type Params = { params: Promise<{ num: string }> };
 
 export async function POST(req: Request, { params }: Params) {
   try {
-    const [{ id }, session, { userMoves, problemSetProgressId }] =
+    const [{ num }, session, { userMoves, problemSetProgressId }] =
       await Promise.all([params, getServerSession(authOptions), req.json()]);
     const userId = session?.user?.id;
     if (!userId) {
@@ -28,8 +27,9 @@ export async function POST(req: Request, { params }: Params) {
 
     // Fetch the problem and its solutions
     const problem = await db.problem.findUnique({
-      where: { id },
+      where: { num },
       select: {
+        num: true,
         correct: true,
       },
     });
@@ -49,12 +49,12 @@ export async function POST(req: Request, { params }: Params) {
     let updateProgressData: any = { updatedAt: new Date() };
     let updateProblemSetStats: any;
     let problemSetCompleted: boolean | undefined = undefined;
-    let problemSetId: string | undefined = undefined;
+    let problemSetNum: string | undefined = undefined;
     if (problemSetProgressId) {
       const progress = await db.problemSetProgress.findUnique({
         where: { id: problemSetProgressId },
         select: {
-          problemSetId: true,
+          problemSetNum: true,
           problemOrder: true,
         },
       });
@@ -64,10 +64,10 @@ export async function POST(req: Request, { params }: Params) {
           { status: 400 },
         );
       }
-      problemSetId = progress.problemSetId;
+      problemSetNum = progress.problemSetNum;
       const problemOrder = ((progress?.problemOrder ?? []) as any[]).map(
-        (p: { problemId: string; status: SubmissionStatus }) => {
-          if (p.problemId === id && p.status !== "solved") {
+        (p: { problemNum: string; status: SubmissionStatus }) => {
+          if (p.problemNum === num && p.status !== "solved") {
             p.status = evaluation.status;
           }
           return p;
@@ -79,7 +79,7 @@ export async function POST(req: Request, { params }: Params) {
         updateProgressData["status"] = ProgressStatus.completed;
         updateProblemSetStats = {
           data: { completed: { increment: 1 } },
-          where: { problemSetId: progress.problemSetId },
+          where: { problemSetNum: progress.problemSetNum },
         };
       }
     }
@@ -98,12 +98,12 @@ export async function POST(req: Request, { params }: Params) {
         ? [db.problemSetStats.update(updateProblemSetStats)]
         : []),
       db.problemStats.upsert({
-        where: { problemId: id },
+        where: { problemNum: problem.num },
         update: {
           ...stats,
         },
         create: {
-          problemId: id,
+          problemNum: problem.num,
           views: 1,
           submissionCount: 1,
           correctCount: evaluation.status === "solved" ? 1 : 0,
@@ -112,7 +112,7 @@ export async function POST(req: Request, { params }: Params) {
       db.submission.create({
         data: {
           userId,
-          problemId: id,
+          problemNum: problem.num,
           problemSetProgressId,
           userMoves,
           status: evaluation.status,
@@ -123,7 +123,7 @@ export async function POST(req: Request, { params }: Params) {
     ]);
 
     return NextResponse.json(
-      { evaluation, problemSetCompleted, problemSetId },
+      { evaluation, problemSetCompleted, problemSetNum },
       { status: 201 },
     );
   } catch (error) {

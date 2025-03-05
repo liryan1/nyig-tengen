@@ -6,6 +6,13 @@ import { CirclePlusIcon } from "lucide-react";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { authOptions } from "../api/auth/authOptions";
+import { type Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Learn",
+  description:
+    "A unique experience for practicing Go problems and problem sets.",
+};
 
 async function LearnPage() {
   const session = await getServerSession(authOptions);

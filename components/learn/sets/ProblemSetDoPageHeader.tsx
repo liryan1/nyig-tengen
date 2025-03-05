@@ -1,7 +1,4 @@
-import {
-  ProblemOrderItem,
-  PSetProgressResponse,
-} from "@/lib/rtk/slices/problemSets";
+import { ProblemOrderItem } from "@/lib/rtk/slices/problemSets";
 import { MoveLeftIcon, MoveRightIcon } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../../ui/button";
@@ -23,8 +20,8 @@ export function ProblemSetDoPageHeader({
   const hasPrev = prevIndex >= 0;
   const hasNext = nextIndex < problemOrder.length;
 
-  const prevLink = `${pSetClientUrl}/${hasPrev ? problemOrder[prevIndex].problemId : ""}`;
-  const nextLink = `${pSetClientUrl}/${hasNext ? problemOrder[nextIndex].problemId : ""}`;
+  const prevLink = `${pSetClientUrl}/${hasPrev ? problemOrder[prevIndex].problemNum : ""}`;
+  const nextLink = `${pSetClientUrl}/${hasNext ? problemOrder[nextIndex].problemNum : ""}`;
 
   return (
     <div className="space-y-2 sm:space-y-6 overflow-x-auto">

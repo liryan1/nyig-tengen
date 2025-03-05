@@ -39,6 +39,7 @@ model User {
   endorsements    Endorsement[]
   teamMemberships TeamMembership[]
   teamInvites     TeamInvite[]
+  teams           Team[]
 }
 
 // ----------- Begin authentication models -----------
@@ -130,9 +131,15 @@ model PostLike {
 // -------------------- End Post Models --------------------
 
 // -------------------- Go Problem Models --------------------
+model Counter {
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
+  model String @unique
+  value Int    @default(0)
+}
 
 model Problem {
   id                 String              @id @default(auto()) @map("_id") @db.ObjectId
+  num                String              @unique
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   authorId           String              @db.ObjectId
@@ -145,30 +152,28 @@ model Problem {
   problemSetProblems ProblemSetProblem[]
   submissions        Submission[]
   author             User                @relation(fields: [authorId], references: [id])
-  teamIds            String[]            @db.ObjectId
-  teams              Team[]              @relation(fields: [teamIds], references: [id])
   endorsement        Endorsement?
   problemLikes       ProblemLike[]
+  teamProblems       TeamProblem[]
 
   @@index([authorId])
 }
 
 model ProblemStats {
   id              String  @id @default(auto()) @map("_id") @db.ObjectId
-  problemId       String  @unique @db.ObjectId
-  problem         Problem @relation(fields: [problemId], references: [id])
+  problemNum      String  @unique
+  problem         Problem @relation(fields: [problemNum], references: [num])
   views           Int     @default(0)
   submissionCount Int     @default(0)
   correctCount    Int     @default(0)
 }
 
 model ProblemLike {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String @db.ObjectId
-  problemId String @db.ObjectId
-
-  user    User    @relation(fields: [userId], references: [id])
-  problem Problem @relation(fields: [problemId], references: [id])
+  id         String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String  @db.ObjectId
+  problemNum String
+  user       User    @relation(fields: [userId], references: [id])
+  problem    Problem @relation(fields: [problemNum], references: [num])
 }
 
 enum SubmissionStatus {
@@ -177,22 +182,23 @@ enum SubmissionStatus {
   partial
 }
 
-// Join table between ProblemSet and Problem for efficient queries
+// Join table between ProblemSet and Problem for problemNumefficient queries
 // Position is the Default position of the problem in the set (e.g., 1, 2, ...)
 model ProblemSetProblem {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  problemSetId String     @db.ObjectId
-  problemId    String     @db.ObjectId
-  position     Int
-  problem      Problem    @relation(fields: [problemId], references: [id])
-  problemSet   ProblemSet @relation(fields: [problemSetId], references: [id])
-  createdAt    DateTime   @default(now())
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  problemSetNum String
+  problemNum    String
+  position      Int
+  problem       Problem    @relation(fields: [problemNum], references: [num])
+  problemSet    ProblemSet @relation(fields: [problemSetNum], references: [num])
+  createdAt     DateTime   @default(now())
 
-  @@unique([problemSetId, problemId])
+  @@unique([problemSetNum, problemNum])
 }
 
 model ProblemSet {
   id                   String               @id @default(auto()) @map("_id") @db.ObjectId
+  num                  String               @unique
   name                 String
   description          String
   authorId             String               @db.ObjectId
@@ -205,41 +211,39 @@ model ProblemSet {
   problemSetProblems   ProblemSetProblem[]
   problemSetProgresses ProblemSetProgress[]
   problemSetStats      ProblemSetStats?
-  teamIds              String[]             @db.ObjectId
-  teams                Team[]               @relation(fields: [teamIds], references: [id])
   problemSetLikes      ProblemSetLike[]
+  teamProblemSets      TeamProblemSet[]
 
   @@index([authorId]) // Find how many problem sets a user has created
 }
 
 model ProblemSetStats {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  problemSetId String     @unique @db.ObjectId
-  views        Int        @default(0)
-  attempted    Int        @default(0)
-  completed    Int        @default(0)
-  problemSet   ProblemSet @relation(fields: [problemSetId], references: [id])
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  problemSetNum String     @unique
+  views         Int        @default(0)
+  attempted     Int        @default(0)
+  completed     Int        @default(0)
+  problemSet    ProblemSet @relation(fields: [problemSetNum], references: [num])
 }
 
 model ProblemSetLike {
-  id           String @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String @db.ObjectId
-  problemSetId String @db.ObjectId
-
-  user       User       @relation(fields: [userId], references: [id])
-  problemSet ProblemSet @relation(fields: [problemSetId], references: [id])
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String     @db.ObjectId
+  problemSetNum String
+  user          User       @relation(fields: [userId], references: [id])
+  problemSet    ProblemSet @relation(fields: [problemSetNum], references: [num])
 }
 
 model Submission {
   id                   String              @id @default(auto()) @map("_id") @db.ObjectId
   userId               String              @db.ObjectId
-  problemId            String              @db.ObjectId
+  problemNum           String
   problemSetProgressId String?             @db.ObjectId
   userMoves            Json
   status               SubmissionStatus
   mismatchIndex        Int
   correctOpponentMove  Json?
-  problem              Problem             @relation(fields: [problemId], references: [id])
+  problem              Problem             @relation(fields: [problemNum], references: [num])
   progress             ProblemSetProgress? @relation(fields: [problemSetProgressId], references: [id])
   createdAt            DateTime            @default(now())
 }
@@ -251,25 +255,26 @@ enum ProgressStatus {
 }
 
 model ProblemSetProgress {
-  id           String          @id @default(auto()) @map("_id") @db.ObjectId
-  userId       String          @db.ObjectId
-  problemSetId String          @db.ObjectId
-  status       ProgressStatus?
-  problemOrder Json
-  currentIndex Int?
-  problemSet   ProblemSet      @relation(fields: [problemSetId], references: [id])
-  user         User            @relation(fields: [userId], references: [id])
-  submissions  Submission[]
-  updatedAt    DateTime        @updatedAt
-  createdAt    DateTime        @default(now())
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String          @db.ObjectId
+  problemSetNum String
+  status        ProgressStatus?
+  problemOrder  Json
+  currentIndex  Int?
+  problemSet    ProblemSet      @relation(fields: [problemSetNum], references: [num])
+  user          User            @relation(fields: [userId], references: [id])
+  submissions   Submission[]
+  updatedAt     DateTime        @updatedAt
+  createdAt     DateTime        @default(now())
 
-  @@index([userId, problemSetId]) // Common lookup for doing problem sets
+  @@index([userId, problemSetNum]) // Common lookup for doing problem sets
 }
 
 enum Visibility {
   PUBLIC
   TEAM
   PRIVATE
+  DELETED
 }
 
 model Endorsement {
@@ -292,16 +297,40 @@ model Team {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   slug        String   @unique
   name        String
+  ownerId     String   @db.ObjectId
+  owner       User     @relation(fields: [ownerId], references: [id])
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  memberships   TeamMembership[]
-  invites       TeamInvite[]
-  problemSetIds String[]         @db.ObjectId
-  problemSets   ProblemSet[]     @relation(fields: [problemSetIds], references: [id])
-  problemIds    String[]         @db.ObjectId
-  problems      Problem[]        @relation(fields: [problemIds], references: [id])
+  memberships     TeamMembership[]
+  invites         TeamInvite[]
+  teamProblems    TeamProblem[]
+  teamProblemSets TeamProblemSet[]
+}
+
+model TeamProblem {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  teamSlug   String
+  problemNum String
+  createdAt  DateTime @default(now())
+
+  team    Team    @relation(fields: [teamSlug], references: [slug])
+  problem Problem @relation(fields: [problemNum], references: [num])
+
+  @@unique([teamSlug, problemNum])
+}
+
+model TeamProblemSet {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  teamId        String   @db.ObjectId
+  problemSetNum String
+  createdAt     DateTime @default(now())
+
+  team       Team       @relation(fields: [teamId], references: [id])
+  problemSet ProblemSet @relation(fields: [problemSetNum], references: [num])
+
+  @@unique([teamId, problemSetNum])
 }
 
 model TeamMembership {

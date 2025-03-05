@@ -10,12 +10,10 @@ const GoProblem = dynamic(() => import("@/components/learn/go/GoProblem"), {
   loading: () => <GoProblemSkeleton />,
 });
 
-export function GoProblemPage({ id }: { id?: string }) {
+export function GoProblemPage({ num }: { num?: string }) {
   const { data, isLoading, isError } = useGetProblemQuery(
-    { id: id ?? "" },
-    {
-      skip: !id,
-    },
+    { num: num ?? "" },
+    { skip: !num },
   );
   if (isLoading) {
     return <GoProblemSkeleton />;

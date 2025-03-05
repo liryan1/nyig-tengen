@@ -2,15 +2,16 @@ import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
 import { NextResponse } from "next/server";
 
-type Params = { params: Promise<{ id: string }> };
+type Params = { params: Promise<{ num: string }> };
 
 export async function POST(req: Request, { params }: Params) {
   try {
-    await db.problemSetStats.upsert({
-      where: { problemSetId: (await params).id },
+    const num = (await params).num;
+    await db.problemStats.upsert({
+      where: { problemNum: num },
       update: { views: { increment: 1 } },
       create: {
-        problemSetId: (await params).id,
+        problemNum: num,
         views: 1,
       },
     });

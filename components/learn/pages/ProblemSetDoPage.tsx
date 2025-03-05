@@ -1,6 +1,7 @@
 "use client";
 
 import { GoProblemSkeleton } from "@/components/loading/GoProblemSkeleton";
+import { ProblemSetDoPageSkeleton } from "@/components/loading/ProblemSetDoPageSkeleton";
 import { useGetProblemQuery } from "@/lib/rtk/slices/problems";
 import { useGetPSetProgressQuery } from "@/lib/rtk/slices/problemSets";
 import { useSession } from "next-auth/react";
@@ -15,29 +16,29 @@ const GoProblem = dynamic(() => import("@/components/learn/go/GoProblem"), {
 });
 
 export function ProblemSetDoPage({
-  psetId,
-  problemId,
+  psetNum,
+  problemNum,
 }: {
-  psetId: string;
-  problemId: string;
+  psetNum: string;
+  problemNum: string;
 }) {
   const { status: authStatus } = useSession();
   const {
-    data: progressResponse,
+    data: progress,
     isLoading: pgLoading,
     isError: pgError,
-  } = useGetPSetProgressQuery(psetId, {
-    skip: !psetId || authStatus !== "authenticated",
+  } = useGetPSetProgressQuery(psetNum, {
+    skip: !psetNum || authStatus !== "authenticated",
   });
   const {
     data: problem,
     isLoading: pLoading,
     isError: pError,
-  } = useGetProblemQuery({ id: problemId }, { skip: !problemId });
+  } = useGetProblemQuery({ num: problemNum }, { skip: !problemNum });
 
   const isLoading = pgLoading || pLoading;
   if (isLoading) {
-    return <GoProblemSkeleton />;
+    return <ProblemSetDoPageSkeleton />;
   }
 
   if (pError || pgError) {
@@ -48,11 +49,11 @@ export function ProblemSetDoPage({
     return <PageError>Problem could not be loaded</PageError>;
   }
 
-  if (!progressResponse?.progress) {
-    return redirect(`/learn/sets/${psetId}`);
+  if (!progress) {
+    redirect(`/learn/sets/${psetNum}`);
   }
-  const currentIndex = progressResponse.progress.problemOrder?.findIndex(
-    (p) => p.problemId === problemId,
+  const currentIndex = progress.problemOrder?.findIndex(
+    (p) => p.problemNum === problemNum,
   );
   if (currentIndex === -1) {
     return <PageError>Problem not found in the problem order</PageError>;
@@ -62,16 +63,15 @@ export function ProblemSetDoPage({
     <div className="space-y-2 md:space-y-6">
       <ProblemSetDoPageHeader
         currentIndex={currentIndex}
-        problemOrder={progressResponse.progress.problemOrder}
-        problemSetName={progressResponse.progress.problemSet.name}
-        pSetClientUrl={`/learn/sets/${psetId}`}
+        problemOrder={progress.problemOrder}
+        problemSetName={progress.problemSet.name}
+        pSetClientUrl={`/learn/sets/${psetNum}`}
       />
       <GoProblem
         problem={problem}
-        problemSetProgressId={progressResponse.progress.id}
+        problemSetProgressId={progress.id}
         initialSuccess={
-          progressResponse.progress.problemOrder[currentIndex]?.status ===
-          "solved"
+          progress.problemOrder[currentIndex]?.status === "solved"
         }
       />
     </div>

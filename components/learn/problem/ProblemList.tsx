@@ -58,7 +58,7 @@ export function ProblemList({ filter, fixedLimit }: ProblemListProps) {
           ))
         ) : (
           data?.problems?.map((problem) => (
-            <ProblemCard key={problem.id} goProblemResponse={problem} />
+            <ProblemCard key={problem.num} goProblemResponse={problem} />
           ))
         )}
       </div>

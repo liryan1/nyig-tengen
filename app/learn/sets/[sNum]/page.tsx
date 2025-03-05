@@ -1,16 +1,16 @@
 import { ProblemSetPage } from "@/components/learn/pages/ProblemSetPage";
 import { fetchSafe } from "@/lib/fetch";
 
-type Params = { params: Promise<{ sId: string }> };
+type Params = { params: Promise<{ sNum: string }> };
 
 async function ProblemSetIdPage({ params }: Params) {
-  const { sId } = await params;
-  fetchSafe(`/problems/sets/${sId}/view`, {
+  const { sNum } = await params;
+  fetchSafe(`/problems/sets/${sNum}/view`, {
     method: "POST",
     cache: "no-store",
   });
 
-  return <ProblemSetPage sId={sId} />;
+  return <ProblemSetPage sNum={sNum} />;
 }
 
 export default ProblemSetIdPage;

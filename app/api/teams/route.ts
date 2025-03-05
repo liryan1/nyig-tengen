@@ -90,6 +90,7 @@ export async function POST(req: Request) {
         slug: uniqueSlug,
         name,
         description,
+        ownerId: userId,
         memberships: {
           create: {
             userId,

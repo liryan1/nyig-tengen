@@ -4,15 +4,16 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../auth/authOptions";
 import { Visibility } from "@prisma/client";
+import { getProblemSelect, mapProblemResponse } from "../problemQuery";
 
-type Params = { params: Promise<{ id: string }> };
+type Params = { params: Promise<{ num: string }> };
 type QueryParams = {
   isEdit?: boolean;
 };
 
 export async function GET(req: Request, { params }: Params) {
   try {
-    const [session, { id }] = await Promise.all([
+    const [session, { num }] = await Promise.all([
       getServerSession(authOptions),
       params,
     ]);
@@ -22,39 +23,8 @@ export async function GET(req: Request, { params }: Params) {
     const qParams: QueryParams = Object.fromEntries(searchParams.entries());
 
     const problem = await db.problem.findUnique({
-      where: { id },
-      select: {
-        id: true,
-        initial: true,
-        rank: true,
-        description: true,
-        correct: true,
-        author: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        problemStats: true,
-        problemLikes: {
-          select: {
-            userId: true,
-          },
-        },
-        submissions: userId
-          ? {
-              where: {
-                userId,
-                status: "solved",
-              },
-              select: {
-                status: true,
-              },
-              take: 1,
-            }
-          : false,
-        visibility: true,
-      },
+      where: { num },
+      select: { ...getProblemSelect(userId), correct: true },
     });
     if (!problem) {
       return NextResponse.json(
@@ -66,21 +36,9 @@ export async function GET(req: Request, { params }: Params) {
 
     return NextResponse.json(
       {
-        id: problem.id,
-        initial: problem.initial,
-        rank: problem.rank,
-        description: problem.description,
-        author: problem.author,
-        userSolved: problem.submissions?.at(0)?.status === "solved",
+        ...mapProblemResponse(problem, userId),
         correct: includeCorrect ? problem.correct : undefined,
         visibility: includeCorrect ? problem.visibility : undefined,
-        stats: {
-          ...problem.problemStats,
-          likes: problem.problemLikes.length,
-          userLiked: problem.problemLikes.some(
-            (like) => like.userId === userId,
-          ),
-        },
       },
       { status: 200 },
     );
@@ -96,9 +54,9 @@ export async function GET(req: Request, { params }: Params) {
 export async function PATCH(req: Request, { params }: Params) {
   try {
     const [
-      { id },
+      { num },
       session,
-      { description, rank, initial, correct, visibility },
+      { description, rank, initial, correct, visibility, teamSlug },
     ] = await Promise.all([params, getServerSession(authOptions), req.json()]);
     const userId = session?.user?.id;
     if (!userId) {
@@ -112,16 +70,28 @@ export async function PATCH(req: Request, { params }: Params) {
       );
     }
 
-    if (visibility && !Object.values(Visibility).includes(visibility)) {
-      return NextResponse.json(
-        { message: "Invalid visibility" },
-        { status: 400 },
-      );
+    if (visibility) {
+      if (
+        !Object.values(Visibility).includes(visibility) ||
+        visibility === Visibility.DELETED
+      ) {
+        return NextResponse.json(
+          { message: "Invalid visibility" },
+          { status: 400 },
+        );
+      }
+
+      if (visibility === Visibility.TEAM && !teamSlug) {
+        return NextResponse.json(
+          { message: "Team is required to create a team visibility problem" },
+          { status: 400 },
+        );
+      }
     }
 
     // Fetch the problem to verify ownership
     const existingProblem = await db.problem.findUnique({
-      where: { id },
+      where: { num },
       select: { authorId: true },
     });
 
@@ -137,7 +107,7 @@ export async function PATCH(req: Request, { params }: Params) {
     }
 
     await db.problem.update({
-      where: { id },
+      where: { num },
       data: {
         description,
         visibility,
@@ -147,7 +117,26 @@ export async function PATCH(req: Request, { params }: Params) {
       },
     });
 
-    return NextResponse.json({ id }, { status: 200 });
+    // If the problem is team-based and a teamId is provided, create a join record
+    if (visibility === Visibility.TEAM && teamSlug) {
+      const team = await db.team.findUnique({
+        where: { slug: teamSlug },
+      });
+      if (!team) {
+        return NextResponse.json(
+          { message: "Team not found" },
+          { status: 404 },
+        );
+      }
+      await db.teamProblem.create({
+        data: {
+          teamSlug,
+          problemNum: num,
+        },
+      });
+    }
+
+    return NextResponse.json({ num }, { status: 200 });
   } catch (error) {
     logStack(error);
     return NextResponse.json(
@@ -159,7 +148,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
 export async function DELETE(req: Request, { params }: Params) {
   try {
-    const [{ id }, session] = await Promise.all([
+    const [{ num }, session] = await Promise.all([
       params,
       getServerSession(authOptions),
     ]);
@@ -169,7 +158,7 @@ export async function DELETE(req: Request, { params }: Params) {
     }
 
     const existingProblem = await db.problem.findUnique({
-      where: { id },
+      where: { num },
       select: { authorId: true },
     });
 
@@ -184,8 +173,11 @@ export async function DELETE(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    await db.problem.delete({
-      where: { id },
+    await db.problem.update({
+      where: { num },
+      data: {
+        visibility: Visibility.DELETED,
+      },
     });
 
     return NextResponse.json(

@@ -4,7 +4,7 @@ import { Prisma, ProgressStatus } from "@prisma/client";
 export const getProblemSetSelect = (
   userId?: string,
 ): Prisma.ProblemSetSelect => ({
-  id: true,
+  num: true,
   name: true,
   author: {
     select: {
@@ -55,13 +55,13 @@ export const mapProblemSetResponse = (
     : false;
 
   return {
-    id: pset.id,
+    num: pset.num,
     name: pset.name,
     author: pset.author,
     description: pset.description,
     problems: pset.problemSetProblems.map((psp: any) => psp.problem.initial),
-    views: pset.problemSetStats?.views ?? 0,
-    likes: pset.problemSetLikes.length,
+    views: pset.problemSetStats?.views,
+    likes: pset.problemSetLikes?.length,
     userLiked,
     problemCount: pset.problemCount,
     averageRank: pset.averageRank,

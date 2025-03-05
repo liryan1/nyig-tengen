@@ -17,7 +17,7 @@ type Props = {
 };
 
 export function ProblemCard({ goProblemResponse }: Props) {
-  const { id, initial, author, stats, rank, userSolved } = goProblemResponse;
+  const { num, initial, author, stats, rank, userSolved } = goProblemResponse;
   const boardSize = getBoardSize(initial);
   const boardContainerRef = useRef<HTMLDivElement>(null);
   const { cellSize, boardPixelSize } = useCellSize({
@@ -49,7 +49,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
       >
         <Link
           style={{ width: `${boardPixelSize}px` }}
-          href={`/learn/problems/${id}`}
+          href={`/learn/problems/${num}`}
         >
           <ReadonlyGoBoard
             cellSize={cellSize}

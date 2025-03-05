@@ -3,11 +3,11 @@ import { GoProblemEditPage } from "@/components/learn/pages/GoProblemEditPage";
 async function ProblemEditPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ num: string }>;
 }) {
-  const { id } = await params;
+  const { num } = await params;
 
-  return <GoProblemEditPage pId={id} />;
+  return <GoProblemEditPage num={num} />;
 }
 
 export default ProblemEditPage;

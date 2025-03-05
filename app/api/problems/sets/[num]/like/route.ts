@@ -5,7 +5,7 @@ import { logStack } from "@/lib/error";
 import { authOptions } from "@/app/api/auth/authOptions";
 import { revalidateTag } from "next/cache";
 
-type Params = { params: Promise<{ id: string }> };
+type Params = { params: Promise<{ num: string }> };
 /**
  * - If the user has not liked the target yet, create a new like.
  * - If the user already liked it, remove the existing like.
@@ -19,7 +19,7 @@ type Params = { params: Promise<{ id: string }> };
 export async function POST(request: NextRequest, { params }: Params) {
   try {
     // 1. Verify user is logged in
-    const [session, { id }] = await Promise.all([
+    const [session, { num }] = await Promise.all([
       getServerSession(authOptions),
       params,
     ]);
@@ -27,9 +27,9 @@ export async function POST(request: NextRequest, { params }: Params) {
       return NextResponse.json({ message: "Not authorized" }, { status: 401 });
     }
 
-    if (!id) {
+    if (!num) {
       return NextResponse.json(
-        { message: "problem set ID is required" },
+        { message: "problem set number is required" },
         { status: 400 },
       );
     }
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest, { params }: Params) {
     const existingLike = await db.problemSetLike.findFirst({
       where: {
         userId: session.user.id,
-        problemSetId: id,
+        problemSetNum: num,
       },
       select: { id: true },
     });
@@ -53,7 +53,7 @@ export async function POST(request: NextRequest, { params }: Params) {
       await db.problemSetLike.create({
         data: {
           userId: session.user.id,
-          problemSetId: id,
+          problemSetNum: num,
         },
       });
       return NextResponse.json({ liked: true }, { status: 201 });

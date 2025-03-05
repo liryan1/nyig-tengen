@@ -23,8 +23,10 @@ import {
 } from "@/components/ui/sidebar";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export function NavMain({ title }: { title: string }) {
+  const router = useRouter();
   const { data: session } = useSession();
   const items = [
     {
@@ -86,7 +88,10 @@ export function NavMain({ title }: { title: string }) {
           >
             <SidebarMenuItem>
               <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  onClick={() => router.push(item.url)}
+                >
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
                   <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />

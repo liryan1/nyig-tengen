@@ -5,19 +5,18 @@ import { ProgressStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type Params = { params: Promise<{ id: string }> };
+type Params = { params: Promise<{ num: string }> };
 
 export async function GET(req: Request, { params }: Params) {
   try {
-    const [session, { id }] = await Promise.all([
+    const [session, { num }] = await Promise.all([
       getServerSession(authOptions),
       params,
     ]);
     const userId = session?.user?.id;
     const problemSet = await db.problemSet.findUnique({
-      where: { id },
+      where: { num },
       select: {
-        id: true,
         name: true,
         description: true,
         problemCount: true,
@@ -57,7 +56,7 @@ export async function GET(req: Request, { params }: Params) {
     }
 
     const problems = problemSet.problemSetProblems.map((psp) => ({
-      id: psp.problem.id,
+      num: psp.problem.num,
       rank: psp.problem.rank,
       initial: psp.problem.initial,
       position: psp.position,
@@ -77,7 +76,7 @@ export async function GET(req: Request, { params }: Params) {
 
     return NextResponse.json(
       {
-        id: problemSet.id,
+        num,
         name: problemSet.name,
         description: problemSet.description,
         problemCount: problemSet.problemCount,

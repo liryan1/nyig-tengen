@@ -9,6 +9,7 @@ import {
 } from "@/lib/go/validator";
 import { Prisma, Visibility } from "@prisma/client";
 import { getProblemSelect, mapProblemResponse } from "./problemQuery";
+import { isUserAdmin } from "@/lib/utils";
 
 const DEFAULT_PAGE = "1";
 const DEFAULT_LIMIT = "20";
@@ -67,6 +68,19 @@ export async function GET(req: Request) {
         {
           authorId: userId,
         },
+        {
+          teamProblems: {
+            some: {
+              team: {
+                memberships: {
+                  some: {
+                    userId: userId,
+                  },
+                },
+              },
+            },
+          },
+        },
       ],
     };
 
@@ -122,27 +136,44 @@ export async function GET(req: Request) {
 
 export async function POST(req: Request) {
   try {
-    const [session, { description, rank, initial, correct, visibility }] =
-      await Promise.all([getServerSession(authOptions), req.json()]);
+    // Get session and request payload (including optional teamId)
+    const [session, payload] = await Promise.all([
+      getServerSession(authOptions),
+      req.json(),
+    ]);
+    const { description, rank, initial, correct, visibility, teamSlug } =
+      payload;
     const userId = session?.user?.id;
     if (!userId) {
       return new NextResponse("Unauthorized", { status: 401 });
     }
-
+    if (!isUserAdmin(session)) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
     if (rank === undefined || rank === null || !initial || !correct) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 },
       );
     }
+    if (visibility) {
+      if (
+        !Object.values(Visibility).includes(visibility) ||
+        visibility === Visibility.DELETED
+      ) {
+        return NextResponse.json(
+          { message: "Invalid visibility" },
+          { status: 400 },
+        );
+      }
 
-    if (visibility && !Object.values(Visibility).includes(visibility)) {
-      return NextResponse.json(
-        { message: "Invalid visibility" },
-        { status: 400 },
-      );
+      if (visibility === Visibility.TEAM && !teamSlug) {
+        return NextResponse.json(
+          { message: "Team is required to create a team visibility problem" },
+          { status: 400 },
+        );
+      }
     }
-
     // Validate initial and correct fields
     try {
       validateProblemInitial(initial);
@@ -153,9 +184,16 @@ export async function POST(req: Request) {
         { status: 400 },
       );
     }
-
+    // Atomically increment the problem counter
+    const counter = await db.counter.upsert({
+      where: { model: "Problem" },
+      update: { value: { increment: 1 } },
+      create: { model: "Problem", value: 1 },
+    });
+    // Create the problem; select both id and num so we can use id in join table creation
     const createdProblem = await db.problem.create({
       data: {
+        num: counter.value.toString(),
         description,
         rank,
         initial,
@@ -163,12 +201,29 @@ export async function POST(req: Request) {
         authorId: userId,
         visibility,
       },
-      select: {
-        id: true,
-      },
+      select: { id: true, num: true },
     });
 
-    return NextResponse.json(createdProblem, { status: 201 });
+    // If the problem is team-based and a teamId is provided, create a join record
+    if (visibility === Visibility.TEAM && teamSlug) {
+      const team = await db.team.findUnique({
+        where: { slug: teamSlug },
+      });
+      if (!team) {
+        return NextResponse.json(
+          { message: "Team not found" },
+          { status: 404 },
+        );
+      }
+      await db.teamProblem.create({
+        data: {
+          teamSlug,
+          problemNum: createdProblem.num,
+        },
+      });
+    }
+
+    return NextResponse.json({ num: createdProblem.num }, { status: 201 });
   } catch (error) {
     logStack(error);
     return NextResponse.json(

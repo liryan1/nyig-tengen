@@ -41,6 +41,19 @@ export async function GET(req: Request) {
         {
           authorId: userId,
         },
+        {
+          teamProblemSets: {
+            some: {
+              team: {
+                memberships: {
+                  some: {
+                    userId: userId,
+                  },
+                },
+              },
+            },
+          },
+        },
       ],
     };
 
@@ -85,8 +98,18 @@ export async function POST(req: Request) {
     if (!userId) {
       return NextResponse.json({ message: "Not authorized" }, { status: 401 });
     }
+
+    // Atomically increment the problem slug counter.
+    // If it doesn't exist, create it with the first value 1.
+    const counter = await db.counter.upsert({
+      where: { model: "ProblemSet" },
+      update: { value: { increment: 1 } },
+      create: { model: "ProblemSet", value: 1 },
+    });
+
     const problemSet = await db.problemSet.create({
       data: {
+        num: counter.value.toString(),
         name,
         description,
         authorId: userId,
@@ -121,13 +144,13 @@ export async function POST(req: Request) {
 
 async function createOrGetProblem(
   problem: string | any,
-  problemSetId: string,
+  problemSetNum: string,
   position: number,
   userId: string,
 ): Promise<any> {
   if (typeof problem === "string") {
     const existingProblem = await db.problem.findUnique({
-      where: { id: problem },
+      where: { num: problem },
     });
 
     if (!existingProblem) {
@@ -137,8 +160,8 @@ async function createOrGetProblem(
 
     return db.problemSetProblem.create({
       data: {
-        problemSetId,
-        problemId: problem,
+        problemSetNum,
+        problemNum: problem,
         position,
       },
     });
@@ -152,8 +175,8 @@ async function createOrGetProblem(
 
     return db.problemSetProblem.create({
       data: {
-        problemSetId,
-        problemId: newProblem.id,
+        problemSetNum,
+        problemNum: newProblem.num,
         position,
       },
     });

@@ -1,7 +1,10 @@
 "use client";
 import { ProblemSetCardCarouselSkeleton } from "@/components/loading/ProblemSetCardSkeleton";
 import { getRank } from "@/lib/go/display";
-import { ProblemSetResponse } from "@/lib/rtk/slices/problemSets";
+import {
+  ProblemSetResponse,
+  useCreatePSetProgressMutation,
+} from "@/lib/rtk/slices/problemSets";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { InfoBar } from "../InfoBar";
@@ -16,11 +19,19 @@ const ProblemCarousel = dynamic(
 
 interface ProblemSetCardProps {
   problemSet: ProblemSetResponse;
+  onCreatePSetProgress: ReturnType<typeof useCreatePSetProgressMutation>[0];
+  psetCreateLoading?: boolean;
+  psetCreateError?: boolean;
 }
 
-export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
+export function ProblemSetCard({
+  problemSet,
+  onCreatePSetProgress,
+  psetCreateError,
+  psetCreateLoading,
+}: ProblemSetCardProps) {
   const {
-    id,
+    num,
     name,
     author,
     problemCount,
@@ -38,7 +49,7 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex gap-2 items-center">
             <Link
-              href={`/learn/sets/${id}`}
+              href={`/learn/sets/${num}`}
               className="text-md font-semibold hover:underline"
             >
               {name}
@@ -50,7 +61,10 @@ export function ProblemSetCard({ problemSet }: ProblemSetCardProps) {
           </div>
 
           <StartButton
-            sId={problemSet.id}
+            onCreatePSetProgress={onCreatePSetProgress}
+            isLoading={psetCreateLoading}
+            isError={psetCreateError}
+            sNum={problemSet.num}
             problemOrder={problemSet.userProgress?.problemOrder}
             size="sm"
           />

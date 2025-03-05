@@ -4,9 +4,7 @@ import { Button, ButtonProps } from "@/components/ui/button";
 import { useIsMobile } from "@/hooks/isMobile";
 import {
   ProblemOrderItem,
-  PSetProgressResponse,
   useCreatePSetProgressMutation,
-  useGetPSetProgressQuery,
 } from "@/lib/rtk/slices/problemSets";
 import { FlameIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -14,30 +12,36 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 interface StartButtonProps extends ButtonProps {
-  sId?: string;
+  sNum?: string;
   problemOrder?: ProblemOrderItem[];
+  onCreatePSetProgress: ReturnType<typeof useCreatePSetProgressMutation>[0];
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
 export function StartButton({
-  sId,
+  sNum,
   problemOrder,
+  onCreatePSetProgress,
+  isLoading,
+  isError,
   ...buttonProps
 }: StartButtonProps) {
   const isMobile = useIsMobile();
   const { status: authStatus } = useSession();
   const router = useRouter();
 
-  const [create, { isLoading: cLoading, isError: cError }] =
-    useCreatePSetProgressMutation();
-  const isLoading = cLoading || authStatus === "loading";
+  // const [create, { isLoading: cLoading, isError: cError }] =
+  //   useCreatePSetProgressMutation();
+  // const isLoading = cLoading || authStatus === "loading";
 
   const getRedirectUrl = (problemOrder?: ProblemOrderItem[]) => {
-    const currentProblemId = problemOrder?.find(
+    const currentProblemNum = problemOrder?.find(
       (p) => !p.status || p.status !== "solved",
-    )?.problemId;
-    return currentProblemId
-      ? `/learn/sets/${sId}/${currentProblemId}`
-      : `/learn/sets/${sId}`;
+    )?.problemNum;
+    return currentProblemNum
+      ? `/learn/sets/${sNum}/${currentProblemNum}`
+      : `/learn/sets/${sNum}`;
   };
 
   const icon = isLoading ? (
@@ -47,7 +51,11 @@ export function StartButton({
   );
   const handleClick = async () => {
     if (authStatus !== "authenticated") {
-      toast.error("Please login to start problem sets");
+      toast.error("Please login to start doing problem sets");
+      return;
+    }
+    if (!sNum) {
+      toast.error("Problem set number is not provided");
       return;
     }
     // If a progress exists, direct the user continues to work on it
@@ -57,7 +65,7 @@ export function StartButton({
       return;
     }
     // No current progress exists and the user is starting a new progress
-    const response = await create({ id: sId ?? "" }).unwrap();
+    const response = await onCreatePSetProgress({ id: sNum }).unwrap();
     router.push(getRedirectUrl(response.problemOrder));
   };
 
@@ -65,7 +73,7 @@ export function StartButton({
     <Button
       size={isMobile ? "sm" : "default"}
       className="flex items-center gap-1 bg-indigo-600 hover:bg-indigo-800 text-white"
-      disabled={isLoading || cError || !sId}
+      disabled={isLoading || isError || !sNum}
       onClick={handleClick}
       {...buttonProps}
     >

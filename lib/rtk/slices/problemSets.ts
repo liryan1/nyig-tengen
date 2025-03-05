@@ -6,7 +6,7 @@ import {
 import { apiSlice, PROBLEM_SET_TAG, PROBLEM_SETS_TAG } from "../api";
 
 export interface ProblemSetResponse {
-  id: string;
+  num: string;
   name: string;
   author: { id: string; name: string };
   description?: string;
@@ -30,7 +30,7 @@ export interface GetPSetsResponse {
 }
 
 export interface PSetProblem {
-  id: string;
+  num: string;
   rank: number;
   position: number;
   initial: string;
@@ -51,13 +51,8 @@ export interface PSetProblemResponse {
   progress: ProblemSetProgress;
 }
 
-export interface GetPSetProgressResponse {
-  progress?: PSetProgressResponse;
-  completedCount: number;
-}
-
 export interface ProblemOrderItem {
-  problemId: string;
+  problemNum: string;
   status?: SubmissionStatus;
 }
 
@@ -68,13 +63,12 @@ export interface CreatePSetProgressResponse {
   problemOrder: ProblemOrderItem[];
   problemSet: {
     name: string;
-    id: string;
+    num: string;
   };
 }
 
 export interface PSetProgressResponse {
   id: string;
-  createdAt: string;
   problemSet: { name: string; id: string };
   problemOrder: ProblemOrderItem[];
   status: ProgressStatus;
@@ -87,13 +81,13 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       providesTags: [PROBLEM_SETS_TAG],
     }),
     getPSet: builder.query<PSetResponse, string>({
-      query: (id) => `/problems/sets/${id}`,
+      query: (num) => `/problems/sets/${num}`,
       providesTags: (result, error, arg) => [
         { type: PROBLEM_SET_TAG, id: arg },
       ],
     }),
-    getPSetProgress: builder.query<GetPSetProgressResponse, string>({
-      query: (id) => `/problems/sets/${id}/progress`,
+    getPSetProgress: builder.query<PSetProgressResponse, string>({
+      query: (num) => `/problems/sets/${num}/progress`,
       providesTags: (result, error, arg) => [
         { type: PROBLEM_SET_TAG, id: arg },
       ],
@@ -112,8 +106,8 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       ],
     }),
     pSetLike: builder.mutation<{ liked: boolean }, string>({
-      query: (id) => ({
-        url: `problems/sets/${id}/like`,
+      query: (num) => ({
+        url: `problems/sets/${num}/like`,
         method: "POST",
       }),
       invalidatesTags: (result, error, arg) => [

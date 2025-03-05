@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { InfoBar } from "../InfoBar";
 
 type GoProblemHeaderProps = {
-  pId: string;
+  num: string;
   meta: GoProblemMeta;
   initialColor?: StoneColor;
   className?: string;
@@ -19,7 +19,7 @@ type GoProblemHeaderProps = {
 };
 
 export function GoProblemHeader({
-  pId,
+  num,
   meta,
   initialColor = 1,
   className,
@@ -40,7 +40,7 @@ export function GoProblemHeader({
       return;
     }
     const likeProblem = async () => {
-      return like(pId).unwrap();
+      return like(num).unwrap();
     };
     try {
       toast.promise(likeProblem, {
@@ -63,14 +63,6 @@ export function GoProblemHeader({
               {author.name}
             </Link>
           </div>
-          {!hasProblemSetProgressId && userOwnsProblem && (
-            <Link href={`/learn/problems/${pId}/edit`}>
-              <Button size="sm" className="gap-1">
-                Edit Problem
-                <EditIcon />
-              </Button>
-            </Link>
-          )}
           <CircleIcon size={24} fill={stoneColor} />
         </div>
       </div>
@@ -88,11 +80,19 @@ export function GoProblemHeader({
         likeDisabled={isLoading}
       />
 
-      {description && (
+      <div className="flex justify-between items-start">
         <p className="text-xs sm:text-sm text-muted-foreground">
           {description}
         </p>
-      )}
+        {!hasProblemSetProgressId && userOwnsProblem && (
+          <Link href={`/learn/problems/${num}/edit`}>
+            <Button size="sm" className="gap-1">
+              <span className="hidden sm:block">Edit</span>
+              <EditIcon />
+            </Button>
+          </Link>
+        )}
+      </div>
     </div>
   );
 }

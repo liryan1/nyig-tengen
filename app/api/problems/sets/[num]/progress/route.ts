@@ -1,22 +1,22 @@
 import { authOptions } from "@/app/api/auth/authOptions";
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
-import { Prisma } from "@prisma/client";
+import { Prisma, ProgressStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
-type Params = { params: Promise<{ id: string }> };
+type Params = { params: Promise<{ num: string }> };
 const psetProgressSelect: Prisma.ProblemSetProgressSelect = {
   id: true,
   createdAt: true,
   status: true,
   problemOrder: true,
-  problemSet: { select: { name: true, id: true } },
+  problemSet: { select: { name: true, num: true } },
 };
 
 export async function GET(req: Request, { params }: Params) {
   try {
-    const [{ id }, session] = await Promise.all([
+    const [{ num }, session] = await Promise.all([
       params,
       getServerSession(authOptions),
     ]);
@@ -25,21 +25,16 @@ export async function GET(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const progresses = await db.problemSetProgress.findMany({
+    const progress = await db.problemSetProgress.findFirst({
       where: {
         userId,
-        problemSetId: id,
+        problemSetNum: num,
+        status: ProgressStatus.inprogress,
       },
-      orderBy: { createdAt: "desc" },
       select: psetProgressSelect,
     });
 
-    const progress = progresses.find((p) => p.status === "inprogress");
-    const completedCount = progresses.filter(
-      (p) => p.status === "completed",
-    ).length;
-
-    return NextResponse.json({ progress, completedCount }, { status: 200 });
+    return NextResponse.json(progress, { status: 200 });
   } catch (error) {
     logStack(error);
     return NextResponse.json({ message: "An error occurred" }, { status: 500 });
@@ -48,7 +43,7 @@ export async function GET(req: Request, { params }: Params) {
 
 export async function POST(req: Request, { params }: Params) {
   try {
-    const [{ id }, session, { randomize }] = await Promise.all([
+    const [{ num }, session, { randomize }] = await Promise.all([
       params,
       getServerSession(authOptions),
       req.json(),
@@ -58,25 +53,13 @@ export async function POST(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    // If the user has an existing progress, return it
-    const existingProgress = await db.problemSetProgress.findFirst({
-      where: {
-        userId,
-        problemSetId: id,
-        status: "inprogress",
-      },
-      select: psetProgressSelect,
-    });
-    if (existingProgress) {
-      return NextResponse.json(existingProgress, { status: 200 });
-    }
-
-    // Get the problem set and its default order
+    // Get the problem set and its default problem order
     const problemSet = await db.problemSet.findUnique({
-      where: { id },
-      include: {
+      where: { num },
+      select: {
+        id: true,
         problemSetProblems: {
-          select: { problemId: true, position: true },
+          select: { problemNum: true, position: true },
         },
       },
     });
@@ -87,10 +70,23 @@ export async function POST(req: Request, { params }: Params) {
       );
     }
 
+    // If the user has an existing progress, return it
+    const existingProgress = await db.problemSetProgress.findFirst({
+      where: {
+        userId,
+        problemSetNum: num,
+        status: "inprogress",
+      },
+      select: psetProgressSelect,
+    });
+    if (existingProgress) {
+      return NextResponse.json(existingProgress, { status: 200 });
+    }
+
     // create the problemOrder
     let orderArray = problemSet.problemSetProblems
       .sort((a, b) => a.position - b.position)
-      .map((o) => ({ problemId: o.problemId }));
+      .map((o) => ({ problemNum: o.problemNum }));
     if (randomize) {
       orderArray = shuffleArray(orderArray);
     }
@@ -100,16 +96,16 @@ export async function POST(req: Request, { params }: Params) {
       db.problemSetProgress.create({
         data: {
           userId,
-          problemSetId: id,
+          problemSetNum: num,
           status: "inprogress",
           problemOrder: orderArray,
         },
         select: psetProgressSelect,
       }),
       db.problemSetStats.upsert({
-        where: { problemSetId: id },
+        where: { problemSetNum: num },
         update: { attempted: { increment: 1 } },
-        create: { problemSetId: id, attempted: 1 },
+        create: { problemSetNum: num, attempted: 1 },
       }),
     ]);
 

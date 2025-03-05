@@ -1,6 +1,9 @@
 "use client";
 import { StatefulPagination } from "@/components/nav/StatefulPagination";
-import { useGetPSetsQuery } from "@/lib/rtk/slices/problemSets";
+import {
+  useCreatePSetProgressMutation,
+  useGetPSetsQuery,
+} from "@/lib/rtk/slices/problemSets";
 import { useSearchParams } from "next/navigation";
 import { type Options, parseAsInteger, useQueryState } from "nuqs";
 import { PageError } from "../../labels/Error";
@@ -29,9 +32,17 @@ export function ProblemSetList({ fixedLimit }: ProblemSetListProps) {
     },
     serialize: (value) => value.toString(),
   });
-  const { data, isError, isLoading } = useGetPSetsQuery(
+  const {
+    data,
+    isError: psetsError,
+    isLoading: psetsLoading,
+  } = useGetPSetsQuery(
     fixedLimit ? `limit=${fixedLimit}&page=1` : searchParams.toString(),
   );
+  const [createPSetProgress, { isLoading: cLoading, isError: cError }] =
+    useCreatePSetProgressMutation();
+  const isLoading = psetsLoading || cLoading;
+  const isError = psetsError || cError;
 
   return (
     <>
@@ -51,7 +62,13 @@ export function ProblemSetList({ fixedLimit }: ProblemSetListProps) {
           ))
         ) : (
           data?.problemSets?.map((pset) => (
-            <ProblemSetCard key={pset.id} problemSet={pset} />
+            <ProblemSetCard
+              key={pset.num}
+              problemSet={pset}
+              onCreatePSetProgress={createPSetProgress}
+              psetCreateLoading={isLoading}
+              psetCreateError={isError}
+            />
           ))
         )}
       </div>

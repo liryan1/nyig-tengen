@@ -36,55 +36,79 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Spinner } from "../labels/Spinner";
 import { GoProblemSkeleton } from "../loading/GoProblemSkeleton";
+import { useRouter } from "next/navigation";
+import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
 
 const GoProblemEditor = dynamic(
   () => import("@/components/learn/go/GoProblemEditor"),
   { ssr: false, loading: () => <GoProblemSkeleton /> },
 );
 
-const formSchema = z.object({
-  rank: z.coerce.number().int().min(-30).max(8),
-  description: z.string().optional(),
-  visibility: z.nativeEnum(Visibility),
-});
+// Update schema with teamId and add a refinement for TEAM visibility
+const formSchema = z
+  .object({
+    rank: z.coerce.number().int().min(-30).max(8),
+    description: z.string().optional(),
+    visibility: z.nativeEnum(Visibility),
+    teamSlug: z.string().optional(),
+  })
+  .refine(
+    (data) => data.visibility !== Visibility.TEAM || Boolean(data.teamSlug),
+    {
+      message: "Team is required when visibility is TEAM",
+      path: ["teamSlug"],
+    },
+  );
 
 type FormValues = z.infer<typeof formSchema>;
+
+const iForm: FormValues = {
+  rank: -5,
+  description: "",
+  visibility: Visibility.PUBLIC,
+  teamSlug: "",
+};
 
 interface Props {
   problem?: GoProblemResponse;
 }
 
 export function ProblemForm({ problem }: Props) {
+  const router = useRouter();
   const [buttonDisabled, setButtonDisabled] = useState(false);
-  const actionWord = problem ? "Update" : "Create";
+  const { data: teams, isLoading: tLoading } = useGetMyTeamsQuery();
   const goGameRef = useRef<GoGame | null>(null);
   if (problem) {
     goGameRef.current = GoGame.fromSgf(problem.correct || problem.initial);
   }
+
   const [create, { isLoading: cLoading }] = useCreateProblemMutation();
   const [update, { isLoading: uLoading }] = useUpdateProblemMutation();
-  const isLoading = cLoading || uLoading;
+  const isLoading = cLoading || uLoading || tLoading;
+
+  const actionWord = problem ? "Update" : "Create";
+
+  let initialForm = iForm;
+  if (problem) {
+    initialForm = {
+      rank: problem.rank,
+      description: problem.description || "",
+      visibility: problem.visibility,
+      teamSlug: (problem as any).teamId || "",
+    };
+  }
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      rank: -5,
-      description: "",
-      visibility: Visibility.PUBLIC,
-    },
-    values: problem
-      ? {
-          rank: problem.rank,
-          description: problem.description || "",
-          visibility: problem.visibility,
-        }
-      : undefined,
+    values: initialForm,
   });
+
+  // Watch visibility value to conditionally render the team select
+  const selectedVisibility = form.watch("visibility");
 
   const onSubmit = async (values: FormValues) => {
     const goGame = goGameRef.current;
     if (!goGame) {
-      // nothing to submit
       return;
     }
     if (goGame.isEmpty()) {
@@ -104,28 +128,28 @@ export function ProblemForm({ problem }: Props) {
         correct: goGameToSgf(goGame),
       };
       if (problem) {
-        return update({ id: problem.id, ...body }).unwrap();
+        return update({ num: problem.num, ...body }).unwrap();
       } else {
         return create(body).unwrap();
       }
     };
 
     toast.promise(submit, {
-      duration: 5000,
-      error: (err) => `Failed to ${actionWord} problem: ${err?.message}`,
+      duration: 8_000,
+      error: (err) => `Failed to ${actionWord} problem: ${err?.data?.message}`,
       loading: `Attempting to ${actionWord} problem`,
       success: (res) => {
         setButtonDisabled(true);
         setTimeout(() => {
           setButtonDisabled(false);
-        }, 10000);
+        }, 8_000);
         return {
           message: `Successfully ${actionWord}d problem`,
           action: res
             ? {
                 label: "View",
                 onClick: () => {
-                  window.location.href = "/learn/problems/" + res.id;
+                  router.push("/learn/problems/" + res.num);
                 },
               }
             : undefined,
@@ -137,7 +161,20 @@ export function ProblemForm({ problem }: Props) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2">
+        <h1 className="text-2xl font-semibold">{actionWord} Problem</h1>
+        {form.formState.errors.root && (
+          <div className="flex items-center text-red-600 text-sm gap-1">
+            <CircleAlertIcon className="h-4 w-4" />
+            {form.formState.errors.root.message}
+          </div>
+        )}
+
+        <GoProblemEditor
+          goGameRef={goGameRef}
+          initialMode={problem ? "move" : "edit"}
+        />
+
+        <div className="flex flex-wrap gap-4">
           <FormField
             control={form.control}
             name="rank"
@@ -149,7 +186,7 @@ export function ProblemForm({ problem }: Props) {
                     value={field.value.toString()}
                     onValueChange={field.onChange}
                   >
-                    <SelectTrigger className="max-w-32">
+                    <SelectTrigger className="w-32">
                       <SelectValue placeholder="Select rank" />
                     </SelectTrigger>
                     <SelectContent>
@@ -173,12 +210,12 @@ export function ProblemForm({ problem }: Props) {
                 <FormLabel>Visibility</FormLabel>
                 <FormControl>
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="max-w-40">
+                    <SelectTrigger className="w-40">
                       <SelectValue placeholder="Select visibility" />
                     </SelectTrigger>
                     <SelectContent>
                       {Object.values(Visibility)
-                        .filter((v) => v !== Visibility.TEAM)
+                        .filter((v) => v !== Visibility.DELETED)
                         .map((o) => (
                           <SelectItem key={o} value={o}>
                             {o.toLowerCase()}
@@ -191,18 +228,33 @@ export function ProblemForm({ problem }: Props) {
               </FormItem>
             )}
           />
+          {selectedVisibility === Visibility.TEAM && (
+            <FormField
+              control={form.control}
+              name="teamSlug"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Select Team</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-60">
+                        <SelectValue placeholder="Select team" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teams?.map((team) => (
+                          <SelectItem key={team.slug} value={team.slug}>
+                            {team.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
         </div>
-
-        {form.formState.errors.root && (
-          <div className="flex items-center text-red-600 text-sm gap-1">
-            <CircleAlertIcon className="h-4 w-4" />
-            {form.formState.errors.root.message}
-          </div>
-        )}
-        <GoProblemEditor
-          goGameRef={goGameRef}
-          initialMode={problem ? "move" : "edit"}
-        />
 
         <FormField
           control={form.control}

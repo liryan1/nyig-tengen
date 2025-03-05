@@ -5,7 +5,7 @@ import { useGetProblemQuery } from "@/lib/rtk/slices/problems";
 import { useSession } from "next-auth/react";
 import { ProblemForm } from "../../forms/ProblemForm";
 
-export function GoProblemEditPage({ pId }: { pId: string }) {
+export function GoProblemEditPage({ num }: { num: string }) {
   const { data, status } = useSession();
   const userId = data?.user?.id;
   const {
@@ -13,9 +13,9 @@ export function GoProblemEditPage({ pId }: { pId: string }) {
     isLoading,
     isError,
   } = useGetProblemQuery(
-    { id: pId ?? "", isEdit: true },
+    { num: num ?? "", isEdit: true },
     {
-      skip: !pId || status !== "authenticated" || !userId,
+      skip: !num || status !== "authenticated" || !userId,
     },
   );
 

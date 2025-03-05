@@ -30,6 +30,7 @@ import { TeamPageSkeleton } from "../loading/TeamSkeleton";
 import { StatefulPagination } from "../nav/StatefulPagination";
 import { ScrollArea } from "../ui/scroll-area";
 import { PageError } from "../labels/Error";
+import { useCreatePSetProgressMutation } from "@/lib/rtk/slices/problemSets";
 
 const problemLimit = 20;
 const problemSetLimit = 4;
@@ -39,7 +40,15 @@ export const TeamPage = () => {
   const [problemSetPageIndex, setProblemSetPageIndex] = useState(1);
   const { slug } = useParams();
   const { data: session } = useSession();
-  const { data: team, isLoading } = useGetTeamQuery(slug as string);
+  const {
+    data: team,
+    isLoading: tLoading,
+    isError: tError,
+  } = useGetTeamQuery(slug as string);
+  const [createPSetProgress, { isLoading: cLoading, isError: cError }] =
+    useCreatePSetProgressMutation();
+  const isLoading = cLoading || tLoading;
+  const isError = cError || tError;
 
   if (isLoading) {
     return <TeamPageSkeleton />;
@@ -135,7 +144,9 @@ export const TeamPage = () => {
                       <TableCell>
                         <Badge
                           variant={
-                            member.role === "OWNER" ? "default" : "secondary"
+                            ["ADMIN", "OWNER"].includes(member.role)
+                              ? "default"
+                              : "secondary"
                           }
                         >
                           {member.role}
@@ -163,7 +174,7 @@ export const TeamPage = () => {
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pr-2">
                     {team.problems.map((problem) => (
                       <ProblemCard
-                        key={problem.id}
+                        key={problem.num}
                         goProblemResponse={problem}
                       />
                     ))}
@@ -194,7 +205,10 @@ export const TeamPage = () => {
                   <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 4xl:grid-cols-4 6xl:grid-cols-5 gap-4">
                     {team.problemSets.map((problemSet) => (
                       <ProblemSetCard
-                        key={problemSet.id}
+                        onCreatePSetProgress={createPSetProgress}
+                        psetCreateError={isError}
+                        psetCreateLoading={isLoading}
+                        key={problemSet.num}
                         problemSet={problemSet}
                       />
                     ))}
