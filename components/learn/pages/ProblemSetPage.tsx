@@ -13,7 +13,7 @@ import {
 import {
   selectPsetCompletion,
   setPsetCompletion,
-} from "@/lib/rtk/slices/psetCompletion";
+} from "@/lib/rtk/psetCompletion";
 import { debounce } from "@/lib/utils";
 import { SubmissionStatus } from "@prisma/client";
 import { TrophyIcon } from "lucide-react";
@@ -140,7 +140,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
   };
 
   return (
-    <Card className="container mx-auto shadow-sm rounded-lg my-6">
+    <Card className="container mx-auto max-w-7xl shadow-sm rounded-lg my-6">
       <CardHeader className="p-2 sm:p-4 border-b">
         {showConfetti && (
           <div className="z-50">

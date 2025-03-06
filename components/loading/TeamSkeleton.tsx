@@ -1,7 +1,7 @@
 import { Skeleton } from "../ui/skeleton";
 
 export const TeamPageSkeleton = () => (
-  <div className="container mx-auto py-6 space-y-8">
+  <div className="container mx-auto max-w-7xl py-6 space-y-8">
     <div>
       <Skeleton className="h-8 w-[200px]" />
       <Skeleton className="h-4 w-[300px] mt-2" />

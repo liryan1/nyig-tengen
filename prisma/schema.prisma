@@ -301,11 +301,11 @@ model ProblemEndorsement {
 // -------------------- Team models --------------------
 model Team {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  slug        String   @unique
+  slug        String
   name        String
+  description String?
   ownerId     String   @db.ObjectId
   owner       User     @relation(fields: [ownerId], references: [id])
-  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -313,6 +313,8 @@ model Team {
   invites         TeamInvite[]
   teamProblems    TeamProblem[]
   teamProblemSets TeamProblemSet[]
+
+  @@unique([slug])
 }
 
 model TeamProblem {

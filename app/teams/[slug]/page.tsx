@@ -1,7 +1,7 @@
 import { TeamPage } from "@/components/teams/TeamPage";
 
-function TeamIdPage() {
+function TeamSlugPage() {
   return <TeamPage />;
 }
 
-export default TeamIdPage;
+export default TeamSlugPage;

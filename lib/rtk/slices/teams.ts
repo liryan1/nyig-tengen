@@ -59,7 +59,7 @@ export interface TeamCreateRequest {
 }
 
 export interface TeamCreateResponse {
-  id: string;
+  slug: string;
 }
 
 const teamsApiSlice = apiSlice.injectEndpoints({

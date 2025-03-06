@@ -28,6 +28,7 @@ export interface GoProblemMeta {
   userSolved?: boolean;
   endorser?: { id: string; name: string; rank?: string };
   visibility: Visibility;
+  teams?: { team: string; slug: string }[];
 }
 
 export interface GoProblem {

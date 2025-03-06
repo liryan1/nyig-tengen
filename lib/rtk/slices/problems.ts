@@ -27,7 +27,7 @@ export interface ProblemCreateRequest {
   initial: string;
   correct: string;
   visibility?: Visibility;
-  teamSlug?: string;
+  teamSlugs?: string[];
 }
 
 export interface ProblemCreateResponse {

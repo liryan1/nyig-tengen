@@ -31,7 +31,16 @@ export async function GET(req: Request, { params }: Params) {
         num,
         OR: getProblemSelectOR(userId),
       },
-      select: { ...getProblemSelect(userId), correct: true },
+      select: {
+        ...getProblemSelect(userId),
+        correct: true,
+        teamProblems: {
+          select: {
+            teamSlug: true,
+            team: { select: { name: true } },
+          },
+        },
+      },
     });
 
     if (!problem) {
@@ -47,6 +56,12 @@ export async function GET(req: Request, { params }: Params) {
         ...mapProblemResponse(problem, userId),
         correct: includeCorrect ? problem.correct : undefined,
         visibility: includeCorrect ? problem.visibility : undefined,
+        teams: includeCorrect
+          ? problem.teamProblems.map((tp) => ({
+              team: tp.team.name,
+              slug: tp.teamSlug,
+            }))
+          : undefined,
       },
       { status: 200 },
     );
@@ -61,11 +76,20 @@ export async function GET(req: Request, { params }: Params) {
 
 export async function PATCH(req: Request, { params }: Params) {
   try {
-    const [
-      { num },
-      session,
-      { description, rank, initial, correct, visibility, teamSlug },
-    ] = await Promise.all([params, getServerSession(authOptions), req.json()]);
+    const [paramsData, session, body] = await Promise.all([
+      params,
+      getServerSession(authOptions),
+      req.json(),
+    ]);
+    const { num } = paramsData;
+    const {
+      description,
+      rank,
+      initial,
+      correct,
+      visibility,
+      teamSlugs, // expecting an array of strings if visibility is TEAM
+    } = body;
     const userId = session?.user?.id;
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -88,19 +112,39 @@ export async function PATCH(req: Request, { params }: Params) {
           { status: 400 },
         );
       }
-
-      if (visibility === Visibility.TEAM && !teamSlug) {
-        return NextResponse.json(
-          { message: "Team is required to create a team visibility problem" },
-          { status: 400 },
+      // For TEAM visibility, we now require an array of team slugs
+      if (visibility === Visibility.TEAM) {
+        if (!Array.isArray(teamSlugs) || teamSlugs.length === 0) {
+          return NextResponse.json(
+            {
+              message:
+                "At least one team slug is required to create a team visibility problem",
+            },
+            { status: 400 },
+          );
+        }
+        // Validate that all provided team slugs exist
+        const teams = await db.team.findMany({
+          where: { slug: { in: teamSlugs } },
+          select: { slug: true },
+        });
+        const foundSlugs = teams.map((team) => team.slug);
+        const missingSlugs = teamSlugs.filter(
+          (slug: string) => !foundSlugs.includes(slug),
         );
+        if (missingSlugs.length > 0) {
+          return NextResponse.json(
+            { message: `Team(s) not found: ${missingSlugs.join(", ")}` },
+            { status: 404 },
+          );
+        }
       }
     }
 
-    // Fetch the problem to verify ownership
+    // Fetch the problem to verify ownership and its current visibility
     const existingProblem = await db.problem.findUnique({
       where: { num },
-      select: { authorId: true },
+      select: { authorId: true, visibility: true },
     });
 
     if (!existingProblem) {
@@ -114,35 +158,60 @@ export async function PATCH(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
     }
 
-    await db.problem.update({
-      where: { num },
-      data: {
-        description,
-        visibility,
-        rank,
-        initial,
-        correct,
-      },
-    });
+    await db.$transaction(async (tx) => {
+      // Handle TeamProblem records based on visibility change
+      if (
+        existingProblem.visibility === Visibility.TEAM &&
+        visibility !== Visibility.TEAM
+      ) {
+        // Problem is switching away from TEAM: delete all team associations
+        await tx.teamProblem.deleteMany({ where: { problemNum: num } });
+      } else if (visibility === Visibility.TEAM) {
+        // Problem remains TEAM: reconcile the team associations.
+        const existingTeamProblems = await tx.teamProblem.findMany({
+          where: { problemNum: num },
+          select: { teamSlug: true },
+        });
+        const existingTeamSlugs = existingTeamProblems.map((tp) => tp.teamSlug);
 
-    // If the problem is team-based and a teamId is provided, create a join record
-    if (visibility === Visibility.TEAM && teamSlug) {
-      const team = await db.team.findUnique({
-        where: { slug: teamSlug },
-      });
-      if (!team) {
-        return NextResponse.json(
-          { message: "Team not found" },
-          { status: 404 },
+        // Determine which team associations to create and which to delete
+        const slugsToCreate = teamSlugs.filter(
+          (slug: string) => !existingTeamSlugs.includes(slug),
         );
+        const slugsToDelete = existingTeamSlugs.filter(
+          (slug) => !teamSlugs.includes(slug),
+        );
+
+        if (slugsToDelete.length) {
+          await tx.teamProblem.deleteMany({
+            where: {
+              problemNum: num,
+              teamSlug: { in: slugsToDelete },
+            },
+          });
+        }
+        for (const slug of slugsToCreate) {
+          await tx.teamProblem.create({
+            data: {
+              teamSlug: slug,
+              problemNum: num,
+            },
+          });
+        }
       }
-      await db.teamProblem.create({
+
+      // Update the problem record
+      await tx.problem.update({
+        where: { num },
         data: {
-          teamSlug,
-          problemNum: num,
+          description,
+          visibility,
+          rank,
+          initial,
+          correct,
         },
       });
-    }
+    });
 
     return NextResponse.json({ num }, { status: 200 });
   } catch (error) {

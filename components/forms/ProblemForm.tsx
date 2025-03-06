@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -26,18 +25,20 @@ import {
   useCreateProblemMutation,
   useUpdateProblemMutation,
 } from "@/lib/rtk/slices/problems";
+import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Visibility } from "@prisma/client";
 import { CircleAlertIcon, SendHorizonalIcon } from "lucide-react";
 import dynamic from "next/dynamic";
-import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { CooldownButton } from "../CooldownButton";
 import { Spinner } from "../labels/Spinner";
 import { GoProblemSkeleton } from "../loading/GoProblemSkeleton";
-import { useRouter } from "next/navigation";
-import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
+import { MultiSelect } from "../ui/multiselect";
 
 const GoProblemEditor = dynamic(
   () => import("@/components/learn/go/GoProblemEditor"),
@@ -50,13 +51,20 @@ const formSchema = z
     rank: z.coerce.number().int().min(-30).max(8),
     description: z.string().optional(),
     visibility: z.nativeEnum(Visibility),
-    teamSlug: z.string().optional(),
+    teamSlugs: z
+      .array(
+        z.object({
+          value: z.string(),
+          label: z.string(),
+        }),
+      )
+      .optional(),
   })
   .refine(
-    (data) => data.visibility !== Visibility.TEAM || Boolean(data.teamSlug),
+    (data) => data.visibility !== Visibility.TEAM || !!data.teamSlugs?.length,
     {
       message: "Team is required when visibility is TEAM",
-      path: ["teamSlug"],
+      path: ["teamSlugs"],
     },
   );
 
@@ -66,7 +74,6 @@ const iForm: FormValues = {
   rank: -5,
   description: "",
   visibility: Visibility.PUBLIC,
-  teamSlug: "",
 };
 
 interface Props {
@@ -75,13 +82,13 @@ interface Props {
 
 export function ProblemForm({ problem }: Props) {
   const router = useRouter();
-  const [buttonDisabled, setButtonDisabled] = useState(false);
   const { data: teams, isLoading: tLoading } = useGetMyTeamsQuery();
+  const teamOptions =
+    teams?.map((team) => ({ value: team.slug, label: team.name })) || [];
   const goGameRef = useRef<GoGame | null>(null);
   if (problem) {
     goGameRef.current = GoGame.fromSgf(problem.correct || problem.initial);
   }
-
   const [create, { isLoading: cLoading }] = useCreateProblemMutation();
   const [update, { isLoading: uLoading }] = useUpdateProblemMutation();
   const isLoading = cLoading || uLoading || tLoading;
@@ -94,7 +101,7 @@ export function ProblemForm({ problem }: Props) {
       rank: problem.rank,
       description: problem.description || "",
       visibility: problem.visibility,
-      teamSlug: (problem as any).teamId || "",
+      teamSlugs: problem.teams?.map((t) => ({ label: t.team, value: t.slug })),
     };
   }
 
@@ -124,6 +131,8 @@ export function ProblemForm({ problem }: Props) {
     const submit = async () => {
       const body: ProblemCreateRequest = {
         ...values,
+        teamSlugs: values.teamSlugs?.map((t) => t.value) || undefined,
+        description: values.description?.trim() || undefined,
         initial: rootNodeToSgf(goGame),
         correct: goGameToSgf(goGame),
       };
@@ -138,29 +147,25 @@ export function ProblemForm({ problem }: Props) {
       duration: 8_000,
       error: (err) => `Failed to ${actionWord} problem: ${err?.data?.message}`,
       loading: `Attempting to ${actionWord} problem`,
-      success: (res) => {
-        setButtonDisabled(true);
-        setTimeout(() => {
-          setButtonDisabled(false);
-        }, 8_000);
-        return {
-          message: `Successfully ${actionWord}d problem`,
-          action: res?.num
-            ? {
-                label: "View",
-                onClick: () => {
-                  router.push("/learn/problems/" + res.num);
-                },
-              }
-            : undefined,
-        };
-      },
+      success: (res) => ({
+        message: `Successfully ${actionWord}d problem`,
+        action: res?.num
+          ? {
+              label: "View",
+              onClick: () => {
+                router.push("/learn/problems/" + res.num);
+              },
+            }
+          : undefined,
+      }),
     });
   };
 
+  console.log("form:", form.getValues());
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form className="space-y-4">
         <h1 className="text-2xl font-semibold">{actionWord} Problem</h1>
         {form.formState.errors.root && (
           <div className="flex items-center text-red-600 text-sm gap-1">
@@ -174,34 +179,35 @@ export function ProblemForm({ problem }: Props) {
           initialMode={problem ? "move" : "edit"}
         />
 
+        <FormField
+          control={form.control}
+          name="rank"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Difficulty</FormLabel>
+              <FormControl>
+                <Select
+                  value={field.value.toString()}
+                  onValueChange={field.onChange}
+                >
+                  <SelectTrigger className="w-32">
+                    <SelectValue placeholder="Select rank" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RANK_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <div className="flex flex-wrap gap-4">
-          <FormField
-            control={form.control}
-            name="rank"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Difficulty</FormLabel>
-                <FormControl>
-                  <Select
-                    value={field.value.toString()}
-                    onValueChange={field.onChange}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Select rank" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {RANK_OPTIONS.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>
-                          {o.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <FormField
             control={form.control}
             name="visibility"
@@ -231,23 +237,17 @@ export function ProblemForm({ problem }: Props) {
           {selectedVisibility === Visibility.TEAM && (
             <FormField
               control={form.control}
-              name="teamSlug"
+              name="teamSlugs"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Select Team</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-60">
-                        <SelectValue placeholder="Select team" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {teams?.map((team) => (
-                          <SelectItem key={team.slug} value={team.slug}>
-                            {team.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <FormLabel>Select Teams</FormLabel>
+                  <FormControl className="flex-1">
+                    <MultiSelect
+                      placeholder="Select teams"
+                      options={teamOptions}
+                      selected={field.value}
+                      onChange={field.onChange}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -274,14 +274,17 @@ export function ProblemForm({ problem }: Props) {
           )}
         />
 
-        <Button
+        <CooldownButton
           className="gap-1"
           type="submit"
-          disabled={isLoading || buttonDisabled}
-        >
-          {actionWord}
-          {isLoading ? <Spinner className="h-4 w-4" /> : <SendHorizonalIcon />}
-        </Button>
+          disabled={isLoading}
+          onClick={form.handleSubmit(onSubmit)}
+          throttleMs={5_000}
+          text={actionWord}
+          icon={
+            isLoading ? <Spinner className="h-4 w-4" /> : <SendHorizonalIcon />
+          }
+        />
       </form>
     </Form>
   );

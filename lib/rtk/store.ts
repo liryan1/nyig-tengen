@@ -1,7 +1,7 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { apiSlice } from "./api";
 import { rtkQueryErrorLogger } from "./errorHandler";
-import { completionSlice } from "./slices/psetCompletion";
+import { completionSlice } from "./psetCompletion";
 
 export const makeStore = () => {
   return configureStore({

@@ -5,6 +5,7 @@ import {
   Forward,
   LogOutIcon,
   MoreHorizontal,
+  PlusCircleIcon,
   UsersRoundIcon,
 } from "lucide-react";
 
@@ -29,6 +30,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
 import { Skeleton } from "@/components/ui/skeleton";
+import { isUserAdmin } from "@/lib/utils";
 
 export function NavTeams() {
   const { data: session } = useSession();
@@ -55,7 +57,7 @@ export function NavTeams() {
           <Skeleton className="w-full h-10" />
         ) : (
           teams.map((item) => (
-            <SidebarMenuItem key={item.name}>
+            <SidebarMenuItem key={item.slug}>
               <SidebarMenuButton asChild tooltip={item.name}>
                 <Link href={`/teams/${item.slug}`}>
                   {item.slug === "me" ? (
@@ -97,11 +99,21 @@ export function NavTeams() {
             </SidebarMenuItem>
           ))
         )}
+        {isUserAdmin(session) && (
+          <SidebarMenuItem className="group-data-[collapsible=icon]:hidden">
+            <Link href="/teams/new">
+              <SidebarMenuButton>
+                <PlusCircleIcon />
+                <span>Create Team</span>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+        )}
         <SidebarMenuItem className="group-data-[collapsible=icon]:hidden">
-          <Link href="/teams">
+          <Link href="#">
             <SidebarMenuButton className="text-sidebar-foreground/70">
               <MoreHorizontal className="text-sidebar-foreground/70" />
-              <span>Join a team</span>
+              <span>Other Teams</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>

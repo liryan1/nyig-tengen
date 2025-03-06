@@ -77,7 +77,7 @@ export async function POST(req: Request) {
     let uniqueSlug = baseSlug;
     let counter = 1;
     while (true) {
-      const existing = await db.post.findUnique({
+      const existing = await db.team.findUnique({
         where: { slug: uniqueSlug },
       });
       if (!existing) break;
@@ -98,9 +98,10 @@ export async function POST(req: Request) {
           },
         },
       },
+      select: { slug: true },
     });
 
-    return NextResponse.json({ id: team.id }, { status: 201 });
+    return NextResponse.json({ slug: team.slug }, { status: 201 });
   } catch (error) {
     logStack(error);
     return NextResponse.json(

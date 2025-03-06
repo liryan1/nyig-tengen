@@ -10,7 +10,7 @@ import { GoProblemResponse } from "@/lib/go/interface";
 import { getBoardSize, toSgf } from "@/lib/go/parser";
 import { useAppDispatch } from "@/lib/rtk/slices/hooks";
 import { useSubmitMutation } from "@/lib/rtk/slices/problems";
-import { setPsetCompletion } from "@/lib/rtk/slices/psetCompletion";
+import { setPsetCompletion } from "@/lib/rtk/psetCompletion";
 import { MoveRightIcon, SendHorizonalIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useRef, useState } from "react";
@@ -176,7 +176,7 @@ export function GoProblem({
   };
 
   return (
-    <div className="container mx-auto border rounded-md shadow-sm">
+    <div className="container mx-auto max-w-7xl border rounded-md shadow-sm">
       {!problemSetProgressId && (userOwnsProblem || isUserSuperAdmin) && (
         <>
           <GoProblemAdminToolbar

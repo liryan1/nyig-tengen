@@ -63,7 +63,7 @@ export const TeamPage = () => {
     team.members?.some((member) => member.id === session?.user?.id);
 
   return (
-    <div className="container mx-auto space-y-6">
+    <div className="container mx-auto max-w-7xl space-y-6">
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
