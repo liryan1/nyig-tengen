@@ -9,11 +9,14 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
-import { ProblemCardSucessRate } from "./problem/ProblemCardSucessRate";
+import { SucessRate } from "./problem/SucessRate";
+import { LIKED_COLOR } from "@/lib/color";
+import { UserRole } from "@prisma/client";
+import { PiCrownSimple } from "react-icons/pi";
 
 interface InfoBarProps {
   info: {
-    author?: { name: string; id: string };
+    author?: { name: string; id: string; role: string };
     rank?: string;
     likes?: number;
     userLiked?: boolean;
@@ -21,6 +24,7 @@ interface InfoBarProps {
     count?: number;
     rate?: number;
     userSolved?: boolean;
+    convertRateToPercent?: boolean;
   };
   size?: "sm";
   moreStuff?: React.ReactNode[];
@@ -35,11 +39,22 @@ export function InfoBar({
   toggleLike,
   likeDisabled,
 }: InfoBarProps) {
-  const { rank, likes, views, author, count, rate, userSolved } = info;
+  const {
+    rank,
+    likes,
+    views,
+    author,
+    count,
+    rate,
+    userSolved,
+    convertRateToPercent,
+  } = info;
 
   const iconCN = "flex items-center gap-1";
   const iconSize = size ? 16 : 18;
   const textSize = size ? "text-xs sm:text-sm" : "text-xs sm:text-base";
+  const isAuthorAdmin =
+    author && (author.role === UserRole.ADMIN || UserRole.SUPERADMIN);
 
   return (
     <div
@@ -48,8 +63,11 @@ export function InfoBar({
       {author && (
         <div className={iconCN}>
           <SignatureIcon size={iconSize} />
-          <Link className="hover:underline" href="#">
+          <Link className="flex items-center gap-0.5" href="#">
             {author.name}
+            {isAuthorAdmin && (
+              <PiCrownSimple className="h-4 w-4 sm:h-5 sm:w-5" />
+            )}
           </Link>
         </div>
       )}
@@ -82,14 +100,18 @@ export function InfoBar({
         >
           <HeartIcon
             size={iconSize}
-            fill={info.userLiked ? "#ff0000" : "none"}
+            fill={info.userLiked ? LIKED_COLOR : "none"}
           />
           <span>{formatLargeNumber(likes)}</span>
         </div>
       )}
 
       {rate !== undefined && (
-        <ProblemCardSucessRate successRate={rate} userSolved={userSolved} />
+        <SucessRate
+          successRate={rate}
+          userSolved={userSolved}
+          convertToPercent={convertRateToPercent}
+        />
       )}
 
       {moreStuff?.map((c, i) => (

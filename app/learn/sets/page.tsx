@@ -18,13 +18,10 @@ export default async function ProblemSetsPage() {
   return (
     <div className="container space-y-6 mx-auto">
       <div className="flex items-center justify-between">
-        <span className="text-2xl font-medium">Problems</span>
+        <span className="text-2xl font-medium">Problem Sets</span>
         {isUserAdmin(session) && (
           <Button size="sm">
-            <Link
-              href="/learn/problems/new"
-              className="flex items-center gap-2"
-            >
+            <Link href="/learn/sets/new" className="flex items-center gap-2">
               <CirclePlusIcon />
               Create
             </Link>

@@ -145,7 +145,7 @@ export function ProblemForm({ problem }: Props) {
         }, 8_000);
         return {
           message: `Successfully ${actionWord}d problem`,
-          action: res
+          action: res?.num
             ? {
                 label: "View",
                 onClick: () => {

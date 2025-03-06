@@ -2,7 +2,7 @@ import { ProblemList } from "@/components/learn/problem/ProblemList";
 import { ProblemSetList } from "@/components/learn/sets/ProblemSetList";
 import { Button } from "@/components/ui/button";
 import { isUserAdmin } from "@/lib/utils";
-import { CirclePlusIcon } from "lucide-react";
+import { CirclePlusIcon, MoveRight } from "lucide-react";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { authOptions } from "../api/auth/authOptions";
@@ -41,6 +41,7 @@ async function LearnPage() {
               className="flex items-center gap-2"
             >
               All problem sets
+              <MoveRight />
             </Link>
           </Button>
         </div>
@@ -65,6 +66,7 @@ async function LearnPage() {
           <Button size="sm" variant="outline">
             <Link href="/learn/problems" className="flex items-center gap-2">
               All problems
+              <MoveRight />
             </Link>
           </Button>
         </div>

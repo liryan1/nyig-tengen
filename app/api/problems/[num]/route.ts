@@ -4,7 +4,11 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../auth/authOptions";
 import { Visibility } from "@prisma/client";
-import { getProblemSelect, mapProblemResponse } from "../problemQuery";
+import {
+  getProblemSelect,
+  getProblemSelectOR,
+  mapProblemResponse,
+} from "../problemQuery";
 
 type Params = { params: Promise<{ num: string }> };
 type QueryParams = {
@@ -23,9 +27,13 @@ export async function GET(req: Request, { params }: Params) {
     const qParams: QueryParams = Object.fromEntries(searchParams.entries());
 
     const problem = await db.problem.findUnique({
-      where: { num },
+      where: {
+        num,
+        OR: getProblemSelectOR(userId),
+      },
       select: { ...getProblemSelect(userId), correct: true },
     });
+
     if (!problem) {
       return NextResponse.json(
         { message: "Problem not found" },

@@ -23,6 +23,8 @@ import { GoProblemBoard } from "./GoProblemBoard";
 import { GoProblemHeader } from "./GoProblemHeader";
 import { GoProblemToolbar } from "./GoProblemToolbar";
 import { PassButton } from "./tools/PassButton";
+import { GoProblemAdminToolbar } from "./GoProblemAdminToolbar";
+import { UserRole } from "@prisma/client";
 
 const successTimeout = 3_000; // ms
 
@@ -61,7 +63,11 @@ export function GoProblem({
     boardSize,
     boardContainerRef,
   });
-  const { status: authStatus } = useSession();
+  const { data: session, status: authStatus } = useSession();
+  const userOwnsProblem = session?.user?.id === problem.author.id;
+  const isUserSuperAdmin = session?.user?.role === UserRole.SUPERADMIN;
+  const endorsedNotByUser =
+    problem.endorser && problem.endorser.id !== session?.user?.id;
 
   const [submit, { isLoading: sLoading, isError: sError }] =
     useSubmitMutation();
@@ -170,12 +176,20 @@ export function GoProblem({
   };
 
   return (
-    <div className="sm:max-w-6xl mx-auto border rounded-md shadow-sm">
-      <GoProblemHeader
-        num={problem.num}
-        meta={problem}
-        hasProblemSetProgressId={!!problemSetProgressId}
-      />
+    <div className="container mx-auto border rounded-md shadow-sm">
+      {!problemSetProgressId && (userOwnsProblem || isUserSuperAdmin) && (
+        <>
+          <GoProblemAdminToolbar
+            isSuperAdmin={isUserSuperAdmin}
+            userOwnsProblem={userOwnsProblem}
+            problemNum={problem.num}
+            isEndorsed={!!problem.endorser}
+            endorsedNotByUser={endorsedNotByUser}
+          />
+          <hr />
+        </>
+      )}
+      <GoProblemHeader num={problem.num} meta={problem} />
       <hr />
       <div className="grid md:grid-cols-2">
         <div

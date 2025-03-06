@@ -1,6 +1,7 @@
 import { authOptions } from "@/app/api/auth/authOptions";
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
+import { ProblemOrderItem } from "@/lib/rtk/slices/problemSets";
 import { ProgressStatus } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
@@ -22,11 +23,11 @@ export async function GET(req: Request, { params }: Params) {
         problemCount: true,
         averageRank: true,
         createdAt: true,
-        author: { select: { id: true, name: true } },
+        author: { select: { id: true, name: true, role: true } },
         problemSetProblems: {
           select: { problem: true, position: true },
         },
-        problemSetStats: true,
+        problemSetStats: { select: { views: true, completed: true } },
         problemSetLikes: {
           select: {
             userId: true,
@@ -62,7 +63,6 @@ export async function GET(req: Request, { params }: Params) {
       position: psp.position,
     }));
 
-    problems.sort((a, b) => a.position - b.position);
     const userLiked = problemSet.problemSetLikes.some(
       (like) => like.userId === userId,
     );
@@ -74,6 +74,19 @@ export async function GET(req: Request, { params }: Params) {
       (psp) => psp.status === "completed",
     )?.length;
 
+    const order = userProgress?.problemOrder as ProblemOrderItem[] | undefined;
+    if (order) {
+      // If order exists, then sort the problems array based on order.num
+      problems.sort((a, b) => {
+        const aIndex = order.findIndex((item) => item.problemNum === a.num);
+        const bIndex = order.findIndex((item) => item.problemNum === b.num);
+        return aIndex - bIndex;
+      });
+    } else {
+      // If order does not exist, then sort the problems array based on default position
+      problems.sort((a, b) => a.position - b.position);
+    }
+
     return NextResponse.json(
       {
         num,
@@ -82,7 +95,6 @@ export async function GET(req: Request, { params }: Params) {
         problemCount: problemSet.problemCount,
         averageRank: problemSet.averageRank,
         completedCount: problemSet.problemSetStats?.completed,
-        attemptedCount: problemSet.problemSetStats?.attempted,
         views: problemSet.problemSetStats?.views,
         likes: problemSet.problemSetLikes.length,
         userLiked,

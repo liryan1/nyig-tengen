@@ -76,6 +76,14 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       ],
     }),
 
+    endorse: builder.mutation<{ endorsed: boolean }, string>({
+      query: (num) => ({
+        url: `problems/${num}/endorse`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, arg) => [{ type: PROBLEM_TAG, id: arg }],
+    }),
+
     createProblem: builder.mutation<
       ProblemCreateResponse,
       ProblemCreateRequest
@@ -119,6 +127,7 @@ const problemsApiSlice = apiSlice.injectEndpoints({
 export const {
   useGetProblemQuery,
   useSubmitMutation,
+  useEndorseMutation,
   useGetProblemsQuery,
   useCreateProblemMutation,
   useUpdateProblemMutation,

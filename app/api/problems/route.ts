@@ -8,7 +8,11 @@ import {
   validateProblemSolutions,
 } from "@/lib/go/validator";
 import { Prisma, Visibility } from "@prisma/client";
-import { getProblemSelect, mapProblemResponse } from "./problemQuery";
+import {
+  getProblemSelect,
+  getProblemSelectOR,
+  mapProblemResponse,
+} from "./problemQuery";
 import { isUserAdmin } from "@/lib/utils";
 
 const DEFAULT_PAGE = "1";
@@ -63,25 +67,7 @@ export async function GET(req: Request) {
 
     const where: Prisma.ProblemWhereInput = {
       rank: { gte, lte },
-      OR: [
-        { visibility: Visibility.PUBLIC },
-        {
-          authorId: userId,
-        },
-        {
-          teamProblems: {
-            some: {
-              team: {
-                memberships: {
-                  some: {
-                    userId: userId,
-                  },
-                },
-              },
-            },
-          },
-        },
-      ],
+      OR: getProblemSelectOR(userId),
     };
 
     if (params.creator) {

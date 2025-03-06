@@ -41,6 +41,7 @@ export function ProblemSetCard({
     likes,
     userLiked,
     createdAt,
+    completedCount,
   } = problemSet;
 
   return (
@@ -79,6 +80,7 @@ export function ProblemSetCard({
             userLiked,
             views,
             likes,
+            rate: completedCount,
           }}
         />
       </div>

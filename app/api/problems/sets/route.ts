@@ -64,7 +64,7 @@ export async function GET(req: Request) {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: "desc" }, // Most recent first
+        orderBy: { createdAt: "desc" },
         select: getProblemSetSelect(userId),
       }),
     ]);

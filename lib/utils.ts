@@ -18,6 +18,13 @@ export function formatLargeNumber(num: number): string {
   return (num / 1000).toFixed(0) + "k";
 }
 
+export const truncateString = (str: string, maxLength: number = 15) => {
+  if (str.length <= maxLength) {
+    return str;
+  }
+  return str.slice(0, maxLength) + "...";
+};
+
 // Generic debounce method
 // https://www.joshwcomeau.com/snippets/javascript/debounce/
 export const debounce = (fn: Function, ms: number) => {

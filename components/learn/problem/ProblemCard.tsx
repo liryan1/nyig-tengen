@@ -1,23 +1,28 @@
 "use client";
 
 import { useCellSize } from "@/hooks/useCellSize";
+import { LIKED_COLOR } from "@/lib/color";
 import { getRank } from "@/lib/go/display";
 import { GoProblemResponse } from "@/lib/go/interface";
 import { getBoardSize, getRootBoardState } from "@/lib/go/parser";
-import { formatLargeNumber } from "@/lib/utils";
+import { formatLargeNumber, truncateString } from "@/lib/utils";
+import { UserRole } from "@prisma/client";
 import { EyeIcon, HeartIcon, SwordsIcon } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
+import { PiCrownSimple } from "react-icons/pi";
 import { Card, CardContent, CardFooter, CardTitle } from "../../ui/card";
 import { ReadonlyGoBoard } from "../go/board/ReadonlyGoBoard";
-import { ProblemCardSucessRate } from "./ProblemCardSucessRate";
+import { EndorsedTooltip } from "./EndorsedTooltip";
+import { SucessRate } from "./SucessRate";
 
 type Props = {
   goProblemResponse: GoProblemResponse;
 };
 
 export function ProblemCard({ goProblemResponse }: Props) {
-  const { num, initial, author, stats, rank, userSolved } = goProblemResponse;
+  const { num, initial, author, stats, rank, userSolved, endorser } =
+    goProblemResponse;
   const boardSize = getBoardSize(initial);
   const boardContainerRef = useRef<HTMLDivElement>(null);
   const { cellSize, boardPixelSize } = useCellSize({
@@ -28,19 +33,27 @@ export function ProblemCard({ goProblemResponse }: Props) {
   const successRate =
     (stats?.correctCount ?? 0) / (stats?.submissionCount ?? 1);
 
+  const isAuthorAdmin = author.role === UserRole.ADMIN || UserRole.SUPERADMIN;
+
   return (
     <Card className="hover:shadow-sm max-w-sm rounded-sm">
       <CardTitle className="font-medium text-sm text-muted-foreground p-1">
         <div className="flex justify-between">
-          <span>
-            <Link className="underline" href="#">
-              {author.name}
-            </Link>
-          </span>
-          <span className="flex items-center gap-0.5 select-none">
-            <SwordsIcon size={16} />
-            <span>{getRank(rank)}</span>
-          </span>
+          <Link href="#" className="flex items-center gap-0.5">
+            {truncateString(author.name, 15)}
+            {isAuthorAdmin && <PiCrownSimple size={16} />}
+          </Link>
+          <div className="flex items-center gap-0.5">
+            {endorser && (
+              <EndorsedTooltip
+                endorserName={`${endorser.name}${endorser.rank ? " " + endorser.rank : ""}`}
+              />
+            )}
+            <span className="flex items-center gap-0.5 select-none">
+              <SwordsIcon size={16} />
+              {getRank(rank)}
+            </span>
+          </div>
         </div>
       </CardTitle>
       <CardContent
@@ -65,13 +78,17 @@ export function ProblemCard({ goProblemResponse }: Props) {
             <span>{stats?.views ? formatLargeNumber(stats.views) : "0"}</span>
           </span>
           <span className="flex items-center gap-0.5">
-            <HeartIcon size={16} fill={stats?.userLiked ? "#ff0000" : "none"} />
+            <HeartIcon
+              size={16}
+              fill={stats?.userLiked ? LIKED_COLOR : "none"}
+            />
             <span>{stats?.likes ? formatLargeNumber(stats.likes) : "0"}</span>
           </span>
         </div>
-        <ProblemCardSucessRate
+        <SucessRate
           successRate={successRate}
           userSolved={userSolved}
+          convertToPercent
         />
       </CardFooter>
     </Card>

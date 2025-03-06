@@ -14,19 +14,18 @@ enum UserRole {
 }
 
 model User {
-  id            String    @id @default(auto()) @map("_id") @db.ObjectId
-  name          String
-  role          UserRole  @default(USER)
-  email         String    @unique
-  password      String?
-  emailVerified DateTime?
-  image         String?
-  accounts      Account[]
-  sessions      Session[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  id                   String               @id @default(auto()) @map("_id") @db.ObjectId
+  name                 String
+  role                 UserRole             @default(USER)
+  email                String               @unique
+  password             String?
+  emailVerified        DateTime?
+  image                String?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  info                 UserInfo?
+  accounts             Account[]
+  sessions             Session[]
   posts                Post[]
   comments             PostComment[]
   postLikes            PostLike[]
@@ -35,11 +34,18 @@ model User {
   problemSetProgresses ProblemSetProgress[]
   problemLikes         ProblemLike[]
   problemSetLikes      ProblemSetLike[]
+  endorsements         ProblemEndorsement[]
+  teamMemberships      TeamMembership[]
+  teamInvites          TeamInvite[]
+  teams                Team[]
+}
 
-  endorsements    Endorsement[]
-  teamMemberships TeamMembership[]
-  teamInvites     TeamInvite[]
-  teams           Team[]
+model UserInfo {
+  id     String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId String  @db.ObjectId @unique
+  user   User    @relation(fields: [userId], references: [id])
+  // Required for SUPERADMIN users when they endorse a problem
+  rank   String?
 }
 
 // ----------- Begin authentication models -----------
@@ -152,7 +158,7 @@ model Problem {
   problemSetProblems ProblemSetProblem[]
   submissions        Submission[]
   author             User                @relation(fields: [authorId], references: [id])
-  endorsement        Endorsement?
+  endorsement        ProblemEndorsement?
   problemLikes       ProblemLike[]
   teamProblems       TeamProblem[]
 
@@ -277,17 +283,17 @@ enum Visibility {
   DELETED
 }
 
-model Endorsement {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  problemId String   @db.ObjectId
-  userId    String   @db.ObjectId
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model ProblemEndorsement {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  problemNum String
+  userId     String   @db.ObjectId
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  problem Problem @relation(fields: [problemId], references: [id])
+  problem Problem @relation(fields: [problemNum], references: [num])
   user    User    @relation(fields: [userId], references: [id])
 
-  @@unique([problemId]) // Only one endorsement per problem
+  @@unique([problemNum]) // Only one endorsement per problem
 }
 
 // -------------------- End Go Problem Models --------------------
@@ -312,32 +318,30 @@ model Team {
 model TeamProblem {
   id         String   @id @default(auto()) @map("_id") @db.ObjectId
   teamSlug   String
+  team       Team     @relation(fields: [teamSlug], references: [slug])
   problemNum String
+  problem    Problem  @relation(fields: [problemNum], references: [num])
   createdAt  DateTime @default(now())
-
-  team    Team    @relation(fields: [teamSlug], references: [slug])
-  problem Problem @relation(fields: [problemNum], references: [num])
 
   @@unique([teamSlug, problemNum])
 }
 
 model TeamProblemSet {
-  id            String   @id @default(auto()) @map("_id") @db.ObjectId
-  teamId        String   @db.ObjectId
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  teamSlug      String
+  team          Team       @relation(fields: [teamSlug], references: [slug])
   problemSetNum String
-  createdAt     DateTime @default(now())
+  problemSet    ProblemSet @relation(fields: [problemSetNum], references: [num])
+  createdAt     DateTime   @default(now())
 
-  team       Team       @relation(fields: [teamId], references: [id])
-  problemSet ProblemSet @relation(fields: [problemSetNum], references: [num])
-
-  @@unique([teamId, problemSetNum])
+  @@unique([teamSlug, problemSetNum])
 }
 
 model TeamMembership {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @db.ObjectId
   teamId    String   @db.ObjectId
-  role      TeamRole
+  role      TeamRole @default(MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
@@ -354,16 +358,16 @@ enum TeamRole {
 
 model TeamInvite {
   id        String       @id @default(auto()) @map("_id") @db.ObjectId
-  teamId    String       @db.ObjectId
+  teamSlug  String
   userId    String       @db.ObjectId
-  role      TeamRole
+  role      TeamRole?
   status    InviteStatus @default(PENDING)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-  team      Team         @relation(fields: [teamId], references: [id])
+  team      Team         @relation(fields: [teamSlug], references: [slug])
   user      User         @relation(fields: [userId], references: [id])
 
-  @@unique([userId, teamId]) // no duplicate invite
+  @@unique([userId, teamSlug]) // no duplicate invite
 }
 
 enum InviteStatus {

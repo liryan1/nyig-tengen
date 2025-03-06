@@ -20,7 +20,7 @@ import { TrophyIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Confetti from "react-confetti-boom";
 import { toast } from "sonner";
 import { PageError } from "../../labels/Error";
@@ -42,25 +42,34 @@ const ProblemGrid = dynamic(
 
 export function ProblemSetPage({ sNum }: { sNum?: string }) {
   const router = useRouter();
+
   const [showConfetti, setShowConfetti] = useState(false);
   const { psetId: completedPsetId } = useAppSelector(selectPsetCompletion);
   const dispatch = useAppDispatch();
+  const hasShownConfetti = useRef(false);
+
   useEffect(() => {
-    if (completedPsetId === sNum) {
+    if (completedPsetId === sNum && !hasShownConfetti.current) {
+      hasShownConfetti.current = true;
       setShowConfetti(true);
       toast("Congratulations 🎉", {
         icon: <TrophyIcon />,
         description:
           "You completed the problem set and earned a trophy! Keep up the great work!",
-        duration: 5_000,
+        duration: 5000,
       });
+      // Clear the completion state immediately to prevent re-triggering
+      dispatch(setPsetCompletion(null));
+
+      // Hide confetti after the animation duration (adjust timeout as needed)
+      const timer = setTimeout(() => {
+        setShowConfetti(false);
+      }, 5000);
+
+      return () => clearTimeout(timer);
     }
-    return () => {
-      if (completedPsetId === sNum) {
-        dispatch(setPsetCompletion(null));
-      }
-    };
-  }, [completedPsetId, sNum]);
+  }, [completedPsetId, sNum, dispatch]);
+
   const [like] = usePSetLikeMutation();
   const { status: authStatus } = useSession();
   const {
@@ -88,7 +97,6 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
     problemCount,
     averageRank,
     completedCount,
-    attemptedCount,
     author,
     problems,
   } = pset;
@@ -132,7 +140,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
   };
 
   return (
-    <Card className="shadow-sm rounded-lg my-6">
+    <Card className="container mx-auto shadow-sm rounded-lg my-6">
       <CardHeader className="p-2 sm:p-4 border-b">
         {showConfetti && (
           <div className="z-50">
@@ -178,7 +186,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
             userLiked: pset.userLiked,
             views,
             likes: pset.likes,
-            rate: completedCount / attemptedCount,
+            rate: completedCount,
             userSolved: userSolved !== undefined && userSolved > 0,
           }}
           toggleLike={debounce(toggleLike, 300)}

@@ -2,20 +2,21 @@ import {
   ProblemSetProgress,
   ProgressStatus,
   SubmissionStatus,
+  UserRole,
 } from "@prisma/client";
 import { apiSlice, PROBLEM_SET_TAG, PROBLEM_SETS_TAG } from "../api";
 
 export interface ProblemSetResponse {
   num: string;
   name: string;
-  author: { id: string; name: string };
+  author: { id: string; name: string; role: UserRole };
   description?: string;
   problems: string[];
   views: number;
   likes: number;
   userLiked?: boolean;
   userProgress?: { id: string; problemOrder: ProblemOrderItem[] };
-  userCompletions?: number;
+  completedCount?: number;
   problemCount: number;
   averageRank: number;
   createdAt: string;

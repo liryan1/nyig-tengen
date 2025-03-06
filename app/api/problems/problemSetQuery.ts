@@ -10,6 +10,7 @@ export const getProblemSetSelect = (
     select: {
       id: true,
       name: true,
+      role: true,
     },
   },
   problemSetProblems: {
@@ -34,7 +35,7 @@ export const getProblemSetSelect = (
         take: 1,
       }
     : false,
-  problemSetStats: { select: { views: true } },
+  problemSetStats: { select: { views: true, completed: true } },
   description: true,
   problemCount: true,
   averageRank: true,
@@ -62,6 +63,7 @@ export const mapProblemSetResponse = (
     problems: pset.problemSetProblems.map((psp: any) => psp.problem.initial),
     views: pset.problemSetStats?.views,
     likes: pset.problemSetLikes?.length,
+    completedCount: pset.problemSetStats?.completed,
     userLiked,
     problemCount: pset.problemCount,
     averageRank: pset.averageRank,

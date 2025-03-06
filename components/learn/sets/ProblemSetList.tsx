@@ -53,9 +53,9 @@ export function ProblemSetList({ fixedLimit }: ProblemSetListProps) {
           onPageChange={setCurrentPage}
         />
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 4xl:grid-cols-4 6xl:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {isError ? (
-          <PageError>Error getting problems</PageError>
+          <PageError>Error getting problem sets</PageError>
         ) : isLoading ? (
           Array.from({ length: limit / 2 }, (_, i) => i).map((i) => (
             <ProblemSetCardSkeleton key={i} />

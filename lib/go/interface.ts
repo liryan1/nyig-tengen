@@ -23,9 +23,10 @@ export interface ProblemStats {
 export interface GoProblemMeta {
   rank: number;
   description?: string;
-  author: { id: string; name: string };
+  author: { id: string; name: string; role: string };
   stats?: ProblemStats;
   userSolved?: boolean;
+  endorser?: { id: string; name: string; rank?: string };
   visibility: Visibility;
 }
 

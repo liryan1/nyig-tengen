@@ -2,7 +2,7 @@ import { SgfNode } from "@/lib/go/goGame";
 import { Evaluation } from "@/lib/go/interface";
 
 export interface EvaluationStats {
-  submissionCount: { increment: number };
+  submissionCount?: { increment: number };
   correctCount?: { increment: number };
 }
 
@@ -68,11 +68,11 @@ export function evaluate(userMoves: string[], solutionTree: SgfNode) {
   const evaluation: Evaluation = getEvaluation(userMoves, solutionTree);
 
   // Update problem stats: submissionCount always increments, correctCount if solved
-  const stats: EvaluationStats = {
-    submissionCount: {
-      increment: 1,
-    },
-  };
+  const stats: EvaluationStats = {};
+  // Partial solutions are part of good solutions, so we don't increment submissionCount
+  if (evaluation.status !== "partial") {
+    stats.submissionCount = { increment: 1 };
+  }
 
   if (evaluation.status === "solved") {
     stats.correctCount = { increment: 1 };
