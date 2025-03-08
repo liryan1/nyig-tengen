@@ -38,7 +38,6 @@ const ImageButton = () => {
     //    onInsert={({ assets }: any) => {
     //      if (!Array.isArray(assets)) return;
     //      const image = assets[0];
-    //      console.log(image);
     //      editor
     //        .chain()
     //        .focus()
@@ -77,7 +76,9 @@ const ImageButton = () => {
       }}
     >
       {({ open }) => {
-        return <MenuButton icon="Image" tooltip="Image" {...state} onClick={open} />;
+        return (
+          <MenuButton icon="Image" tooltip="Image" {...state} onClick={open} />
+        );
       }}
     </UploadWidget>
 

@@ -33,10 +33,14 @@ export function BoardSizeSelect({
   const [selectedSize, setSelectedSize] = useState(size);
 
   const handleSelect = (value: string) => {
+    const newSize = parseInt(value);
+    if (!newSize || isNaN(newSize)) {
+      return;
+    }
     if (isBoardEmpty) {
-      onChange(parseInt(value));
+      onChange(newSize);
     } else {
-      setSelectedSize(parseInt(value));
+      setSelectedSize(newSize);
       setOpen(true);
     }
   };

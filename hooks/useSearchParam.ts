@@ -12,7 +12,6 @@ export function useSearchParam(
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams);
-    console.log(params);
     const validatedValue = validator ? validator(value) : value;
     if (validatedValue) {
       params.set(key, validatedValue);

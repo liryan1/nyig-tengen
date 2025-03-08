@@ -10,7 +10,13 @@ import Script from "./script";
 const CLOUDINARY_CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_API_KEY = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
 
-const MediaLibrary = ({ children, onClose, onInsert, onOpen, options = {} }: MediaLibraryProps) => {
+const MediaLibrary = ({
+  children,
+  onClose,
+  onInsert,
+  onOpen,
+  options = {},
+}: MediaLibraryProps) => {
   const cloudinary: any = useRef(null);
   const widget: any = useRef(null);
   const widgetContainerRef: any = useRef(null);
@@ -49,7 +55,6 @@ const MediaLibrary = ({ children, onClose, onInsert, onOpen, options = {} }: Med
     function onIdle() {
       if (!widget.current) {
         widget.current = createWidget();
-        //   console.log(widget.current);
       }
     }
 
@@ -134,7 +139,6 @@ const MediaLibrary = ({ children, onClose, onInsert, onOpen, options = {} }: Med
    */
 
   function open() {
-    //  console.log({ widget: widget.current });
     widget.current.show();
   }
 

@@ -137,6 +137,7 @@ export function GoBoardStepper({
       <div className="flex items-center w-full">
         {leftPaginationComponents.map((c, i) => (
           <Button
+            type="button"
             key={`left-pagination-${i}`}
             variant="outline"
             className={navButtonClassName}
@@ -148,6 +149,7 @@ export function GoBoardStepper({
         ))}
         {rightPaginationComponents.map((c, i) => (
           <Button
+            type="button"
             key={`right-pagination-${i}`}
             variant="outline"
             className={navButtonClassName}

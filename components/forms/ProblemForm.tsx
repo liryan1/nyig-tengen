@@ -161,8 +161,6 @@ export function ProblemForm({ problem }: Props) {
     });
   };
 
-  console.log("form:", form.getValues());
-
   return (
     <Form {...form}>
       <form className="space-y-4">

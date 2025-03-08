@@ -20,13 +20,6 @@ export function GoProblemAdminToolbar({
   userOwnsProblem,
   endorsedNotByUser,
 }: GoProblemAdminToolbarProps) {
-  const sleep = (ms: number) =>
-    new Promise((resolve) => setTimeout(resolve, ms));
-  const handleClick = async () => {
-    console.log("Button clicked!");
-    await sleep(2000); // Simulating a delay
-    console.log("Action completed!");
-  };
   return (
     <div className="flex items-center justify-between gap-2 p-2 sm:gap-4 sm:p-4">
       {isSuperAdmin && (
