@@ -1,4 +1,9 @@
-import { CircleCheckBig, InfoIcon, TriangleAlertIcon } from "lucide-react";
+import {
+  CircleCheckBig,
+  FastForwardIcon,
+  InfoIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
 
 export const infoIcon = (
   <InfoIcon className="h-5 w-5 text-yellow-600" strokeWidth={3} />
@@ -8,4 +13,7 @@ export const successIcon = (
 );
 export const errorIcon = (
   <TriangleAlertIcon className="h-5 w-5 text-red-700" strokeWidth={3} />
+);
+export const continueIcon = (
+  <FastForwardIcon className="h-5 w-5 text-green-700" strokeWidth={3} />
 );

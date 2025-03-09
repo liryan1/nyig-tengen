@@ -2,7 +2,7 @@ import { ProblemForm } from "@/components/forms/ProblemForm";
 
 function ProblemCreatePage() {
   return (
-    <div className="space-y-6 max-w-6xl mx-auto px-1 sm:px-0">
+    <div className="container max-w-7xl mx-auto px-1 sm:px-0">
       <ProblemForm />
     </div>
   );

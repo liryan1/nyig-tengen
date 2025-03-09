@@ -36,7 +36,7 @@ export function GoProblemEditPage({ num }: { num: string }) {
   }
 
   return (
-    <div>
+    <div className="container max-w-7xl mx-auto px-1 sm:px-0">
       <ProblemForm problem={problem} />
     </div>
   );

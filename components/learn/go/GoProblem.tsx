@@ -1,6 +1,6 @@
 "use client";
 
-import { infoIcon, successIcon } from "@/components/labels/icons";
+import { continueIcon, infoIcon, successIcon } from "@/components/labels/icons";
 import { Spinner } from "@/components/labels/Spinner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +25,7 @@ import { GoProblemToolbar } from "./GoProblemToolbar";
 import { PassButton } from "./tools/PassButton";
 import { GoProblemAdminToolbar } from "./GoProblemAdminToolbar";
 import { UserRole } from "@prisma/client";
+import { CooldownButton } from "@/components/CooldownButton";
 
 const successTimeout = 3_000; // ms
 
@@ -171,7 +172,12 @@ export function GoProblem({
         );
       }
     } else if (evaluation.status === "partial") {
-      setMessage("Looks good so far, please continue the sequence.");
+      setMessage(
+        <div className="flex items-center gap-1">
+          {continueIcon}
+          Looks good so far, please continue the sequence.
+        </div>,
+      );
     }
   };
 
@@ -238,18 +244,20 @@ export function GoProblem({
               <PassButton onClick={() => handleMove(-1, -1)} />
             </div>
             <div className="flex items-end gap-2">
-              <Button
+              <CooldownButton
+                throttleMs={5_000}
+                text="Submit"
+                icon={
+                  isLoading ? (
+                    <Spinner className="h-4 w-4" />
+                  ) : (
+                    <SendHorizonalIcon />
+                  )
+                }
                 size="sm"
                 onClick={handleSubmitAnswer}
                 disabled={isLoading}
-              >
-                Submit
-                {isLoading ? (
-                  <Spinner className="h-4 w-4" />
-                ) : (
-                  <SendHorizonalIcon />
-                )}
-              </Button>
+              />
             </div>
           </GoProblemToolbar>
         </div>
