@@ -23,5 +23,9 @@ export function GoProblemPage({ num }: { num?: string }) {
     return <PageError>Error loading problem.</PageError>;
   }
 
-  return <GoProblem problem={data} />;
+  return (
+    <div className="container mx-auto max-w-7xl">
+      <GoProblem problem={data} />
+    </div>
+  );
 }

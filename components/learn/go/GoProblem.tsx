@@ -176,7 +176,7 @@ export function GoProblem({
   };
 
   return (
-    <div className="container mx-auto max-w-7xl border rounded-md shadow-sm">
+    <div className="border rounded-md shadow-sm">
       {!problemSetProgressId && (userOwnsProblem || isUserSuperAdmin) && (
         <>
           <GoProblemAdminToolbar
