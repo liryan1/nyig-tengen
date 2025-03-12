@@ -7,21 +7,19 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { ButtonProps } from "@/components/ui/button";
 
-interface Props {
-  onClick?: () => void;
-}
-
-export function PassButton({ onClick }: Props) {
+export function PassButton({ className, ...props }: ButtonProps) {
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger
+          {...props}
           type="button"
-          onClick={onClick}
           className={cn(
             toggleVariants({ variant: "outline" }),
             "cursor-pointer bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+            className,
           )}
         >
           <HandIcon />

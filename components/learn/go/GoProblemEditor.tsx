@@ -87,7 +87,6 @@ export function GoProblemEditor({
     setBoardSize(boardSize);
     goGame.setBoardSize(boardSize);
     handleSelectNode(goGame.root);
-    setNextPlayer(getNextPlayer(goGame.root));
   };
 
   const handleDeleteNode = (node: SgfNode) => {
@@ -117,7 +116,7 @@ export function GoProblemEditor({
           cellSize={cellSize}
           boardSize={goGame.boardSize}
           boardState={goGame.getBoardState(currentNode, 1)}
-          nextPlayer={getNextPlayer(currentNode)}
+          nextPlayer={getNextPlayer()}
           onMove={handleClickBoardForcedUpdate}
         />
       </div>
@@ -140,7 +139,10 @@ export function GoProblemEditor({
               onEditToolChange={setEditTool}
               onSwapColorChange={handleSwapColorChange}
             />
-            <PassButton onClick={() => handleMove(-1, -1)} />
+            <PassButton
+              onClick={() => handleMove(-1, -1)}
+              disabled={mode === "edit"}
+            />
             <StoneSwitch
               disabled={mode === "edit"}
               stone={nextPlayer}

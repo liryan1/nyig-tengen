@@ -42,39 +42,45 @@ export function useGo({ goGame, readonly, initialMode = "move" }: UseGoProps) {
     if (mode === "edit") {
       setNextPlayer(0);
     } else if (mode === "move") {
-      setNextPlayer(getNextPlayer(currentNode));
+      setNextPlayer(getNextPlayer({ useNode: currentNode, useMode: "move" }));
     }
     onModeChange(mode);
   };
 
-  const getNextPlayer = (
-    currNode?: SgfNode,
-    ignoreNextPlayer?: boolean,
-  ): StoneColor => {
+  /**
+   * Get the next player
+   * @props.ignoreNextPlayer: ignore the current nextPlayer state
+   */
+  const getNextPlayer = (props?: {
+    useNode?: SgfNode;
+    useMode?: BoardMode;
+    ignoreNextPlayer?: boolean;
+  }): StoneColor => {
     // If edit tool is set, use its color to determine the next player
-    if (mode === "edit") {
+    if ((props?.useMode ?? mode) === "edit") {
       if (editTool === "black") {
         return 1;
       } else if (editTool === "white") {
         return -1;
       } else {
+        // This is the eraser tool
         return 0;
       }
     }
-    // We know the next player, just return it
+    // We know the next player and don't explicitly ignoring the player
     // e.g. if move tool was clicked, the next move should be nextPlayer
-    if (!ignoreNextPlayer && nextPlayer !== 0) {
+    if (!props?.ignoreNextPlayer && nextPlayer !== 0) {
       return nextPlayer;
     }
-    // Then try to use the current node
-    if (currNode) {
-      let node = currNode;
+    // If we still can't determine the player, try to use the current node
+    let node = props?.useNode ?? currentNode;
+    if (node) {
       let color = node?.moveColor;
       if (node === goGame.root) {
         // If we're at the root node, check for the last child's
         // move's color and keep the same color
-        if (currNode.children?.length) {
-          color = currNode.children.at(-1)?.moveColor;
+        if (node.children?.length) {
+          color = node.children.at(-1)?.moveColor;
           return color ? color : 1;
         }
       } else if (node.moveColor) {
@@ -99,7 +105,9 @@ export function useGo({ goGame, readonly, initialMode = "move" }: UseGoProps) {
       return;
     }
     const coord = indicesToCoord(row, col);
-    const np = node ? getNextPlayer(node, true) : nextPlayer;
+    const np = node
+      ? getNextPlayer({ useNode: node, ignoreNextPlayer: true })
+      : nextPlayer;
 
     try {
       let newNode;
@@ -171,8 +179,11 @@ export function useGo({ goGame, readonly, initialMode = "move" }: UseGoProps) {
     if (readonly) {
       return;
     }
+    setMode("move");
     setCurrentNode(node);
-    setNextPlayer(getNextPlayer(node, true));
+    setNextPlayer(
+      getNextPlayer({ useNode: node, useMode: "move", ignoreNextPlayer: true }),
+    );
   };
 
   const handleDeleteNode = (node: SgfNode) => {
