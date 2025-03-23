@@ -122,12 +122,20 @@ export function ProblemForm({ problem }: Props) {
       form.setError("root", { message: "Please create a problem" });
       return;
     }
-    if (goGame.root.children.length === 0) {
+    const children = goGame.root.children;
+    if (children.length === 0) {
       form.setError("root", {
         message: "Please provide at least one solution",
       });
       return;
     }
+    if (children.some((c) => c.moveColor === -1)) {
+      form.setError("root", {
+        message: "Solutions must begin with black",
+      });
+      return;
+    }
+
     const submit = async () => {
       const body: ProblemCreateRequest = {
         ...values,

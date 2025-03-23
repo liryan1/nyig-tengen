@@ -20,8 +20,8 @@ export interface SgfNode {
   children: SgfNode[];
   parent?: SgfNode;
 
-  // Might store additional SGF properties on the node
-  // e.g. comment, markers (CR, TR, SQ), etc., if needed
+  comment?: string; // We parse 'C' property into here
+  extras?: Record<string, string[]>; // Catch-all for unrecognized properties
 }
 
 export interface EditProps {

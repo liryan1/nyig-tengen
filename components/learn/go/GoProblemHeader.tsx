@@ -11,6 +11,7 @@ import { InfoBar } from "../InfoBar";
 import { EndorsedTooltip } from "../problem/EndorsedTooltip";
 import { UserRole } from "@prisma/client";
 import { PiCrownSimple } from "react-icons/pi";
+import { useRouter } from "next/navigation";
 
 type GoProblemHeaderProps = {
   num: string;
@@ -25,6 +26,7 @@ export function GoProblemHeader({
   initialColor = 1,
   className,
 }: GoProblemHeaderProps) {
+  const router = useRouter();
   const { rank, description, author, stats, userSolved, endorser } = meta;
   const [like, { isLoading }] = useProblemLikeMutation();
   const stoneColor = initialColor === 1 ? "black" : "white";
@@ -36,7 +38,12 @@ export function GoProblemHeader({
 
   const toggleLike = async () => {
     if (authStatus !== "authenticated") {
-      toast.error("Please login to like the problem.");
+      toast("Please sign in to like the problem", {
+        action: {
+          label: "Sign in",
+          onClick: () => router.push("/login"),
+        },
+      });
       return;
     }
     const likeProblem = async () => {

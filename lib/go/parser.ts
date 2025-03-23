@@ -5,15 +5,6 @@
 import { GoGame, SgfNode } from "./goGame";
 import { BoardState, StoneColor } from "./interface";
 
-/**
- * Extend the SgfNode interface to store unrecognized SGF props in `extras`.
- * You can merge this into your existing SgfNode definition if you like.
- */
-export interface ExtendedSgfNode extends SgfNode {
-  comment?: string; // We parse 'C' property into here
-  extras?: Record<string, string[]>; // Catch-all for unrecognized properties
-}
-
 export function getBoardSize(sgf?: string) {
   return Number.parseInt(sgf?.match(/SZ\[(\d+)\]/)?.[1] ?? "19");
 }
@@ -45,8 +36,9 @@ export function fromSgf(sgf: string): SgfNode {
  * back into SGF format.
  */
 export function toSgf(root: SgfNode, boardSize: number): string {
-  // Append size to the root game tree
-  return `(;SZ[${boardSize}]` + buildGameTreeString(root).slice(2) + ")";
+  // Append size to the root game tree if it does not already exist
+  const sz = !root.extras?.SZ?.length ? `SZ[${boardSize}]` : "";
+  return `(;${sz}${buildGameTreeString(root).slice(2)})`;
 }
 
 // Wrapper for toSgf
@@ -54,8 +46,13 @@ export function goGameToSgf(goGame: GoGame) {
   return toSgf(goGame.root, goGame.boardSize);
 }
 
+/**
+ * Converts the root node of the GoGame into SGF, skips all other branches
+ */
 export function rootNodeToSgf(goGame: GoGame) {
-  return `(;SZ[${goGame.boardSize}]${serializeNode(goGame.root).slice(1)})`;
+  // Append size to the root game tree if it does not already exist
+  const sz = !goGame.root.extras?.SZ?.length ? `SZ[${goGame.boardSize}]` : "";
+  return `(;${sz}${serializeNode(goGame.root).slice(1)})`;
 }
 
 export function getRootBoardState(sgf: string): BoardState {
@@ -80,10 +77,10 @@ class SgfParser {
     this.i = 0;
   }
 
-  public parseCollection(): ExtendedSgfNode[] {
+  public parseCollection(): SgfNode[] {
     // A Collection is one or more GameTrees in sequence.
     // We'll parse until we can’t parse more.
-    const results: ExtendedSgfNode[] = [];
+    const results: SgfNode[] = [];
     this.skipWhitespace();
 
     while (this.peek() === "(") {
@@ -96,7 +93,7 @@ class SgfParser {
     return results;
   }
 
-  private parseGameTree(): ExtendedSgfNode | null {
+  private parseGameTree(): SgfNode | null {
     // GameTree := "(" Sequence GameTree* ")"
     if (this.peek() !== "(") return null;
     this.next(); // consume '('
@@ -143,10 +140,10 @@ class SgfParser {
     return root;
   }
 
-  private parseSequence(): ExtendedSgfNode[] {
+  private parseSequence(): SgfNode[] {
     // Sequence := Node+
     // That is, one or more Nodes, each starting with ';'
-    const nodes: ExtendedSgfNode[] = [];
+    const nodes: SgfNode[] = [];
     this.skipWhitespace();
 
     while (this.peek() === ";") {
@@ -157,13 +154,13 @@ class SgfParser {
     return nodes;
   }
 
-  private parseNode(): ExtendedSgfNode {
+  private parseNode(): SgfNode {
     // Node := ";" Property*
     // We already know the first character is ';'
     this.next(); // consume ';'
     this.skipWhitespace();
 
-    const node: ExtendedSgfNode = {
+    const node: SgfNode = {
       moveColor: 0,
       children: [],
       labels: {},
@@ -197,11 +194,7 @@ class SgfParser {
     return node;
   }
 
-  private handleProperty(
-    node: ExtendedSgfNode,
-    ident: string,
-    values: string[],
-  ) {
+  private handleProperty(node: SgfNode, ident: string, values: string[]) {
     switch (ident) {
       case "B": {
         // Black move. Usually only one value with the coordinate or empty for pass
@@ -424,7 +417,7 @@ function serializeNode(node: SgfNode): string {
   }
 
   // Comment 'C'
-  const nodeExt = node as ExtendedSgfNode;
+  const nodeExt = node as SgfNode;
   if (nodeExt.comment) {
     // If we wanted to handle escaping ']', we would do that here. We'll do naive:
     const escaped = nodeExt.comment.replace(/\]/g, "\\]");

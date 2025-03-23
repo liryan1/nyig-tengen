@@ -26,6 +26,7 @@ import { PassButton } from "./tools/PassButton";
 import { GoProblemAdminToolbar } from "./GoProblemAdminToolbar";
 import { UserRole } from "@prisma/client";
 import { CooldownButton } from "@/components/CooldownButton";
+import { useRouter } from "next/navigation";
 
 const successTimeout = 3_000; // ms
 
@@ -40,6 +41,7 @@ export function GoProblem({
   problemSetProgressId,
   initialSuccess,
 }: GoProblemProps) {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const boardSize = getBoardSize(problem.initial);
   const goGameRef = useRef<GoGame | null>(null);
@@ -76,7 +78,12 @@ export function GoProblem({
 
   const handleSubmitAnswer = async () => {
     if (authStatus !== "authenticated") {
-      toast.error("Please login to submit a solution.");
+      toast("Please sign in to submit a solution", {
+        action: {
+          label: "Sign in",
+          onClick: () => router.push("/login"),
+        },
+      });
       return;
     }
     const userMoves = getMoves(currentNode);

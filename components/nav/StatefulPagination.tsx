@@ -59,6 +59,7 @@ export function StatefulPagination({
               <PaginationEllipsis />
             ) : (
               <PaginationLink
+                className="p-0 m-0"
                 onClick={() => onPageChange(page as number)}
                 isActive={currentPage === page}
               >

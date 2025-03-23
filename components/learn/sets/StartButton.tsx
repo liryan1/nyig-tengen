@@ -62,7 +62,12 @@ export function StartButton({
 
   const handleClick = () => {
     if (authStatus !== "authenticated") {
-      toast.error("Please login to start doing problem sets");
+      toast("Please sign in to start doing problem sets", {
+        action: {
+          label: "Sign in",
+          onClick: () => router.push("/login"),
+        },
+      });
       return;
     }
 

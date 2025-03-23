@@ -121,7 +121,12 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
       return;
     }
     if (authStatus !== "authenticated") {
-      toast.error("Please login to like the problem.");
+      toast("Please sign in to like the problem set", {
+        action: {
+          label: "Sign in",
+          onClick: () => router.push("/login"),
+        },
+      });
       return;
     }
     const likeProblem = async () => {
