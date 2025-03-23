@@ -46,6 +46,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
           <div className="flex items-center gap-0.5">
             {endorser && (
               <EndorsedTooltip
+                size={20}
                 endorserName={`${endorser.name}${endorser.rank ? " " + endorser.rank : ""}`}
               />
             )}
