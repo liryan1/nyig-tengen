@@ -8,7 +8,7 @@ import { useSearchParams } from "next/navigation";
 import ProblemCardSkeleton from "@/components/loading/ProblemCardSkeleton";
 
 const options: Options = { throttleMs: 800 };
-const limit = 2;
+const limit = 20;
 
 const appendLimit = (qs: string) => {
   return [`limit=${limit}`, ...(qs.length ? [qs] : [])].join("&");
