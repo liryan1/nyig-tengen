@@ -300,15 +300,15 @@ model ProblemEndorsement {
 
 // -------------------- Team models --------------------
 model Team {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  id          String     @id @default(auto()) @map("_id") @db.ObjectId
   slug        String
   name        String
   description String?
   status      TeamStatus @default(ACTIVE)
-  ownerId     String   @db.ObjectId
-  owner       User     @relation(fields: [ownerId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  ownerId     String     @db.ObjectId
+  owner       User       @relation(fields: [ownerId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   memberships     TeamMembership[]
   invites         TeamInvite[]
@@ -348,12 +348,12 @@ model TeamProblemSet {
 model TeamMembership {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @db.ObjectId
-  teamSlug    String   @db.ObjectId
+  teamSlug  String
   role      TeamRole @default(MEMBER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   user      User     @relation(fields: [userId], references: [id])
-  team      Team     @relation(fields: [teamSlug], references: [id])
+  team      Team     @relation(fields: [teamSlug], references: [slug])
 
   @@unique([userId, teamSlug]) // no duplicate membership
 }
