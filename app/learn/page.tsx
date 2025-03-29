@@ -36,10 +36,7 @@ async function LearnPage() {
             )}
           </div>
           <Button size="sm" variant="outline">
-            <Link
-              href="/learn/problems/sets"
-              className="flex items-center gap-2"
-            >
+            <Link href="/learn/sets" className="flex items-center gap-2">
               All problem sets
               <MoveRight />
             </Link>

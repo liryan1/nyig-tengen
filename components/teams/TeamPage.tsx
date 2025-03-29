@@ -79,7 +79,7 @@ export const TeamPage = () => {
 
       <div className="grid gap-6 md:grid-cols-2 max-w-3xl">
         <Card className="p-0">
-          <CardContent className="p-0 pl-6 flex items-center space-x-4 h-full">
+          <CardContent className="p-2 sm:p-0 sm:pl-6 flex items-center space-x-4 h-full">
             <Avatar>
               <AvatarFallback>
                 {team.owner.name?.charAt(0).toUpperCase()}

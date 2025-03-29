@@ -127,7 +127,7 @@ export async function POST(req: Request) {
       getServerSession(authOptions),
       req.json(),
     ]);
-    const { description, rank, initial, correct, visibility, teamSlug } =
+    const { description, rank, initial, correct, visibility, teamSlugs } =
       payload;
     const userId = session?.user?.id;
     if (!userId) {
@@ -153,7 +153,7 @@ export async function POST(req: Request) {
         );
       }
 
-      if (visibility === Visibility.TEAM && !teamSlug) {
+      if (visibility === Visibility.TEAM && !teamSlugs?.length) {
         return NextResponse.json(
           { message: "Team is required to create a team visibility problem" },
           { status: 400 },
@@ -190,24 +190,23 @@ export async function POST(req: Request) {
       select: { id: true, num: true },
     });
 
-    // If the problem is team-based and a teamId is provided, create a join record
-    if (visibility === Visibility.TEAM && teamSlug) {
-      const team = await db.team.findUnique({
-        where: { slug: teamSlug },
-      });
-      if (!team) {
-        return NextResponse.json(
-          { message: "Team not found" },
-          { status: 404 },
+    // If the problem is team-based and a list of teams is provided, create join records
+    const createRequests = [];
+    if (visibility === Visibility.TEAM && teamSlugs) {
+      for (const teamSlug of teamSlugs) {
+        createRequests.push(
+          db.teamProblem.create({
+            data: {
+              teamSlug,
+              problemNum: createdProblem.num,
+            },
+          }),
         );
       }
-      await db.teamProblem.create({
-        data: {
-          teamSlug,
-          problemNum: createdProblem.num,
-        },
-      });
     }
+
+    // Fail whole batch if one fails
+    await db.$transaction(createRequests);
 
     return NextResponse.json({ num: createdProblem.num }, { status: 201 });
   } catch (error) {

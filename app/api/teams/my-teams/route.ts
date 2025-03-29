@@ -8,6 +8,7 @@ export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
+    // No teams if the user is not logged in
     if (!userId) {
       return NextResponse.json([], { status: 203 });
     }
