@@ -190,7 +190,7 @@ export async function PATCH(req: Request, { params }: Params) {
     // Verify user is admin or owner
     const membership = await db.teamMembership.findFirst({
       where: {
-        teamId: team.id,
+        teamSlug: slug,
         userId,
         role: { in: [TeamRole.OWNER, TeamRole.ADMIN] },
       },
