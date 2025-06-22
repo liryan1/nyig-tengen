@@ -1,18 +1,16 @@
+import { LIKED_COLOR } from "@/lib/color";
 import { cn, formatLargeNumber } from "@/lib/utils";
+import { UserRole } from "@prisma/client";
 import {
   CalculatorIcon,
   EyeIcon,
   HeartIcon,
   SignatureIcon,
-  SquareActivityIcon,
   SwordsIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { Button } from "../ui/button";
-import { SucessRate } from "./problem/SucessRate";
-import { LIKED_COLOR } from "@/lib/color";
-import { UserRole } from "@prisma/client";
 import { PiCrownSimple } from "react-icons/pi";
+import { SucessRate } from "./problem/SucessRate";
 
 interface InfoBarProps {
   info: {
