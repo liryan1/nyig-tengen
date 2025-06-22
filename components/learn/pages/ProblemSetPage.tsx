@@ -137,7 +137,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
       toast.promise(likeProblem, {
         loading: pset.userLiked ? "Removing like..." : "Liking problem set...",
         success: pset.userLiked ? "Removed like" : "Liked problem set",
-        error: (err) => err.message,
+        error: (err) => err.data?.message,
       });
     } catch (error) {
       logStack(error);

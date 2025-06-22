@@ -4,6 +4,7 @@ import {
   CircleUserRoundIcon,
   Forward,
   LogOutIcon,
+  MailboxIcon,
   MoreHorizontal,
   PlusCircleIcon,
   UsersRoundIcon,
@@ -28,7 +29,10 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
+import {
+  useGetMyTeamsQuery,
+  useGetTeamInvitesQuery,
+} from "@/lib/rtk/slices/teams";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isUserAdmin } from "@/lib/utils";
 
@@ -36,7 +40,15 @@ export function NavTeams() {
   const { data: session } = useSession();
   const { isMobile } = useSidebar();
   const userName = session?.user?.name;
-  const { data: myTeams, isLoading } = useGetMyTeamsQuery();
+  const { data: myTeams, isLoading: tLoading } = useGetMyTeamsQuery();
+  const { data: invites, isLoading: iLoading } = useGetTeamInvitesQuery(
+    undefined,
+    {
+      skip: !session?.user.id,
+    },
+  );
+  const numInvites = invites?.length ?? 0;
+  const isLoading = tLoading || iLoading;
   const teams = [
     ...(userName
       ? [
@@ -99,21 +111,38 @@ export function NavTeams() {
             </SidebarMenuItem>
           ))
         )}
+        {session?.user && (
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Invitations">
+              <Link href="/teams/invites">
+                <div className="relative text-sm h-4 w-4">
+                  <MailboxIcon className="h-4 w-4" />
+                  {numInvites > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-red-500 text-[8px] font-semibold text-white">
+                      {numInvites > 9 ? "9+" : numInvites}
+                    </span>
+                  )}
+                </div>
+                <span>Invitations</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        )}
         {isUserAdmin(session) && (
-          <SidebarMenuItem className="group-data-[collapsible=icon]:hidden">
-            <Link href="/teams/new">
-              <SidebarMenuButton>
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild tooltip="Create team">
+              <Link href="/teams/new">
                 <PlusCircleIcon />
-                <span>Create Team</span>
-              </SidebarMenuButton>
-            </Link>
+                <span>Create team</span>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         )}
         <SidebarMenuItem className="group-data-[collapsible=icon]:hidden">
           <Link href="#">
             <SidebarMenuButton className="text-sidebar-foreground/70">
               <MoreHorizontal className="text-sidebar-foreground/70" />
-              <span>Other Teams</span>
+              <span>Find Teams</span>
             </SidebarMenuButton>
           </Link>
         </SidebarMenuItem>

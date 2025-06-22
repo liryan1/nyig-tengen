@@ -73,7 +73,7 @@ export function LoginForm({ referer }: { referer?: string | null }) {
       toast.promise(signin, {
         loading: "Logging in...",
         success: "Login successful",
-        error: (err) => err.message,
+        error: (err) => err.data?.message,
       });
     } catch (error) {
       logStack(error);

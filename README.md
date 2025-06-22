@@ -34,3 +34,14 @@ npm run dev
 npm run build
 PORT=3003 npm run start
 ```
+
+## Database migration
+
+After changing the database schema at `prisma/schema.schema`, run
+
+```sh
+npx prisma db push
+```
+
+!! WARNING !! Verify carefully and ensure backwards compatibility.
+Then comment out the prod database connection string in `.env` and run the same command again to have the changes reflect in prod.

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/command";
 import { Command as CommandPrimitive } from "cmdk";
 
-type MultiSelectOption = Record<"value" | "label", string>;
+export type MultiSelectOption = Record<"value" | "label", string>;
 
 type FancyMultiSelectProps = {
   options: MultiSelectOption[];

@@ -36,7 +36,8 @@ model User {
   problemSetLikes      ProblemSetLike[]
   endorsements         ProblemEndorsement[]
   teamMemberships      TeamMembership[]
-  teamInvites          TeamInvite[]
+  teamInvites          TeamInvite[]         @relation("user")
+  teamInvitesSent      TeamInvite[]         @relation("InviteSender")
   teams                Team[]
 }
 
@@ -321,6 +322,7 @@ model Team {
 enum TeamStatus {
   ACTIVE
   INACTIVE
+  DELETED
 }
 
 model TeamProblem {
@@ -365,17 +367,21 @@ enum TeamRole {
 }
 
 model TeamInvite {
-  id        String       @id @default(auto()) @map("_id") @db.ObjectId
-  teamSlug  String
-  userId    String       @db.ObjectId
-  type      InviteType
-  status    InviteStatus @default(PENDING)
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
-  team      Team         @relation(fields: [teamSlug], references: [slug])
-  user      User         @relation(fields: [userId], references: [id])
+  id          String       @id @default(auto()) @map("_id") @db.ObjectId
+  teamSlug    String
+  userId      String       @db.ObjectId // invitee
+  createdById String       @db.ObjectId // inviter
+  type        InviteType
+  status      InviteStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 
-  @@unique([userId, teamSlug]) // no duplicate invite
+  team      Team @relation(fields: [teamSlug], references: [slug])
+  user      User @relation("user", fields: [userId], references: [id])
+  createdBy User @relation("InviteSender", fields: [createdById], references: [id])
+
+  @@index([userId])
+  @@index([createdById])
 }
 
 enum InviteType {

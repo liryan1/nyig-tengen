@@ -81,6 +81,7 @@ export async function GET(request: NextRequest) {
       data,
     });
   } catch (error) {
+    logStack(error);
     return NextResponse.json(
       { message: "An unknown error occurred" },
       { status: 500 },

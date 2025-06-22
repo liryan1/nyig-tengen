@@ -19,25 +19,36 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useCreatePSetProgressMutation } from "@/lib/rtk/slices/problemSets";
 import { useGetTeamQuery } from "@/lib/rtk/slices/teams";
 import { UserPlus2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { PageError } from "../labels/Error";
 import ProblemCard from "../learn/problem/ProblemCard";
 import { ProblemSetCard } from "../learn/sets/ProblemSetCard";
 import { TeamPageSkeleton } from "../loading/TeamSkeleton";
 import { StatefulPagination } from "../nav/StatefulPagination";
 import { ScrollArea } from "../ui/scroll-area";
-import { PageError } from "../labels/Error";
-import { useCreatePSetProgressMutation } from "@/lib/rtk/slices/problemSets";
+import { InviteMember } from "./InviteMember";
+import { TeamRole } from "@prisma/client";
 
-const problemLimit = 20;
-const problemSetLimit = 4;
+const membersLimit = 10;
+const problemsLimit = 20;
+const problemSetsLimit = 4;
+
+function getSlicedArray<T>(arr: T[], pageIndex: number, limit: number): T[] {
+  const start = (pageIndex - 1) * limit;
+  const end = start + limit;
+  return arr.slice(start, end);
+}
 
 export const TeamPage = () => {
-  const [problemPageIndex, setProblemPageIndex] = useState(1);
-  const [problemSetPageIndex, setProblemSetPageIndex] = useState(1);
+  const [problemsTabIndex, setProblemsTabIndex] = useState(1);
+  const [problemSetsTabIndex, setProblemSetsTabIndex] = useState(1);
+  const [membersTabIndex, setMembersTabIndex] = useState(1);
+
   const { slug } = useParams();
   const { data: session } = useSession();
   const {
@@ -61,6 +72,12 @@ export const TeamPage = () => {
   const isTeamMember =
     team.owner.id === session?.user?.id ||
     team.members?.some((member) => member.id === session?.user?.id);
+  const isTeamAdmin =
+    team.owner.id === session?.user?.id ||
+    team.members?.some(
+      (member) =>
+        member.id === session?.user?.id && member.role === TeamRole.ADMIN,
+    );
 
   return (
     <div className="container mx-auto max-w-7xl space-y-6">
@@ -69,12 +86,15 @@ export const TeamPage = () => {
           <h1 className="text-3xl font-bold tracking-tight">{team.name}</h1>
           <p className="text-muted-foreground mt-2">{team.description}</p>
         </div>
-        {!isTeamMember && (
-          <Button>
-            <UserPlus2 />
-            Request to Join
-          </Button>
-        )}
+        <div className="flex gap-2">
+          {!isTeamMember && (
+            <Button disabled>
+              <UserPlus2 />
+              Request to Join
+            </Button>
+          )}
+          {isTeamAdmin && <InviteMember teamSlug={slug as string} />}
+        </div>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 max-w-3xl">
@@ -122,45 +142,64 @@ export const TeamPage = () => {
 
           <TabsContent value="members">
             <Card>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Joined</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {team.members?.map((member) => (
-                    <TableRow key={member.id}>
-                      <TableCell className="flex items-center space-x-4">
-                        <Avatar>
-                          <AvatarFallback>
-                            {member.name?.charAt(0).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span>{member.name}</span>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            ["ADMIN", "OWNER"].includes(member.role)
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {member.role}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {member.joinedAt
-                          ? new Date(member.joinedAt).toLocaleDateString()
-                          : "-"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <CardContent className="m-0 p-0">
+                <ScrollArea className="h-[450px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Member</TableHead>
+                        <TableHead>Role</TableHead>
+                        <TableHead>Joined</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {getSlicedArray(
+                        team.members,
+                        membersTabIndex,
+                        membersLimit,
+                      ).map((member) => (
+                        <TableRow key={member.id}>
+                          <TableCell className="flex items-center space-x-4">
+                            <Avatar>
+                              <AvatarFallback>
+                                {member.name?.charAt(0).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span>{member.name}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={
+                                ["ADMIN", "OWNER"].includes(member.role)
+                                  ? "default"
+                                  : "secondary"
+                              }
+                            >
+                              {member.role}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {member.joinedAt
+                              ? new Date(member.joinedAt).toLocaleDateString()
+                              : "-"}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </ScrollArea>
+              </CardContent>
+              <CardFooter>
+                <StatefulPagination
+                  currentPage={membersTabIndex}
+                  onPageChange={setMembersTabIndex}
+                  totalPages={
+                    team.members.length
+                      ? Math.ceil(team.problems.length / problemsLimit)
+                      : 1
+                  }
+                />
+              </CardFooter>
             </Card>
           </TabsContent>
 
@@ -170,9 +209,13 @@ export const TeamPage = () => {
                 <CardTitle>Problems</CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[450px]">
+                <ScrollArea className="h-[460px]">
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pr-2">
-                    {team.problems.map((problem) => (
+                    {getSlicedArray(
+                      team.problems,
+                      problemsTabIndex,
+                      problemsLimit,
+                    ).map((problem) => (
                       <ProblemCard
                         key={problem.num}
                         goProblemResponse={problem}
@@ -183,11 +226,11 @@ export const TeamPage = () => {
               </CardContent>
               <CardFooter>
                 <StatefulPagination
-                  currentPage={problemPageIndex}
-                  onPageChange={setProblemPageIndex}
+                  currentPage={problemsTabIndex}
+                  onPageChange={setProblemsTabIndex}
                   totalPages={
                     team.problems?.length
-                      ? Math.ceil(team.problems.length / problemLimit)
+                      ? Math.ceil(team.problems.length / problemsLimit)
                       : 1
                   }
                 />
@@ -201,9 +244,13 @@ export const TeamPage = () => {
                 <CardTitle>Problem Sets</CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-[450px]">
+                <ScrollArea className="h-[460px]">
                   <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 4xl:grid-cols-4 6xl:grid-cols-5 gap-4">
-                    {team.problemSets.map((problemSet) => (
+                    {getSlicedArray(
+                      team.problemSets,
+                      problemSetsTabIndex,
+                      problemSetsLimit,
+                    ).map((problemSet) => (
                       <ProblemSetCard
                         onCreatePSetProgress={createPSetProgress}
                         psetCreateError={isError}
@@ -217,11 +264,11 @@ export const TeamPage = () => {
               </CardContent>
               <CardFooter>
                 <StatefulPagination
-                  currentPage={problemSetPageIndex}
-                  onPageChange={setProblemSetPageIndex}
+                  currentPage={problemSetsTabIndex}
+                  onPageChange={setProblemSetsTabIndex}
                   totalPages={
                     team.problems?.length
-                      ? Math.ceil(team.problems.length / problemSetLimit)
+                      ? Math.ceil(team.problems.length / problemSetsLimit)
                       : 1
                   }
                 />

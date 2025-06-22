@@ -53,7 +53,7 @@ export function GoProblemHeader({
       toast.promise(likeProblem, {
         loading: stats?.userLiked ? "Removing like..." : "Liking problem...",
         success: stats?.userLiked ? "Removed like" : "Liked problem",
-        error: (err) => err.message,
+        error: (err) => err.data?.message,
       });
     } catch (error) {
       logStack(error);

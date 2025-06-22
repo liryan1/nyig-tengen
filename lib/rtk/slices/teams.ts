@@ -1,5 +1,5 @@
-import { InviteStatus, TeamRole } from "@prisma/client";
-import { apiSlice, TEAMS_TAG } from "../api";
+import { InviteStatus, InviteType, TeamRole, TeamStatus } from "@prisma/client";
+import { apiSlice, TEAM_INVITES_TAG, TEAMS_TAG } from "../api";
 import { GoProblemResponse } from "@/lib/go/interface";
 import { ProblemSetResponse } from "./problemSets";
 
@@ -14,7 +14,7 @@ export interface TeamResponse {
     id: string;
     name: string;
   };
-  members?: { id: string; name: string; role: TeamRole; joinedAt?: string }[];
+  members: { id: string; name: string; role: TeamRole; joinedAt?: string }[];
   problems: GoProblemResponse[];
   problemSets: ProblemSetResponse[];
   createdAt?: string;
@@ -24,6 +24,15 @@ export interface TeamResponse {
 export interface MyTeamsResponse {
   slug: string;
   name: string;
+}
+
+export interface TeamInviteResponse {
+  id: string;
+  team: { slug: string; name: string };
+  user: { id: string; name: string };
+  createdBy: { id: string; name: string };
+  type: InviteType;
+  createdAt: string;
 }
 
 export interface TeamMember {
@@ -75,12 +84,17 @@ const teamsApiSlice = apiSlice.injectEndpoints({
 
     getTeam: builder.query<TeamResponse, string>({
       query: (slug) => `teams/${slug}`,
-      providesTags: [TEAMS_TAG],
+      providesTags: (result, error, arg) => [{ type: TEAMS_TAG, id: arg }],
     }),
 
     getMyTeams: builder.query<MyTeamsResponse[], void>({
       query: () => `teams/my-teams`,
       providesTags: [TEAMS_TAG],
+    }),
+
+    getTeamInvites: builder.query<TeamInviteResponse[], void>({
+      query: () => `teams/invites`,
+      providesTags: [TEAM_INVITES_TAG],
     }),
 
     createTeam: builder.mutation<TeamCreateResponse, TeamCreateRequest>({
@@ -94,39 +108,68 @@ const teamsApiSlice = apiSlice.injectEndpoints({
 
     updateTeam: builder.mutation<
       void,
-      { id: string; name: string; description?: string }
+      { slug: string; name: string; description?: string }
     >({
-      query: ({ id, ...body }) => ({
-        url: `teams/${id}`,
+      query: ({ slug, ...body }) => ({
+        url: `teams/${slug}`,
         method: "PATCH",
         body,
       }),
-      invalidatesTags: [TEAMS_TAG],
+      invalidatesTags: (result, error, arg) => [
+        { type: TEAMS_TAG, id: arg.slug },
+      ],
     }),
 
-    deleteTeam: builder.mutation<void, string>({
-      query: (id) => ({
-        url: `teams/${id}`,
-        method: "DELETE",
-      }),
-      invalidatesTags: [TEAMS_TAG],
-    }),
-
-    getTeamMembers: builder.query<TeamMember[], string>({
-      query: (teamId) => `teams/${teamId}/members`,
-      providesTags: [TEAMS_TAG],
-    }),
-
-    inviteMember: builder.mutation<
+    inviteMembers: builder.mutation<
       void,
-      { teamId: string; email: string; role: string }
+      { slug: string; users: string[]; role?: TeamRole }
     >({
-      query: ({ teamId, ...body }) => ({
-        url: `teams/${teamId}/invite`,
+      query: ({ slug, ...body }) => ({
+        url: `teams/${slug}/invite`,
         method: "POST",
         body,
       }),
-      invalidatesTags: [TEAMS_TAG],
+    }),
+
+    respondToInvite: builder.mutation<
+      void,
+      { slug: string; action: InviteStatus }
+    >({
+      query: ({ slug, ...body }) => ({
+        url: `teams/${slug}/invite/respond`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: [TEAM_INVITES_TAG, TEAMS_TAG],
+    }),
+
+    requestToJoinTeam: builder.mutation<void, string>({
+      query: (slug) => ({
+        url: `teams/${slug}/request`,
+        method: "POST",
+      }),
+    }),
+
+    respondToJoinRequest: builder.mutation<
+      void,
+      { slug: string; inviteId: string; action: InviteStatus }
+    >({
+      query: ({ slug, inviteId, ...body }) => ({
+        url: `teams/${slug}/request/${inviteId}/respond`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: TEAMS_TAG, id: arg.slug },
+      ],
+    }),
+
+    getInviteCandidates: builder.query<
+      { name: string; email: string }[],
+      { slug: string; search?: string }
+    >({
+      query: ({ slug, search }) =>
+        `teams/${slug}/invitees${search ? `?search=${encodeURIComponent(search)}` : ""}`,
     }),
   }),
 });
@@ -137,7 +180,13 @@ export const {
   useGetTeamQuery,
   useCreateTeamMutation,
   useUpdateTeamMutation,
-  useDeleteTeamMutation,
-  useGetTeamMembersQuery,
-  useInviteMemberMutation,
+
+  useGetTeamInvitesQuery,
+
+  useInviteMembersMutation,
+  useRespondToInviteMutation,
+  useRequestToJoinTeamMutation,
+  useRespondToJoinRequestMutation,
+
+  useGetInviteCandidatesQuery,
 } = teamsApiSlice;

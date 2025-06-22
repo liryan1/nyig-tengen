@@ -92,7 +92,7 @@ export function SignUpForm({ referer }: { referer?: string | null }) {
       toast.promise(signUpAndSignIn, {
         loading: "Loading...",
         success: "Sign up successful",
-        error: (err) => err.message,
+        error: (err) => err.data?.message,
       });
     } catch (error) {
       logStack(error);

@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../../auth/authOptions";
 import { TeamResponse } from "@/lib/rtk/slices/teams";
-import { TeamRole, Visibility } from "@prisma/client";
+import { TeamRole, TeamStatus, Visibility } from "@prisma/client";
 import {
   getProblemSelect,
   mapProblemResponse,
@@ -165,28 +165,31 @@ export async function GET(req: Request, { params }: Params) {
   }
 }
 
-// Modify team name or description
+// Modify team details
 export async function PATCH(req: Request, { params }: Params) {
   try {
-    const [{ slug }, session, { name, description }] = await Promise.all([
-      params,
-      getServerSession(authOptions),
-      req.json(),
-    ]);
+    const [{ slug }, session, { name, description, status }] =
+      await Promise.all([params, getServerSession(authOptions), req.json()]);
+
+    if (status && !Object.keys(TeamStatus).includes(status)) {
+      return NextResponse.json(
+        { message: "Invalid team status" },
+        { status: 400 },
+      );
+    }
+
+    // Validate the team and user permissions
     const userId = session?.user?.id;
     if (!userId) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-
     const team = await db.team.findUnique({
       where: { slug },
       select: { id: true },
     });
-
     if (!team) {
       return NextResponse.json({ message: "Team not found" }, { status: 404 });
     }
-
     // Verify user is admin or owner
     const membership = await db.teamMembership.findFirst({
       where: {
@@ -202,7 +205,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
     await db.team.update({
       where: { slug },
-      data: { name, description },
+      data: { name, description, status },
     });
 
     return NextResponse.json({ message: "Update successful" }, { status: 200 });
