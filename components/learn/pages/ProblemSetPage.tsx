@@ -9,6 +9,7 @@ import {
   useCreatePSetProgressMutation,
   useGetPSetQuery,
   usePSetLikeMutation,
+  usePSetStarMutation,
 } from "@/lib/rtk/slices/problemSets";
 import {
   selectPsetCompletion,
@@ -70,7 +71,8 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
     }
   }, [completedPsetId, sNum, dispatch]);
 
-  const [like] = usePSetLikeMutation();
+  const [like, { isLoading: lLoading }] = usePSetLikeMutation();
+  const [star, { isLoading: sLoading }] = usePSetStarMutation();
   const { status: authStatus } = useSession();
   const {
     data: pset,
@@ -133,15 +135,39 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
       const { liked } = await like(sNum).unwrap();
       return liked;
     };
-    try {
-      toast.promise(likeProblem, {
-        loading: pset.userLiked ? "Removing like..." : "Liking problem set...",
-        success: pset.userLiked ? "Removed like" : "Liked problem set",
-        error: (err) => err.data?.message,
-      });
-    } catch (error) {
-      logStack(error);
+    toast.promise(likeProblem, {
+      loading: pset.userLiked ? "Removing like..." : "Liking problem set...",
+      success: pset.userLiked ? "Removed like" : "Liked problem set",
+      error: (err) => err.data?.message,
+    });
+  };
+
+  const toggleStar = async () => {
+    if (!sNum) {
+      return;
     }
+    if (authStatus !== "authenticated") {
+      toast("Please sign in to star the problem set", {
+        action: {
+          label: "Sign in",
+          onClick: () => router.push("/login"),
+        },
+      });
+      return;
+    }
+    const starProblem = async () => {
+      const { starred } = await star(sNum).unwrap();
+      return starred;
+    };
+    toast.promise(starProblem, {
+      loading: pset.userStarred
+        ? "Removing problem set from favorites..."
+        : "Adding problem set to favorites...",
+      success: pset.userStarred
+        ? "Removed problem set from favorites"
+        : "Removed problem set from favorites",
+      error: (err) => err.data?.message,
+    });
   };
 
   return (
@@ -189,12 +215,16 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
             rank: getRank(averageRank, true),
             count: problemCount,
             userLiked: pset.userLiked,
+            userStarred: pset.userStarred,
             views,
             likes: pset.likes,
             rate: completedCount,
             userSolved: userSolved !== undefined && userSolved > 0,
           }}
           toggleLike={debounce(toggleLike, 300)}
+          toggleStar={debounce(toggleStar, 300)}
+          likeDisabled={lLoading}
+          starDisabled={sLoading}
         />
       </CardContent>
       {pset?.userProgress && (

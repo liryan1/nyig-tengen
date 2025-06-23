@@ -40,6 +40,7 @@ export function ProblemSetCard({
     problems,
     likes,
     userLiked,
+    userStarred,
     createdAt,
     completedCount,
   } = problemSet;
@@ -79,6 +80,7 @@ export function ProblemSetCard({
             rank: getRank(averageRank, true),
             count: problemCount,
             userLiked,
+            userStarred,
             views,
             likes,
             rate: completedCount,

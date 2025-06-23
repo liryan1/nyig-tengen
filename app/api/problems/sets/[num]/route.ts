@@ -33,6 +33,11 @@ export async function GET(req: Request, { params }: Params) {
             userId: true,
           },
         },
+        problemSetStars: {
+          select: {
+            userId: true,
+          },
+        },
         problemSetProgresses: userId
           ? {
               where: {
@@ -67,6 +72,10 @@ export async function GET(req: Request, { params }: Params) {
       (like) => like.userId === userId,
     );
 
+    const userStarred = problemSet.problemSetStars.some(
+      (like) => like.userId === userId,
+    );
+
     const userProgress = problemSet.problemSetProgresses?.find(
       (psp) => psp.status === "inprogress",
     );
@@ -98,6 +107,7 @@ export async function GET(req: Request, { params }: Params) {
         views: problemSet.problemSetStats?.views,
         likes: problemSet.problemSetLikes.length,
         userLiked,
+        userStarred,
         author: problemSet.author,
         problems,
         userProgress,

@@ -34,6 +34,7 @@ model User {
   problemSetProgresses ProblemSetProgress[]
   problemLikes         ProblemLike[]
   problemSetLikes      ProblemSetLike[]
+  problemSetStars      ProblemSetStar[]
   problemStars         ProblemStar[]
   endorsements         ProblemEndorsement[]
   teamMemberships      TeamMembership[]
@@ -233,6 +234,7 @@ model ProblemSet {
   problemSetProgresses ProblemSetProgress[]
   problemSetStats      ProblemSetStats?
   problemSetLikes      ProblemSetLike[]
+  problemSetStars      ProblemSetStar[]
   teamProblemSets      TeamProblemSet[]
 
   @@index([authorId]) // Find how many problem sets a user has created
@@ -253,6 +255,17 @@ model ProblemSetLike {
   problemSetNum String
   user          User       @relation(fields: [userId], references: [id])
   problemSet    ProblemSet @relation(fields: [problemSetNum], references: [num])
+}
+
+model ProblemSetStar {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  userId        String     @db.ObjectId
+  problemSetNum String
+  createdAt     DateTime   @default(now())
+  user          User       @relation(fields: [userId], references: [id])
+  problemSet    ProblemSet @relation(fields: [problemSetNum], references: [num])
+
+  @@unique([userId, problemSetNum])
 }
 
 model Submission {

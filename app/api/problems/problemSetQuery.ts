@@ -22,6 +22,11 @@ export const getProblemSetSelect = (
       userId: true,
     },
   },
+  problemSetStars: {
+    select: {
+      userId: true,
+    },
+  },
   problemSetProgresses: userId
     ? {
         where: {
@@ -54,6 +59,11 @@ export const mapProblemSetResponse = (
         (p: { userId: string }) => p.userId === userId,
       ) !== -1
     : false;
+  const userStarred = userId
+    ? pset.problemSetStars.findIndex(
+        (p: { userId: string }) => p.userId === userId,
+      ) !== -1
+    : false;
 
   return {
     num: pset.num,
@@ -65,6 +75,7 @@ export const mapProblemSetResponse = (
     likes: pset.problemSetLikes?.length,
     completedCount: pset.problemSetStats?.completed,
     userLiked,
+    userStarred,
     problemCount: pset.problemCount,
     averageRank: pset.averageRank,
     createdAt: pset.createdAt,

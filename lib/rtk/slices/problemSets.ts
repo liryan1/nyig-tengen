@@ -15,6 +15,7 @@ export interface ProblemSetResponse {
   views: number;
   likes: number;
   userLiked?: boolean;
+  userStarred?: boolean;
   userProgress?: { id: string; problemOrder: ProblemOrderItem[] };
   completedCount?: number;
   problemCount: number;
@@ -75,7 +76,7 @@ export interface PSetProgressResponse {
   status: ProgressStatus;
 }
 
-const problemsApiSlice = apiSlice.injectEndpoints({
+const problemSetApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getPSets: builder.query<GetPSetsResponse, string>({
       query: (search) => `/problems/sets?${search}`,
@@ -115,6 +116,15 @@ const problemsApiSlice = apiSlice.injectEndpoints({
         { type: PROBLEM_SET_TAG, id: arg },
       ],
     }),
+    pSetStar: builder.mutation<{ starred: boolean }, string>({
+      query: (num) => ({
+        url: `problems/sets/${num}/star`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: PROBLEM_SET_TAG, id: arg },
+      ],
+    }),
   }),
 });
 
@@ -124,4 +134,5 @@ export const {
   useGetPSetProgressQuery,
   useCreatePSetProgressMutation,
   usePSetLikeMutation,
-} = problemsApiSlice;
+  usePSetStarMutation,
+} = problemSetApiSlice;
