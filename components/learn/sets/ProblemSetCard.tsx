@@ -72,6 +72,7 @@ export function ProblemSetCard({
         </div>
 
         <InfoBar
+          readonly
           size="sm"
           info={{
             author,

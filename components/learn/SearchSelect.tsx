@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/popover";
 
 interface SearchSelectProps {
+  triggerClassName?: string;
+  contentClassName?: string;
   value?: string;
   onValueChange: (value: string) => void;
   placeholder?: string;
@@ -32,6 +34,8 @@ interface SearchSelectProps {
 }
 
 export function SearchSelect({
+  triggerClassName,
+  contentClassName,
   value,
   onValueChange,
   options,
@@ -48,7 +52,7 @@ export function SearchSelect({
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className={cn("justify-between", triggerClassName)}
         >
           {value
             ? options.find((option) => option.value === value)?.label
@@ -56,7 +60,7 @@ export function SearchSelect({
           <ChevronsUpDown className="opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
+      <PopoverContent className={cn("p-0", contentClassName)}>
         <Command>
           <CommandInput placeholder={placeholder} className="h-9" />
           <CommandList>

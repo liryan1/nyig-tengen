@@ -1,4 +1,4 @@
-import { LIKED_COLOR } from "@/lib/color";
+import { LIKED_COLOR, STAR_COLOR } from "@/lib/color";
 import { cn, formatLargeNumber } from "@/lib/utils";
 import { UserRole } from "@prisma/client";
 import {
@@ -6,11 +6,18 @@ import {
   EyeIcon,
   HeartIcon,
   SignatureIcon,
+  StarIcon,
   SwordsIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { PiCrownSimple } from "react-icons/pi";
 import { SucessRate } from "./problem/SucessRate";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface InfoBarProps {
   info: {
@@ -18,6 +25,7 @@ interface InfoBarProps {
     rank?: string;
     likes?: number;
     userLiked?: boolean;
+    userStarred?: boolean;
     views?: number;
     count?: number;
     rate?: number;
@@ -27,7 +35,10 @@ interface InfoBarProps {
   size?: "sm";
   moreStuff?: React.ReactNode[];
   toggleLike?: () => void;
+  toggleStar?: () => void;
   likeDisabled?: boolean;
+  starDisabled?: boolean;
+  readonly?: boolean;
 }
 
 export function InfoBar({
@@ -35,7 +46,10 @@ export function InfoBar({
   moreStuff,
   size,
   toggleLike,
+  toggleStar,
   likeDisabled,
+  starDisabled,
+  readonly,
 }: InfoBarProps) {
   const {
     rank,
@@ -45,6 +59,7 @@ export function InfoBar({
     count,
     rate,
     userSolved,
+    userStarred,
     convertRateToPercent,
   } = info;
 
@@ -71,44 +86,90 @@ export function InfoBar({
       )}
 
       {rank !== undefined && (
-        <div className={iconCN}>
-          <SwordsIcon size={iconSize} />
-          <span>{rank}</span>
-        </div>
+        <InfoBarItem
+          disabled={readonly}
+          label="Difficulty"
+          trigger={
+            <div className={iconCN}>
+              <SwordsIcon size={iconSize} />
+              <span>{rank}</span>
+            </div>
+          }
+        />
       )}
 
       {count !== undefined && (
-        <div className={iconCN}>
-          <CalculatorIcon size={iconSize} />
-          <span>{count}</span>
-        </div>
+        <InfoBarItem
+          disabled={readonly}
+          label="Problem count"
+          trigger={
+            <div className={iconCN}>
+              <CalculatorIcon size={iconSize} />
+              <span>{count}</span>
+            </div>
+          }
+        />
       )}
 
       {views !== undefined && (
-        <div className={iconCN}>
-          <EyeIcon size={iconSize} />
-          <span>{formatLargeNumber(views)}</span>
-        </div>
+        <InfoBarItem
+          disabled={readonly}
+          label="View count"
+          trigger={
+            <div className={iconCN}>
+              <EyeIcon size={iconSize} />
+              <span>{formatLargeNumber(views)}</span>
+            </div>
+          }
+        />
       )}
 
       {likes !== undefined && (
-        <div
-          className={cn(iconCN, toggleLike ? "cursor-pointer" : "")}
-          onClick={!likeDisabled ? toggleLike : undefined}
-        >
-          <HeartIcon
-            size={iconSize}
-            fill={info.userLiked ? LIKED_COLOR : "none"}
-          />
-          <span>{formatLargeNumber(likes)}</span>
-        </div>
+        <InfoBarItem
+          disabled={likeDisabled || readonly}
+          label={info.userLiked ? "Unlike problem" : "Like problem"}
+          trigger={
+            <div
+              className={cn(iconCN, toggleLike ? "cursor-pointer" : "")}
+              onClick={!likeDisabled ? toggleLike : undefined}
+            >
+              <HeartIcon
+                size={iconSize}
+                fill={info.userLiked ? LIKED_COLOR : "none"}
+              />
+              <span>{formatLargeNumber(likes)}</span>
+            </div>
+          }
+        />
       )}
 
+      <InfoBarItem
+        disabled={starDisabled || readonly}
+        label={userStarred ? "Unstar problem" : "Star problem"}
+        trigger={
+          <div
+            className={cn(iconCN, toggleStar ? "cursor-pointer" : "")}
+            onClick={!starDisabled ? toggleStar : undefined}
+          >
+            <StarIcon
+              size={iconSize}
+              fill={userStarred ? STAR_COLOR : "none"}
+            />
+          </div>
+        }
+      />
+
       {rate !== undefined && (
-        <SucessRate
-          successRate={rate}
-          userSolved={userSolved}
-          convertToPercent={convertRateToPercent}
+        <InfoBarItem
+          disabled={readonly}
+          label="Attempt success rate"
+          trigger={
+            <SucessRate
+              successRate={rate}
+              userSolved={userSolved}
+              convertToPercent={convertRateToPercent}
+            />
+          }
         />
       )}
 
@@ -118,5 +179,33 @@ export function InfoBar({
         </div>
       ))}
     </div>
+  );
+}
+
+export function InfoBarItem({
+  label,
+  trigger,
+  disabled,
+}: {
+  label: string;
+  trigger: React.ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger
+          disabled={disabled}
+          type="button"
+          className={cn(
+            "cursor-default",
+            disabled ? "pointer-events-none" : "",
+          )}
+        >
+          {trigger}
+        </TooltipTrigger>
+        <TooltipContent>{label}</TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }

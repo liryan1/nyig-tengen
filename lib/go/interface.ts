@@ -15,6 +15,7 @@ export interface BoardState {
 export interface ProblemStats {
   likes?: number;
   userLiked?: boolean;
+  userStarred?: boolean;
   correctCount?: number;
   submissionCount?: number;
   views: number;

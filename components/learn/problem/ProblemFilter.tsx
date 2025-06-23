@@ -12,6 +12,7 @@ import { getRank } from "@/lib/go/display";
 import { Trash2 } from "lucide-react";
 import {
   createParser,
+  parseAsBoolean,
   parseAsInteger,
   useQueryState,
   useQueryStates,
@@ -49,15 +50,17 @@ export function ProblemFilter() {
     ...options,
     defaultValue: "",
   });
+  const [starred, setStarred] = useQueryState("starred", parseAsBoolean);
 
   const clearFilters = useCallback(() => {
     setRankRange({ rank_min: -30, rank_max: 8 });
     setCreator(null);
     setSort(null);
-  }, [setRankRange, setCreator, setSort]);
+    setStarred(false);
+  }, [setRankRange, setCreator, setSort, setStarred]);
 
   return (
-    <div className="flex flex-wrap gap-x-2 sm:gap-x-4 justify-center">
+    <div className="flex flex-wrap gap-x-2 sm:gap-x-4 gap-y-2 justify-center">
       <div className="w-80">
         <DualRangeSlider
           className="mt-5 mb-2"
@@ -78,12 +81,26 @@ export function ProblemFilter() {
       <ProblemCreatorInput value={creator} onSelect={setCreator} />
       <div>
         <Select value={sort} onValueChange={setSort}>
-          <SelectTrigger className="min-w-32 sm:min-w-36">
+          <SelectTrigger className="w-32">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="likes">Likes</SelectItem>
             <SelectItem value="views">Views</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Select
+          value={starred?.toString()}
+          onValueChange={(value) => setStarred(value === "true")}
+        >
+          <SelectTrigger className="w-32">
+            <SelectValue placeholder="Favorites" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="true">Starred</SelectItem>
+            <SelectItem value="false">None</SelectItem>
           </SelectContent>
         </Select>
       </div>

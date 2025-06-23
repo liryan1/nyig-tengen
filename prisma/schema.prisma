@@ -34,6 +34,7 @@ model User {
   problemSetProgresses ProblemSetProgress[]
   problemLikes         ProblemLike[]
   problemSetLikes      ProblemSetLike[]
+  problemStars         ProblemStar[]
   endorsements         ProblemEndorsement[]
   teamMemberships      TeamMembership[]
   teamInvites          TeamInvite[]         @relation("user")
@@ -161,6 +162,7 @@ model Problem {
   author             User                @relation(fields: [authorId], references: [id])
   endorsement        ProblemEndorsement?
   problemLikes       ProblemLike[]
+  problemStars       ProblemStar[]
   teamProblems       TeamProblem[]
 
   @@index([authorId])
@@ -181,6 +183,18 @@ model ProblemLike {
   problemNum String
   user       User    @relation(fields: [userId], references: [id])
   problem    Problem @relation(fields: [problemNum], references: [num])
+}
+
+model ProblemStar {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  problemNum String
+  createdAt  DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id])
+  problem Problem @relation(fields: [problemNum], references: [num])
+
+  @@unique([userId, problemNum])
 }
 
 enum SubmissionStatus {

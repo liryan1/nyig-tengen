@@ -67,7 +67,7 @@ export function MultiSelect({
       className="overflow-visible bg-transparent"
     >
       <div className="group rounded-md border border-input p-2 text-sm ring-offset-background focus-within:ring-1 focus-within:ring-ring focus-within:ring-offset-1">
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-nowrap gap-1">
           {selected?.map((option) => {
             return (
               <Badge key={option.value} variant="secondary">
@@ -105,8 +105,8 @@ export function MultiSelect({
       <div className="relative mt-2">
         <CommandList>
           {open && selectables.length > 0 ? (
-            <div className="absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
-              <CommandGroup className="h-full overflow-auto">
+            <div className="absolute top-0 z-10 w-full max-h-[300px] overflow-y-auto rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+              <CommandGroup>
                 {selectables.map((option) => {
                   return (
                     <CommandItem

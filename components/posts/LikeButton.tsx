@@ -1,6 +1,6 @@
 "use client";
 import { debounce } from "@/lib/utils";
-import { useToggleLikeMutation } from "@/lib/rtk/slices/likes";
+import { useTogglePostLikeMutation } from "@/lib/rtk/slices/posts";
 import { HeartIcon } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
@@ -20,7 +20,7 @@ export function LikeButton({
 }: LikeButtonProps) {
   const [liked, setLiked] = React.useState(initialLiked);
   const [count, setCount] = React.useState(initialCount);
-  const [toggleLike, { isLoading, isError }] = useToggleLikeMutation();
+  const [toggleLike, { isLoading, isError }] = useTogglePostLikeMutation();
 
   async function handleClick() {
     if (isLoading || isError) return;

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../../auth/authOptions";
 import { logStack } from "@/lib/error";
+import { authOptions } from "@/app/api/auth/authOptions";
 
 /**
  * POST /api/likes/toggle

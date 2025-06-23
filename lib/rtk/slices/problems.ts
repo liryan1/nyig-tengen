@@ -118,6 +118,14 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: (result, error, arg) => [{ type: PROBLEM_TAG, id: arg }],
     }),
 
+    problemStar: builder.mutation<{ starred: boolean }, string>({
+      query: (num) => ({
+        url: `/problems/${num}/star`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, arg) => [{ type: PROBLEM_TAG, id: arg }],
+    }),
+
     getProblemCreators: builder.query<ProblemCreator[], void>({
       query: () => `problems/creators`,
     }),
@@ -132,5 +140,6 @@ export const {
   useCreateProblemMutation,
   useUpdateProblemMutation,
   useProblemLikeMutation,
+  useProblemStarMutation,
   useGetProblemCreatorsQuery,
 } = problemsApiSlice;

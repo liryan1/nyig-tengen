@@ -27,6 +27,11 @@ export const getProblemSelect = (userId?: string): Prisma.ProblemSelect => ({
       userId: true,
     },
   },
+  problemStars: {
+    select: {
+      userId: true,
+    },
+  },
   visibility: true,
   endorsement: {
     select: {
@@ -73,6 +78,10 @@ export const mapProblemResponse = (
     correctCount: problem.problemStats?.correctCount,
     userLiked:
       problem.problemLikes.findIndex(
+        (p: { userId: string }) => p.userId === userId,
+      ) !== -1,
+    userStarred:
+      problem.problemStars.findIndex(
         (p: { userId: string }) => p.userId === userId,
       ) !== -1,
     likes: problem.problemLikes?.length,

@@ -1,13 +1,13 @@
 "use client";
 
 import { useCellSize } from "@/hooks/useCellSize";
-import { LIKED_COLOR } from "@/lib/color";
+import { LIKED_COLOR, STAR_COLOR } from "@/lib/color";
 import { getRank } from "@/lib/go/display";
 import { GoProblemResponse } from "@/lib/go/interface";
 import { getBoardSize, getRootBoardState } from "@/lib/go/parser";
 import { formatLargeNumber, truncateString } from "@/lib/utils";
 import { UserRole } from "@prisma/client";
-import { EyeIcon, HeartIcon, SwordsIcon } from "lucide-react";
+import { EyeIcon, HeartIcon, StarIcon, SwordsIcon } from "lucide-react";
 import Link from "next/link";
 import { useRef } from "react";
 import { PiCrownSimple } from "react-icons/pi";
@@ -84,6 +84,12 @@ export function ProblemCard({ goProblemResponse }: Props) {
               fill={stats?.userLiked ? LIKED_COLOR : "none"}
             />
             <span>{stats?.likes ? formatLargeNumber(stats.likes) : "0"}</span>
+          </span>
+          <span className="flex items-center gap-0.5">
+            <StarIcon
+              size={16}
+              fill={stats?.userStarred ? STAR_COLOR : "none"}
+            />
           </span>
         </div>
         <SucessRate

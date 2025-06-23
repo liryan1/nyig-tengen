@@ -1,13 +1,16 @@
 import { logStack } from "@/lib/error";
 import { getRank } from "@/lib/go/display";
 import { GoProblemMeta, StoneColor } from "@/lib/go/interface";
-import { useProblemLikeMutation } from "@/lib/rtk/slices/problems";
+import {
+  useProblemLikeMutation,
+  useProblemStarMutation,
+} from "@/lib/rtk/slices/problems";
 import { cn, debounce } from "@/lib/utils";
 import { CircleIcon, CrownIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { InfoBar } from "../InfoBar";
+import { InfoBar, InfoBarItem } from "../InfoBar";
 import { EndorsedTooltip } from "../problem/EndorsedTooltip";
 import { UserRole } from "@prisma/client";
 import { PiCrownSimple } from "react-icons/pi";
@@ -28,7 +31,9 @@ export function GoProblemHeader({
 }: GoProblemHeaderProps) {
   const router = useRouter();
   const { rank, description, author, stats, userSolved, endorser } = meta;
-  const [like, { isLoading }] = useProblemLikeMutation();
+  const [like, { isLoading: likeLoading }] = useProblemLikeMutation();
+  const [star, { isLoading: starLoading }] = useProblemStarMutation();
+  const isLoading = likeLoading || starLoading;
   const stoneColor = initialColor === 1 ? "black" : "white";
   const successRate =
     (stats?.correctCount ?? 0) / (stats?.submissionCount ?? 1);
@@ -49,15 +54,35 @@ export function GoProblemHeader({
     const likeProblem = async () => {
       return like(num).unwrap();
     };
-    try {
-      toast.promise(likeProblem, {
-        loading: stats?.userLiked ? "Removing like..." : "Liking problem...",
-        success: stats?.userLiked ? "Removed like" : "Liked problem",
-        error: (err) => err.data?.message,
+    toast.promise(likeProblem, {
+      loading: stats?.userLiked ? "Removing like..." : "Liking problem...",
+      success: stats?.userLiked ? "Removed like" : "Liked problem",
+      error: (err) => err.data?.message,
+    });
+  };
+
+  const toggleStar = async () => {
+    if (authStatus !== "authenticated") {
+      toast("Please sign in to star the problem", {
+        action: {
+          label: "Sign in",
+          onClick: () => router.push("/login"),
+        },
       });
-    } catch (error) {
-      logStack(error);
+      return;
     }
+    const starProblem = async () => {
+      return star(num).unwrap();
+    };
+    toast.promise(starProblem, {
+      loading: stats?.userStarred
+        ? "Removing problem from favorites..."
+        : "Adding problem to favorites...",
+      success: stats?.userStarred
+        ? "Removed problem from favorites"
+        : "Added problem to favorites",
+      error: (err) => err.data?.message,
+    });
   };
 
   return (
@@ -65,22 +90,29 @@ export function GoProblemHeader({
       <div>
         <div className="flex justify-between items-center">
           <div className="flex gap-0.5 items-center">
-            <span className="text-xs sm:text-lg text-muted-foreground">
-              <Link href="#" className="flex items-center gap-0.5">
-                {author.name}
-                {isAuthorAdmin && (
-                  <PiCrownSimple className="h-4 w-4 sm:h-5 sm:w-5" />
-                )}
-              </Link>
-            </span>
+            <InfoBarItem
+              label="Author"
+              trigger={
+                <span className="text-xs sm:text-lg text-muted-foreground">
+                  <Link href="#" className="flex items-center gap-0.5">
+                    {author.name}
+                    {isAuthorAdmin && (
+                      <PiCrownSimple className="h-4 w-4 sm:h-5 sm:w-5" />
+                    )}
+                  </Link>
+                </span>
+              }
+            />
             {endorser && (
               <EndorsedTooltip
                 endorserName={`${endorser.name}${endorser.rank ? " " + endorser.rank : ""}`}
               />
             )}
           </div>
-
-          <CircleIcon size={24} fill={stoneColor} />
+          <InfoBarItem
+            label={`${stoneColor} to play`}
+            trigger={<CircleIcon size={24} fill={stoneColor} />}
+          />
         </div>
       </div>
 
@@ -89,13 +121,16 @@ export function GoProblemHeader({
           rank: getRank(rank),
           likes: stats?.likes || 0,
           userLiked: stats?.userLiked,
+          userStarred: stats?.userStarred,
           views: stats?.views ?? 0,
           rate: isNaN(successRate) || !successRate ? 0 : successRate,
           userSolved,
           convertRateToPercent: true,
         }}
-        toggleLike={debounce(toggleLike, 500)}
+        toggleLike={debounce(toggleLike, 300)}
+        toggleStar={debounce(toggleStar, 300)}
         likeDisabled={isLoading}
+        starDisabled={isLoading}
       />
 
       {description && (

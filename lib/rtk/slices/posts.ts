@@ -21,6 +21,15 @@ interface PostQuery {
   name?: string;
 }
 
+interface TogglePostikeRequest {
+  postId?: string;
+  commentId?: string;
+}
+
+interface TogglePostLikeResponse {
+  liked: boolean;
+}
+
 const postsApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getPosts: builder.query<Posts, PostQuery>({
@@ -78,6 +87,17 @@ const postsApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
       }),
     }),
+
+    togglePostLike: builder.mutation<
+      TogglePostLikeResponse,
+      TogglePostikeRequest
+    >({
+      query: (body) => ({
+        url: "posts/likes/toggle",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -89,4 +109,5 @@ export const {
   useUpdatePostMutation,
   useDeletePostMutation,
   useIncrementViewsMutation,
+  useTogglePostLikeMutation,
 } = postsApiSlice;

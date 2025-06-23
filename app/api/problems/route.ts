@@ -25,6 +25,7 @@ type QueryParams = {
   rank_max?: string;
   creator?: string;
   sort?: string;
+  starred?: string;
 };
 
 export async function GET(req: Request) {
@@ -68,6 +69,15 @@ export async function GET(req: Request) {
     const where: Prisma.ProblemWhereInput = {
       rank: { gte, lte },
       OR: getProblemSelectOR(userId),
+      ...(params.starred === "true" && userId
+        ? {
+            problemStars: {
+              some: {
+                userId,
+              },
+            },
+          }
+        : {}),
     };
 
     if (params.creator) {
