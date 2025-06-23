@@ -23,7 +23,6 @@ export async function POST(req: NextRequest, { params }: Params) {
         { status: 400 },
       );
     }
-    console.log("num", num);
 
     const existingStar = await db.problemStar.findFirst({
       where: {

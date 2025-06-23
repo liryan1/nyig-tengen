@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RANK_OPTIONS } from "@/lib/go/constants";
 import { GoGame } from "@/lib/go/goGame";
 import { GoProblemResponse } from "@/lib/go/interface";
-import { goGameToSgf, rootNodeToSgf } from "@/lib/go/parser";
+import { goGameToSgf } from "@/lib/go/parser";
 import {
   ProblemCreateRequest,
   useCreateProblemMutation,
@@ -141,8 +141,7 @@ export function ProblemForm({ problem }: Props) {
         ...values,
         teamSlugs: values.teamSlugs?.map((t) => t.value) || undefined,
         description: values.description?.trim() || undefined,
-        initial: rootNodeToSgf(goGame),
-        correct: goGameToSgf(goGame),
+        sgf: goGameToSgf(goGame),
       };
       if (problem) {
         return update({ num: problem.num, ...body }).unwrap();

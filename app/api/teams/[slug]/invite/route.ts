@@ -53,7 +53,6 @@ export async function POST(req: Request, { params }: Params) {
       const messages = userIds
         .filter((u) => u.error?.length)
         .map((u) => u.error);
-      console.log(messages);
       return NextResponse.json(
         { message: messages.join(", ") },
         { status: 400 },

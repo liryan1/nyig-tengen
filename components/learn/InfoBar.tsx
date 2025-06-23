@@ -145,7 +145,7 @@ export function InfoBar({
 
       <InfoBarItem
         disabled={starDisabled || readonly}
-        label={userStarred ? "Unstar problem" : "Star problem"}
+        label={userStarred ? "Remove from favorites" : "Add to favorites"}
         trigger={
           <div
             className={cn(iconCN, toggleStar ? "cursor-pointer" : "")}

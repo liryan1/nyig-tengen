@@ -1,43 +1,63 @@
 "use client";
 
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { Button } from "@/components/ui/button";
 import {
   Form,
+  FormControl,
   FormField,
   FormItem,
   FormLabel,
-  FormControl,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { SendHorizonalIcon } from "lucide-react";
+import { useCreatePSetMutation } from "@/lib/rtk/slices/problemSets";
+import { Spinner } from "../labels/Spinner";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const FormSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters"),
-  description: z
-    .string()
-    .min(20, "Please enter a description of at least 20 characters"),
+  name: z.string().min(5, "Title must be at least 5 characters"),
+  description: z.string(),
   sgf: z.string().nonempty("An SGF problems file is required"),
 });
 
 type FormValues = z.infer<typeof FormSchema>;
 
 export function PSetCreateForm() {
+  const router = useRouter();
+  const [create, { isLoading, isError }] = useCreatePSetMutation();
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
-      title: "",
+      name: "",
       description: "",
       sgf: "",
     },
   });
 
-  const onSubmit = (values: FormValues) => {
-    console.log("Form values:", values);
+  const onSubmit = async (values: FormValues) => {
+    const createPSet = () => create(values).unwrap();
+    toast.promise(createPSet, {
+      loading: "Creating problem set...",
+      success: (res) => ({
+        message: "Successfully created problem set",
+        action: res?.problemSetNum
+          ? {
+              label: "View",
+              onClick: () => {
+                router.push("/learn/problems/" + res.problemSetNum);
+              },
+            }
+          : undefined,
+      }),
+      error: (err) => err.data?.message,
+    });
   };
 
   return (
@@ -45,7 +65,7 @@ export function PSetCreateForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
-          name="title"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Title</FormLabel>
@@ -64,10 +84,7 @@ export function PSetCreateForm() {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="(Optional) Provide a description"
-                  {...field}
-                />
+                <Textarea placeholder="Provide a description" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -83,7 +100,7 @@ export function PSetCreateForm() {
               <div className="text-sm">
                 Upload an SGF file with branches on the root node. Each branch
                 is a problem and each variation is a solution to the problem.
-                All solutions must end with the starting player.
+                Please include all of the opponent&apos;s reasonable responses.
               </div>
               <FormControl>
                 <Input
@@ -113,8 +130,13 @@ export function PSetCreateForm() {
           )}
         />
 
-        <Button type="submit" disabled>
-          Save draft
+        <Button type="submit">
+          Create
+          {isLoading ? (
+            <Spinner className="h-4 w-4" />
+          ) : (
+            <SendHorizonalIcon className="h-4 w-4" />
+          )}
         </Button>
       </form>
     </Form>

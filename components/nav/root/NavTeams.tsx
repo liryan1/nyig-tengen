@@ -7,6 +7,7 @@ import {
   MailboxIcon,
   MoreHorizontal,
   PlusCircleIcon,
+  SearchIcon,
   UsersRoundIcon,
 } from "lucide-react";
 
@@ -141,7 +142,7 @@ export function NavTeams() {
         <SidebarMenuItem className="group-data-[collapsible=icon]:hidden">
           <Link href="#">
             <SidebarMenuButton className="text-sidebar-foreground/70">
-              <MoreHorizontal className="text-sidebar-foreground/70" />
+              <SearchIcon className="text-sidebar-foreground/70" />
               <span>Find Teams</span>
             </SidebarMenuButton>
           </Link>

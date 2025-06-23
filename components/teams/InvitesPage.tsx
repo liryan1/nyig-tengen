@@ -12,6 +12,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 import { PageError } from "../labels/Error";
 import { Avatar, AvatarFallback } from "../ui/avatar";
+import { PageSpinner } from "../labels/Spinner";
 
 export function InvitesPage() {
   const { data: session } = useSession();
@@ -25,7 +26,7 @@ export function InvitesPage() {
   const [respondToInvite, { isLoading: responding }] =
     useRespondToInviteMutation();
 
-  if (isLoading) return <div>Loading invitations...</div>;
+  if (isLoading) return <PageSpinner />;
   if (isError || !invites)
     return <PageError>Failed to load invitations</PageError>;
 

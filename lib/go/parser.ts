@@ -62,6 +62,19 @@ export function getRootBoardState(sgf: string): BoardState {
   return game.getBoardState(root);
 }
 
+export function getProblemInfoFromComments(comments?: string) {
+  const items = comments?.split("\n");
+  if (!items?.length) {
+    return {};
+  }
+  const problemInfo: Record<string, string> = {};
+  for (const item of items) {
+    const [key, value] = item.split(":");
+    problemInfo[key.trim()] = value.trim();
+  }
+  return problemInfo;
+}
+
 // -------------------------------------------------------------------------
 // Internals: Parsing
 // -------------------------------------------------------------------------

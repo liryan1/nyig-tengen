@@ -37,7 +37,6 @@ export async function POST(req: NextRequest, { params }: Params) {
       await db.problemSetStar.delete({ where: { id: existingStar.id } });
       return NextResponse.json({ starred: false }, { status: 200 });
     } else {
-      console.log("Creating problem set star");
       // Not starred yet => create the star
       await db.problemSetStar.create({
         data: {

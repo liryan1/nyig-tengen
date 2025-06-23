@@ -76,20 +76,26 @@ export interface PSetProgressResponse {
   status: ProgressStatus;
 }
 
+export interface CreatePSetRequest {
+  name: string;
+  description: string;
+  sgf: string;
+}
+
 const problemSetApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getPSets: builder.query<GetPSetsResponse, string>({
-      query: (search) => `/problems/sets?${search}`,
+      query: (search) => `problems/sets?${search}`,
       providesTags: [PROBLEM_SETS_TAG],
     }),
     getPSet: builder.query<PSetResponse, string>({
-      query: (num) => `/problems/sets/${num}`,
+      query: (num) => `problems/sets/${num}`,
       providesTags: (result, error, arg) => [
         { type: PROBLEM_SET_TAG, id: arg },
       ],
     }),
     getPSetProgress: builder.query<PSetProgressResponse, string>({
-      query: (num) => `/problems/sets/${num}/progress`,
+      query: (num) => `problems/sets/${num}/progress`,
       providesTags: (result, error, arg) => [
         { type: PROBLEM_SET_TAG, id: arg },
       ],
@@ -99,7 +105,7 @@ const problemSetApiSlice = apiSlice.injectEndpoints({
       { id: string; randomize?: boolean }
     >({
       query: ({ id, randomize }) => ({
-        url: `/problems/sets/${id}/progress`,
+        url: `problems/sets/${id}/progress`,
         method: "POST",
         body: { randomize },
       }),
@@ -125,6 +131,14 @@ const problemSetApiSlice = apiSlice.injectEndpoints({
         { type: PROBLEM_SET_TAG, id: arg },
       ],
     }),
+
+    createPSet: builder.mutation<{ problemSetNum: string }, CreatePSetRequest>({
+      query: (body) => ({
+        url: "problems/sets/new",
+        method: "POST",
+        body,
+      }),
+    }),
   }),
 });
 
@@ -135,4 +149,6 @@ export const {
   useCreatePSetProgressMutation,
   usePSetLikeMutation,
   usePSetStarMutation,
+
+  useCreatePSetMutation,
 } = problemSetApiSlice;

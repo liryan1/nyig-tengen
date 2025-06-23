@@ -24,8 +24,7 @@ interface SubmissionResponse {
 export interface ProblemCreateRequest {
   rank: number;
   description?: string;
-  initial: string;
-  correct: string;
+  sgf: string;
   visibility?: Visibility;
   teamSlugs?: string[];
 }
@@ -89,7 +88,7 @@ const problemsApiSlice = apiSlice.injectEndpoints({
       ProblemCreateRequest
     >({
       query: (body) => ({
-        url: "problems",
+        url: "problems/new",
         method: "POST",
         body,
       }),
