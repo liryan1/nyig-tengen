@@ -20,18 +20,50 @@ import { useCreatePSetMutation } from "@/lib/rtk/slices/problemSets";
 import { Spinner } from "../labels/Spinner";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Visibility } from "@prisma/client";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { MultiSelect } from "../ui/multiselect";
+import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
 
-const FormSchema = z.object({
-  name: z.string().min(5, "Title must be at least 5 characters"),
-  description: z.string(),
-  sgf: z.string().nonempty("An SGF problems file is required"),
-});
+const FormSchema = z
+  .object({
+    name: z.string().min(5, "Title must be at least 5 characters"),
+    description: z.string(),
+    sgf: z.string().nonempty("An SGF problems file is required"),
+    visibility: z.nativeEnum(Visibility),
+    teamSlugs: z
+      .array(
+        z.object({
+          value: z.string(),
+          label: z.string(),
+        }),
+      )
+      .optional(),
+  })
+  .refine(
+    (data) => data.visibility !== Visibility.TEAM || !!data.teamSlugs?.length,
+    {
+      message: "Team is required when visibility is TEAM",
+      path: ["teamSlugs"],
+    },
+  );
 
 type FormValues = z.infer<typeof FormSchema>;
 
 export function PSetCreateForm() {
   const router = useRouter();
-  const [create, { isLoading, isError }] = useCreatePSetMutation();
+  const [create, { isLoading: cLoading, isError }] = useCreatePSetMutation();
+  const { data: teams, isLoading: tLoading } = useGetMyTeamsQuery();
+  const isLoading = cLoading || tLoading;
+  const teamOptions =
+    teams?.map((team) => ({ value: team.slug, label: team.name })) || [];
+
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
     defaultValues: {
@@ -40,9 +72,11 @@ export function PSetCreateForm() {
       sgf: "",
     },
   });
+  const selectedVisibility = form.watch("visibility");
 
   const onSubmit = async (values: FormValues) => {
-    const createPSet = () => create(values).unwrap();
+    const teamSlugs = values.teamSlugs?.map((s) => s.value);
+    const createPSet = () => create({ ...values, teamSlugs }).unwrap();
     toast.promise(createPSet, {
       loading: "Creating problem set...",
       success: (res) => ({
@@ -129,6 +163,53 @@ export function PSetCreateForm() {
             </FormItem>
           )}
         />
+
+        <FormField
+          control={form.control}
+          name="visibility"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Visibility</FormLabel>
+              <FormControl>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Select visibility" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.values(Visibility)
+                      .filter((v) => v !== Visibility.DELETED)
+                      .map((o) => (
+                        <SelectItem key={o} value={o}>
+                          {o.toLowerCase()}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {selectedVisibility === Visibility.TEAM && (
+          <FormField
+            control={form.control}
+            name="teamSlugs"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Select Teams</FormLabel>
+                <FormControl>
+                  <MultiSelect
+                    placeholder="Select teams"
+                    options={teamOptions}
+                    selected={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <Button type="submit">
           Create

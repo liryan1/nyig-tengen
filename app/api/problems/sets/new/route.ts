@@ -12,6 +12,7 @@ import {
   toSgf,
 } from "@/lib/go/parser";
 import { CreatePSetRequest } from "@/lib/rtk/slices/problemSets";
+import { Visibility } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 
@@ -25,7 +26,26 @@ export async function POST(req: Request) {
     if (!userId) {
       return NextResponse.json({ message: "Not authorized" }, { status: 401 });
     }
+    if (body.visibility) {
+      if (
+        !Object.values(Visibility).includes(body.visibility) ||
+        body.visibility === Visibility.DELETED
+      ) {
+        return NextResponse.json(
+          { message: "Invalid visibility" },
+          { status: 400 },
+        );
+      }
 
+      if (body.visibility === Visibility.TEAM && !body.teamSlugs?.length) {
+        return NextResponse.json(
+          {
+            message: "Team is required to create a team visibility problem set",
+          },
+          { status: 400 },
+        );
+      }
+    }
     const problemSetNum = await createPSet(body, userId);
 
     return NextResponse.json({
@@ -42,7 +62,8 @@ export async function POST(req: Request) {
 }
 
 async function createPSet(body: CreatePSetRequest, userId: string) {
-  const { name, description, sgf } = body;
+  const { name, description, sgf, visibility, teamSlugs } = body;
+  // TODO: implement visibility
 
   const parsed = fromSgf(sgf);
   const boardSize = getBoardSize(sgf);
@@ -83,9 +104,26 @@ async function createPSet(body: CreatePSetRequest, userId: string) {
           description,
           rank,
           authorId: userId,
+          visibility,
         },
         select: { id: true, num: true },
       });
+
+      // If the problem is team-based and a list of teams is provided, create join records
+      const teamProblemCreateRequests = [];
+      if (visibility === Visibility.TEAM && teamSlugs) {
+        for (const teamSlug of teamSlugs) {
+          teamProblemCreateRequests.push(
+            db.teamProblem.create({
+              data: {
+                teamSlug,
+                problemNum: createdProblem.num,
+              },
+            }),
+          );
+        }
+      }
+      await db.$transaction(teamProblemCreateRequests);
 
       await tx.problemSetProblem.create({
         data: {
@@ -104,7 +142,25 @@ async function createPSet(body: CreatePSetRequest, userId: string) {
         authorId: userId,
         averageRank: rankSum / problemSgfs.length,
         problemCount: problemSgfs.length,
+        visibility,
       },
     });
+
+    // TODO: veriy this teams logic
+    // If the problem is team-based and a list of teams is provided, create join records
+    const teamProblemSetCreateRequests = [];
+    if (visibility === Visibility.TEAM && teamSlugs) {
+      for (const teamSlug of teamSlugs) {
+        teamProblemSetCreateRequests.push(
+          db.teamProblemSet.create({
+            data: {
+              teamSlug,
+              problemSetNum,
+            },
+          }),
+        );
+      }
+    }
+    await db.$transaction(teamProblemSetCreateRequests);
   });
 }

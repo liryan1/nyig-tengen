@@ -3,6 +3,7 @@ import {
   ProgressStatus,
   SubmissionStatus,
   UserRole,
+  Visibility,
 } from "@prisma/client";
 import { apiSlice, PROBLEM_SET_TAG, PROBLEM_SETS_TAG } from "../api";
 
@@ -80,6 +81,8 @@ export interface CreatePSetRequest {
   name: string;
   description: string;
   sgf: string;
+  visibility: Visibility;
+  teamSlugs?: string[];
 }
 
 const problemSetApiSlice = apiSlice.injectEndpoints({
