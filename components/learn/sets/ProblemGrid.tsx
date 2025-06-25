@@ -79,10 +79,7 @@ export function ProblemGrid({
           return (
             <div
               key={problem.num}
-              className={cn(
-                "overflow-hidden",
-                problemOrder ? "cursor-pointer" : "",
-              )}
+              className="cursor-pointer overflow-hidden"
               onClick={() => onProblemClick(problem.num)}
             >
               <ReadonlyGoBoard

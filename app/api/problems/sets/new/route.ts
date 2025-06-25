@@ -63,104 +63,121 @@ export async function POST(req: Request) {
 
 async function createPSet(body: CreatePSetRequest, userId: string) {
   const { name, description, sgf, visibility, teamSlugs } = body;
-  // TODO: implement visibility
 
   const parsed = fromSgf(sgf);
   const boardSize = getBoardSize(sgf);
   const problemSgfs = parsed.children.map((c) => toSgf(c, boardSize));
 
-  // Use a transaction to create problem sets, problems and links
-  return db.$transaction(async (tx) => {
-    const setCounter = await tx.counter.upsert({
-      where: { model: "ProblemSet" },
-      update: { value: { increment: 1 } },
-      create: { model: "ProblemSet", value: 1 },
-    });
-    const problemSetNum = setCounter.value.toString();
+  const problemInputs = problemSgfs.map((sgf, i) => {
+    const goGame = GoGame.fromSgf(sgf);
+    const initial = rootNodeToSgf(goGame);
+    const correct = goGameToSgf(goGame);
+    const info = getProblemInfoFromComments(goGame.root.comment);
+    const rank = parseRank(info.rank, -10);
 
-    // Create all problems and join documents
-    let rankSum = 0;
-    for (let i = 0; i < problemSgfs.length; i++) {
-      const goGame = GoGame.fromSgf(problemSgfs[i]);
-      const initial = rootNodeToSgf(goGame);
-      const correct = goGameToSgf(goGame);
-      const problemInfo = getProblemInfoFromComments(goGame.root.comment);
-      const rank = parseRank(problemInfo.rank, -10);
-      const description = `${name} problem ${i + 1}: ${problemInfo?.description}`;
-      rankSum += rank;
+    return {
+      initial,
+      correct,
+      rank,
+      description: `${name} problem ${i + 1}: ${info?.description}`,
+    };
+  });
 
-      const counter = await tx.counter.upsert({
-        where: { model: "Problem" },
+  const problemCount = problemInputs.length;
+  const rankSum = problemInputs.reduce((sum, p) => sum + p.rank, 0);
+  const averageRank = rankSum / problemCount;
+
+  return db.$transaction(
+    async (tx) => {
+      // Get next ProblemSet num
+      const setCounter = await tx.counter.upsert({
+        where: { model: "ProblemSet" },
         update: { value: { increment: 1 } },
-        create: { model: "Problem", value: 1 },
+        create: { model: "ProblemSet", value: 1 },
       });
-      const problemNum = counter.value.toString();
+      const problemSetNum = setCounter.value.toString();
 
-      const createdProblem = await tx.problem.create({
-        data: {
-          num: problemNum,
-          initial,
-          correct,
-          description,
-          rank,
-          authorId: userId,
-          visibility,
-        },
-        select: { id: true, num: true },
+      // Batch increment Problem counter
+      const counterDoc = await tx.counter.upsert({
+        where: { model: "Problem" },
+        update: { value: { increment: problemCount } },
+        create: { model: "Problem", value: problemCount },
       });
 
-      // If the problem is team-based and a list of teams is provided, create join records
-      const teamProblemCreateRequests = [];
-      if (visibility === Visibility.TEAM && teamSlugs) {
-        for (const teamSlug of teamSlugs) {
-          teamProblemCreateRequests.push(
-            db.teamProblem.create({
-              data: {
-                teamSlug,
-                problemNum: createdProblem.num,
-              },
-            }),
+      const startingNum = counterDoc.value - problemCount + 1;
+
+      const problemCreations = problemInputs.map(async (data, i) => {
+        const problemNum = (startingNum + i).toString();
+
+        const created = await tx.problem.create({
+          data: {
+            num: problemNum,
+            ...data,
+            authorId: userId,
+            visibility,
+          },
+          select: { id: true, num: true },
+        });
+
+        // Create teamProblem links if visibility is TEAM
+        if (visibility === Visibility.TEAM && teamSlugs) {
+          await Promise.all(
+            teamSlugs.map((slug) =>
+              tx.teamProblem.create({
+                data: {
+                  teamSlug: slug,
+                  problemNum: created.num,
+                },
+              }),
+            ),
           );
         }
-      }
-      await db.$transaction(teamProblemCreateRequests);
 
-      await tx.problemSetProblem.create({
+        // Link to problem set
+        await tx.problemSetProblem.create({
+          data: {
+            problemSetNum,
+            problemNum: created.num,
+            position: i + 1,
+          },
+        });
+
+        return created;
+      });
+
+      await Promise.all(problemCreations);
+
+      // Create the problem set
+      await tx.problemSet.create({
         data: {
-          problemSetNum: problemSetNum,
-          problemNum: createdProblem.num,
-          position: i + 1,
+          num: problemSetNum,
+          name,
+          description,
+          authorId: userId,
+          averageRank,
+          problemCount,
+          visibility,
         },
       });
-    }
 
-    await tx.problemSet.create({
-      data: {
-        num: problemSetNum,
-        name,
-        description,
-        authorId: userId,
-        averageRank: rankSum / problemSgfs.length,
-        problemCount: problemSgfs.length,
-        visibility,
-      },
-    });
-
-    // TODO: veriy this teams logic
-    // If the problem is team-based and a list of teams is provided, create join records
-    const teamProblemSetCreateRequests = [];
-    if (visibility === Visibility.TEAM && teamSlugs) {
-      for (const teamSlug of teamSlugs) {
-        teamProblemSetCreateRequests.push(
-          db.teamProblemSet.create({
-            data: {
-              teamSlug,
-              problemSetNum,
-            },
-          }),
+      // Link to teams if needed
+      if (visibility === Visibility.TEAM && teamSlugs) {
+        await Promise.all(
+          teamSlugs.map((slug) =>
+            tx.teamProblemSet.create({
+              data: {
+                teamSlug: slug,
+                problemSetNum,
+              },
+            }),
+          ),
         );
       }
-    }
-    await db.$transaction(teamProblemSetCreateRequests);
-  });
+
+      return problemSetNum;
+    },
+    {
+      timeout: 60_000, // 60 seconds
+    },
+  );
 }

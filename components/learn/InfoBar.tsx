@@ -162,7 +162,7 @@ export function InfoBar({
       {rate !== undefined && (
         <InfoBarItem
           disabled={readonly}
-          label="Attempt success rate"
+          label="Attempt success"
           trigger={
             <SucessRate
               successRate={rate}

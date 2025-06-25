@@ -78,14 +78,14 @@ export function PSetCreateForm() {
     const teamSlugs = values.teamSlugs?.map((s) => s.value);
     const createPSet = () => create({ ...values, teamSlugs }).unwrap();
     toast.promise(createPSet, {
-      loading: "Creating problem set...",
+      loading: "Creating problem set (takes up to 60 seconds)...",
       success: (res) => ({
         message: "Successfully created problem set",
         action: res?.problemSetNum
           ? {
               label: "View",
               onClick: () => {
-                router.push("/learn/problems/" + res.problemSetNum);
+                router.push("/learn/sets/" + res.problemSetNum);
               },
             }
           : undefined,

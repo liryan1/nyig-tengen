@@ -113,7 +113,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
 
   const handleProblemClick = (pNum: string) => {
     if (!pset?.userProgress) {
-      return;
+      return router.push(`/learn/problems/${pNum}`);
     }
     return router.push(`/learn/sets/${num}/${pNum}`);
   };
