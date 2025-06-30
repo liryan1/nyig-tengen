@@ -57,7 +57,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
         icon: <TrophyIcon />,
         description:
           "You completed the problem set and earned a trophy! Keep up the great work!",
-        duration: 5000,
+        duration: 60_000,
       });
       // Clear the completion state immediately to prevent re-triggering
       dispatch(setPsetCompletion(null));

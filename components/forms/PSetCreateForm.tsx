@@ -211,7 +211,7 @@ export function PSetCreateForm() {
           />
         )}
 
-        <Button type="submit">
+        <Button type="submit" disabled={isLoading}>
           Create
           {isLoading ? (
             <Spinner className="h-4 w-4" />

@@ -75,11 +75,13 @@ async function createPSet(body: CreatePSetRequest, userId: string) {
     const info = getProblemInfoFromComments(goGame.root.comment);
     const rank = parseRank(info.rank, -10);
 
+    const description = `${name} problem ${i + 1}${info?.description ? `: ${info.description}` : ""}`;
+
     return {
       initial,
       correct,
       rank,
-      description: `${name} problem ${i + 1}: ${info?.description}`,
+      description,
     };
   });
 

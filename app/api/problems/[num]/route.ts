@@ -9,6 +9,12 @@ import {
   getProblemSelectOR,
   mapProblemResponse,
 } from "../problemQuery";
+import { GoGame } from "@/lib/go/goGame";
+import { goGameToSgf, rootNodeToSgf } from "@/lib/go/parser";
+import {
+  validateProblemInitial,
+  validateProblemSolutions,
+} from "@/lib/go/validator";
 
 type Params = { params: Promise<{ num: string }> };
 type QueryParams = {
@@ -85,8 +91,7 @@ export async function PATCH(req: Request, { params }: Params) {
     const {
       description,
       rank,
-      initial,
-      correct,
+      sgf,
       visibility,
       teamSlugs, // expecting an array of strings if visibility is TEAM
     } = body;
@@ -95,7 +100,7 @@ export async function PATCH(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    if (rank === undefined || rank === null || !initial || !correct) {
+    if (rank === undefined || rank === null || !sgf) {
       return NextResponse.json(
         { message: "Missing required fields" },
         { status: 400 },
@@ -112,7 +117,7 @@ export async function PATCH(req: Request, { params }: Params) {
           { status: 400 },
         );
       }
-      // For TEAM visibility, we now require an array of team slugs
+      // For TEAM visibility, require an array of team slugs
       if (visibility === Visibility.TEAM) {
         if (!Array.isArray(teamSlugs) || teamSlugs.length === 0) {
           return NextResponse.json(
@@ -156,6 +161,20 @@ export async function PATCH(req: Request, { params }: Params) {
 
     if (existingProblem.authorId !== userId) {
       return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
+    const goGame = GoGame.fromSgf(sgf);
+    const initial = rootNodeToSgf(goGame);
+    const correct = goGameToSgf(goGame);
+    // Validate initial and correct fields
+    try {
+      validateProblemInitial(initial);
+      validateProblemSolutions(correct);
+    } catch (error) {
+      return NextResponse.json(
+        { message: `Invalid problem in request. Error: ${error}` },
+        { status: 400 },
+      );
     }
 
     await db.$transaction(async (tx) => {
