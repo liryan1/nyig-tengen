@@ -2,7 +2,6 @@ import { AppSidebar } from "@/components/nav/root/AppSidebar";
 import { NavHeader } from "@/components/nav/root/NavHeader";
 import SessionProvider from "@/components/providers/SessionProvider";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import "@/styles/globals.scss";
 import type { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { Inter } from "next/font/google";

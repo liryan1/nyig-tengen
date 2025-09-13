@@ -195,7 +195,7 @@ export const TeamPage = () => {
                   onPageChange={setMembersTabIndex}
                   totalPages={
                     team.members.length
-                      ? Math.ceil(team.problems.length / problemsLimit)
+                      ? Math.ceil(team.members.length / membersLimit)
                       : 1
                   }
                 />

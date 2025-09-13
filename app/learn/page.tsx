@@ -18,44 +18,50 @@ async function LearnPage() {
   const session = await getServerSession(authOptions);
 
   return (
-    <div className="container space-y-12 mx-auto">
-      <div className="space-y-6">
+    <div className="container space-y-6 sm:space-y-12 mx-auto">
+      <div className="space-y-3 sm:space-y-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 sm:gap-6">
             <span className="text-2xl font-medium">Problem Sets</span>
             {isUserAdmin(session) && (
-              <Button size="sm" disabled>
+              <Button size="sm">
                 <Link
                   href="/learn/sets/new"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1"
                 >
                   <CirclePlusIcon />
-                  Create
+                  <div>
+                    Create <span className="hidden sm:inline">problem set</span>
+                  </div>
                 </Link>
               </Button>
             )}
           </div>
           <Button size="sm" variant="outline">
             <Link href="/learn/sets" className="flex items-center gap-2">
-              All problem sets
+              <div>
+                All <span className="hidden sm:inline">problem sets</span>
+              </div>
               <MoveRight />
             </Link>
           </Button>
         </div>
         <ProblemSetList fixedLimit={4} />
       </div>
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-2 sm:gap-6">
             <span className="text-2xl font-medium">Problems</span>
             {isUserAdmin(session) && (
               <Button size="sm">
                 <Link
                   href="/learn/problems/new"
-                  className="flex items-center gap-2"
+                  className="flex items-center gap-1"
                 >
                   <CirclePlusIcon />
-                  Create
+                  <div>
+                    Create <span className="hidden sm:inline">problem</span>
+                  </div>
                 </Link>
               </Button>
             )}

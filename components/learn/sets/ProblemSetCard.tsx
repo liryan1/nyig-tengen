@@ -52,7 +52,7 @@ export function ProblemSetCard({
           <div className="flex gap-2 items-center">
             <Link
               href={`/learn/sets/${num}`}
-              className="text-md font-semibold hover:underline"
+              className="text-sm sm:text-md hover:underline"
             >
               {name}
             </Link>

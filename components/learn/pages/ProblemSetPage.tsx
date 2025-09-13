@@ -165,7 +165,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
         : "Adding problem set to favorites...",
       success: pset.userStarred
         ? "Removed problem set from favorites"
-        : "Removed problem set from favorites",
+        : "Added problem set to favorites",
       error: (err) => err.data?.message,
     });
   };

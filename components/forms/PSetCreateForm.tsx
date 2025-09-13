@@ -33,7 +33,10 @@ import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
 
 const FormSchema = z
   .object({
-    name: z.string().min(5, "Title must be at least 5 characters"),
+    name: z
+      .string()
+      .min(5, "Title must be at least 5 characters")
+      .max(30, "Title cannot exceed 30 characters"),
     description: z.string(),
     sgf: z.string().nonempty("An SGF problems file is required"),
     visibility: z.nativeEnum(Visibility),

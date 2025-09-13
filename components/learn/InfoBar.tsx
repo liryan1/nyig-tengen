@@ -112,16 +112,18 @@ export function InfoBar({
       )}
 
       {views !== undefined && (
-        <InfoBarItem
-          disabled={readonly}
-          label="View count"
-          trigger={
-            <div className={iconCN}>
-              <EyeIcon size={iconSize} />
-              <span>{formatLargeNumber(views)}</span>
-            </div>
-          }
-        />
+        <span className="hidden sm:flex">
+          <InfoBarItem
+            disabled={readonly}
+            label="View count"
+            trigger={
+              <div className={iconCN}>
+                <EyeIcon size={iconSize} />
+                <span>{formatLargeNumber(views)}</span>
+              </div>
+            }
+          />
+        </span>
       )}
 
       {likes !== undefined && (
@@ -160,17 +162,19 @@ export function InfoBar({
       />
 
       {rate !== undefined && (
-        <InfoBarItem
-          disabled={readonly}
-          label="Attempt success"
-          trigger={
-            <SucessRate
-              successRate={rate}
-              userSolved={userSolved}
-              convertToPercent={convertRateToPercent}
-            />
-          }
-        />
+        <span className="hidden sm:flex">
+          <InfoBarItem
+            disabled={readonly}
+            label="Attempt success"
+            trigger={
+              <SucessRate
+                successRate={rate}
+                userSolved={userSolved}
+                convertToPercent={convertRateToPercent}
+              />
+            }
+          />
+        </span>
       )}
 
       {moreStuff?.map((c, i) => (

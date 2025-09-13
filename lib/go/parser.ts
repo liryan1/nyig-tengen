@@ -70,6 +70,9 @@ export function getProblemInfoFromComments(comments?: string) {
   const problemInfo: Record<string, string> = {};
   for (const item of items) {
     const [key, value] = item.split(":");
+    if (!key || !value) {
+      continue;
+    }
     problemInfo[key.trim()] = value.trim();
   }
   return problemInfo;

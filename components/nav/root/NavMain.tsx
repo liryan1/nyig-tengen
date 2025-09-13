@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  ChartNoAxesCombinedIcon,
-  ChevronRight,
-  NewspaperIcon,
-} from "lucide-react";
-
+import { ChevronRight } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -21,58 +16,25 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { isUserAdmin } from "@/lib/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { LEFT_SIDEBAR_MENU } from "./navigation";
 
 export function NavMain({ title }: { title: string }) {
   const router = useRouter();
   const { data: session } = useSession();
   const items = [
-    {
-      title: "Learn",
-      url: "/learn",
-      icon: ChartNoAxesCombinedIcon,
-      isActive: true,
-      items: [
-        {
-          title: "Home",
-          url: "/learn",
-        },
-        {
-          title: "Problems",
-          url: "/learn/problems",
-        },
-        {
-          title: "Problem sets",
-          url: "/learn/sets",
-        },
-        ...(session?.user?.role === "ADMIN" ||
-        session?.user?.role === "SUPERADMIN"
-          ? [
-              {
-                title: "Create problem",
-                url: "/learn/problems/new",
-              },
-            ]
-          : []),
-      ],
-    },
-    {
-      title: "Posts",
-      url: "/posts",
-      icon: NewspaperIcon,
-      items: [
-        {
-          title: "Posts",
-          url: "/posts",
-        },
-        {
-          title: "Create",
-          url: "/posts/new",
-        },
-      ],
-    },
+    ...LEFT_SIDEBAR_MENU,
+    ...(isUserAdmin(session)
+      ? [
+          {
+            title: "Create problem",
+            url: "/learn/problems/new",
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -94,7 +56,9 @@ export function NavMain({ title }: { title: string }) {
                 >
                   {item.icon && <item.icon />}
                   <span>{item.title}</span>
-                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  {item.items && (
+                    <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                  )}
                 </SidebarMenuButton>
               </CollapsibleTrigger>
               <CollapsibleContent>
