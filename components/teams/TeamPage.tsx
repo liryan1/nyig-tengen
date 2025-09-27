@@ -267,8 +267,8 @@ export const TeamPage = () => {
                   currentPage={problemSetsTabIndex}
                   onPageChange={setProblemSetsTabIndex}
                   totalPages={
-                    team.problems?.length
-                      ? Math.ceil(team.problems.length / problemSetsLimit)
+                    team.problemSets?.length
+                      ? Math.ceil(team.problemSets.length / problemSetsLimit)
                       : 1
                   }
                 />

@@ -46,7 +46,7 @@ export function InvitesPage() {
   };
 
   return (
-    <div className="container max-w-5xl py-8 space-y-6">
+    <div className="container mx-auto max-w-7xl space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Team Invitations</h1>
 
       <Card>
