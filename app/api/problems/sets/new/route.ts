@@ -108,46 +108,47 @@ async function createPSet(body: CreatePSetRequest, userId: string) {
 
       const startingNum = counterDoc.value - problemCount + 1;
 
-      const problemCreations = problemInputs.map(async (data, i) => {
-        const problemNum = (startingNum + i).toString();
+      // Batch create all problems at once
+      const problemsToCreate = problemInputs.map((data, i) => ({
+        num: (startingNum + i).toString(),
+        ...data,
+        authorId: userId,
+        visibility,
+      }));
 
-        const created = await tx.problem.create({
-          data: {
-            num: problemNum,
-            ...data,
-            authorId: userId,
-            visibility,
-          },
-          select: { id: true, num: true },
-        });
-
-        // Create teamProblem links if visibility is TEAM
-        if (visibility === Visibility.TEAM && teamSlugs) {
-          await Promise.all(
-            teamSlugs.map((slug) =>
-              tx.teamProblem.create({
-                data: {
-                  teamSlug: slug,
-                  problemNum: created.num,
-                },
-              }),
-            ),
-          );
-        }
-
-        // Link to problem set
-        await tx.problemSetProblem.create({
-          data: {
-            problemSetNum,
-            problemNum: created.num,
-            position: i + 1,
-          },
-        });
-
-        return created;
+      await tx.problem.createMany({
+        data: problemsToCreate,
       });
 
-      await Promise.all(problemCreations);
+      // Batch create problem set links
+      const problemSetLinks = problemsToCreate.map((_, i) => ({
+        problemSetNum,
+        problemNum: (startingNum + i).toString(),
+        position: i + 1,
+      }));
+
+      await tx.problemSetProblem.createMany({
+        data: problemSetLinks,
+      });
+
+      // Batch create team problem links if needed
+      if (visibility === Visibility.TEAM && teamSlugs) {
+        const teamProblemLinks = [];
+        for (const problemData of problemsToCreate) {
+          for (const slug of teamSlugs) {
+            teamProblemLinks.push({
+              teamSlug: slug,
+              problemNum: problemData.num,
+            });
+          }
+        }
+
+        if (teamProblemLinks.length > 0) {
+          await tx.teamProblem.createMany({
+            data: teamProblemLinks,
+          });
+        }
+      }
 
       // Create the problem set
       await tx.problemSet.create({
@@ -162,18 +163,16 @@ async function createPSet(body: CreatePSetRequest, userId: string) {
         },
       });
 
-      // Link to teams if needed
+      // Batch create team problem set links if needed
       if (visibility === Visibility.TEAM && teamSlugs) {
-        await Promise.all(
-          teamSlugs.map((slug) =>
-            tx.teamProblemSet.create({
-              data: {
-                teamSlug: slug,
-                problemSetNum,
-              },
-            }),
-          ),
-        );
+        const teamProblemSetLinks = teamSlugs.map((slug) => ({
+          teamSlug: slug,
+          problemSetNum,
+        }));
+
+        await tx.teamProblemSet.createMany({
+          data: teamProblemSetLinks,
+        });
       }
 
       return problemSetNum;
