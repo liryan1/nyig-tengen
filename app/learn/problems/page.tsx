@@ -20,15 +20,12 @@ export default async function AllProblemsPage() {
       <div className="flex items-center justify-between">
         <span className="text-2xl font-medium">Problems</span>
         {isUserAdmin(session) && (
-          <Button size="sm">
-            <Link
-              href="/learn/problems/new"
-              className="flex items-center gap-2"
-            >
+          <Link href="/learn/problems/new" className="flex items-center gap-2">
+            <Button size="sm">
               <CirclePlusIcon />
               Create
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         )}
       </div>
       <ProblemList filter={<ProblemFilter />} />

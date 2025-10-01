@@ -10,9 +10,9 @@ function AllTeamsPage() {
       <p className="text-lg mt-2 mb-12">
         The page you are looking for will be landing soon!
       </p>
-      <Button>
-        <Link href="/learn">Back to Learn</Link>
-      </Button>
+      <Link href="/learn">
+        <Button>Back to Learn</Button>
+      </Link>
     </div>
   );
 }

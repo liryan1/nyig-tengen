@@ -24,27 +24,24 @@ async function LearnPage() {
           <div className="flex items-center gap-2 sm:gap-6">
             <span className="text-2xl font-medium">Problem Sets</span>
             {isUserAdmin(session) && (
-              <Button size="sm">
-                <Link
-                  href="/learn/sets/new"
-                  className="flex items-center gap-1"
-                >
+              <Link href="/learn/sets/new" className="flex items-center gap-1">
+                <Button size="sm">
                   <CirclePlusIcon />
                   <div>
                     Create <span className="hidden sm:inline">problem set</span>
                   </div>
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             )}
           </div>
-          <Button size="sm" variant="outline">
-            <Link href="/learn/sets" className="flex items-center gap-2">
+          <Link href="/learn/sets" className="flex items-center gap-2">
+            <Button size="sm" variant="outline">
               <div>
                 All <span className="hidden sm:inline">problem sets</span>
               </div>
               <MoveRight />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
         <ProblemSetList fixedLimit={4} />
       </div>
@@ -53,33 +50,33 @@ async function LearnPage() {
           <div className="flex items-center gap-2 sm:gap-6">
             <span className="text-2xl font-medium">Problems</span>
             {isUserAdmin(session) && (
-              <Button size="sm">
-                <Link
-                  href="/learn/problems/new"
-                  className="flex items-center gap-1"
-                >
+              <Link
+                href="/learn/problems/new"
+                className="flex items-center gap-1"
+              >
+                <Button size="sm">
                   <CirclePlusIcon />
                   <div>
                     Create <span className="hidden sm:inline">problem</span>
                   </div>
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             )}
           </div>
-          <Button size="sm" variant="outline">
-            <Link href="/learn/problems" className="flex items-center gap-2">
+          <Link href="/learn/problems" className="flex items-center gap-2">
+            <Button size="sm" variant="outline">
               All problems
               <MoveRight />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
         <ProblemList fixedLimit={20} />
         <div className="flex justify-end">
-          <Button size="sm" variant="outline">
-            <Link href="/learn/problems" className="flex items-center gap-2">
+          <Link href="/learn/problems" className="flex items-center gap-2">
+            <Button size="sm" variant="outline">
               More problems
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </div>
     </div>

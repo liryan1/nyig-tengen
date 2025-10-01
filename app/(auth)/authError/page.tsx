@@ -28,9 +28,9 @@ const AuthErrorPage = async ({ searchParams }: Props) => {
           </Link>
         </p>
       </div>
-      <Button>
-        <Link href="/login">Back to Login</Link>
-      </Button>
+      <Link href="/login">
+        <Button>Back to Login</Button>
+      </Link>
     </div>
   );
 };

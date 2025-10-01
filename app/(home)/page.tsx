@@ -22,22 +22,22 @@ export default async function Home() {
           </div>
         </div>
         <div className="flex gap-12 justify-center">
-          <Button>
-            <Link href="/learn" className="flex items-center gap-2">
+          <Link href="/learn" className="flex items-center gap-2">
+            <Button>
               <ChartNoAxesCombinedIcon />
               Practice
-            </Link>
-          </Button>
-          <Button>
-            <Link
-              href="https://ny-go.org/classes"
-              target="_blank"
-              className="flex items-center gap-2"
-            >
+            </Button>
+          </Link>
+          <Link
+            href="https://ny-go.org/classes"
+            target="_blank"
+            className="flex items-center gap-2"
+          >
+            <Button>
               Learn Go
               <ExternalLinkIcon />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
         {session?.user.id ? (
           <div className="flex items-center justify-center gap-2 text-xl">
@@ -49,12 +49,12 @@ export default async function Home() {
             <MdWavingHand className="text-indigo-600 h-5 w-5" />
           </div>
         ) : (
-          <Button variant="outline">
-            <Link href="/login" className="flex items-center gap-2">
+          <Link href="/login" className="flex items-center gap-2">
+            <Button variant="outline">
               Sign in
               <LogInIcon />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         )}
       </div>
     </div>

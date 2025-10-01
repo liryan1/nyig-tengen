@@ -20,12 +20,12 @@ export default async function ProblemSetsPage() {
       <div className="flex items-center justify-between">
         <span className="text-2xl font-medium">Problem Sets</span>
         {isUserAdmin(session) && (
-          <Button size="sm">
-            <Link href="/learn/sets/new" className="flex items-center gap-2">
+          <Link href="/learn/sets/new" className="flex items-center gap-2">
+            <Button size="sm">
               <CirclePlusIcon />
               Create
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         )}
       </div>
       <ProblemSetList />

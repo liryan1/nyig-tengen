@@ -10,9 +10,9 @@ const NotFound = () => {
       <p className="text-lg mt-2 mb-12">
         The page you are looking for doesn&apos;t exist or has been moved.
       </p>
-      <Button>
-        <Link href="/">Back to Homepage</Link>
-      </Button>
+      <Link href="/">
+        <Button>Back to Homepage</Button>
+      </Link>
     </div>
   );
 };
