@@ -54,11 +54,7 @@ export function ProblemsCarousel({ problems }: Props) {
               key={index}
               className="basis-1/3 flex items-center justify-center"
             >
-              <ReadonlyGoBoard
-                boardState={getRootBoardState(problem)}
-                boardSize={getBoardSize(problem)}
-                cellSize={cellSizes[index]}
-              />
+              <ReadonlyGoBoard sgf={problem} cellSize={cellSizes[index]} />
             </CarouselItem>
           ))}
         </CarouselContent>

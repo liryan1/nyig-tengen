@@ -84,8 +84,7 @@ export function ProblemGrid({
             >
               <ReadonlyGoBoard
                 className="hover:shadow-lg"
-                boardState={getRootBoardState(problem.initial)}
-                boardSize={boardSize}
+                sgf={problem.initial}
                 cellSize={cellSize}
                 icon={
                   problemOrder && getIcon(problemOrder[problemIndex]?.status)

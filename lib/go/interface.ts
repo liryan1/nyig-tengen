@@ -10,6 +10,7 @@ export type Coord = [number, number];
 export interface BoardState {
   stones: Record<string, StoneColor>;
   labels: Record<string, string>;
+  boardSize: number;
 }
 
 export interface ProblemStats {

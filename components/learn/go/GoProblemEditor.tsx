@@ -3,19 +3,18 @@
 import { useIsMobile } from "@/hooks/isMobile";
 import { useCellSize } from "@/hooks/useCellSize";
 import { BoardMode, useGo } from "@/hooks/useGo";
+import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { GoGame, SgfNode } from "@/lib/go/goGame";
 import { toSgf } from "@/lib/go/parser";
 import { RefObject, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { GoBoardMenu } from "./GoBoardMenu";
 import { GoProblemBoard } from "./GoProblemBoard";
 import { GoProblemToolbar } from "./GoProblemToolbar";
 import { BoardSizeSelect } from "./tools/BoardSizeSelect";
 import { EditButton } from "./tools/EditButton";
-import { StoneSwitch } from "./tools/StoneSwitch";
-import { UploadSGFButton } from "./tools/UploadSGFButton";
 import { PassButton } from "./tools/PassButton";
-import { useLocalStorage } from "@/hooks/useLocalStorage";
-import { GoBoardMenu } from "./GoBoardMenu";
+import { StoneSwitch } from "./tools/StoneSwitch";
 
 const BOARD_SIZE_KEY = "tengen-problem-create-board-size";
 
@@ -30,7 +29,7 @@ export function GoProblemEditor({
 }: GoProblemEditorProps) {
   const [boardSize, setBoardSize] = useLocalStorage(BOARD_SIZE_KEY, 19);
   const [goGame, setGoGame] = useState(
-    () => goGameRef.current || new GoGame({ boardSize }),
+    () => goGameRef.current || GoGame.empty(boardSize),
   );
   const [updateCounter, setUpdateCounter] = useState(0);
   const forceUpdate = () => setUpdateCounter((prev) => prev + 1);

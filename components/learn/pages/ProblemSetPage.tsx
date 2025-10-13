@@ -35,6 +35,9 @@ import {
 } from "../../ui/card";
 import { InfoBar } from "../InfoBar";
 import { StartButton } from "../sets/StartButton";
+import { EndButton } from "../sets/EndButton";
+import { Separator } from "@/components/ui/separator";
+import { ProblemSetLeaderboard } from "../sets/ProblemSetLeaderboard";
 
 const ProblemGrid = dynamic(
   () => import("@/components/learn/sets/ProblemGrid"),
@@ -101,6 +104,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
     completedCount,
     author,
     problems,
+    leaderboard,
   } = pset;
 
   const userSolved = pset?.userCompletions;
@@ -171,75 +175,92 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
   };
 
   return (
-    <Card className="container mx-auto max-w-7xl shadow-sm rounded-lg my-6">
-      <CardHeader className="p-2 sm:p-4 border-b">
-        {showConfetti && (
-          <div className="z-50">
-            <Confetti
-              x={0.4}
-              effectInterval={3000}
-              effectCount={5}
-              particleCount={800}
-              launchSpeed={2.5}
-            />
-          </div>
-        )}
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg md:text-2xl font-semibold">{name}</span>
-            {userSolved !== undefined && userSolved > 0 && (
-              <div className="flex items-center text-muted-foreground">
-                <TrophyIcon className="text-yellow-500" />
-                <span className="text-md font-base">{userSolved}</span>
-              </div>
-            )}
-          </div>
-          <StartButton
-            onCreatePSetProgress={createPSetProgress}
-            isLoading={isLoading}
-            isError={isError}
-            sNum={sNum}
-            problemOrder={pset?.userProgress?.problemOrder}
+    <>
+      <Card className="container mx-auto max-w-7xl shadow-sm rounded-lg my-1 sm:my-2 md:my-4">
+        <CardHeader className="p-2 sm:p-4 md:p-6 border-b">
+          {showConfetti && (
+            <div className="z-50">
+              <Confetti
+                x={0.4}
+                effectInterval={3000}
+                effectCount={5}
+                particleCount={800}
+                launchSpeed={2.5}
+              />
+            </div>
+          )}
+          <CardTitle className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-lg md:text-2xl font-semibold">{name}</span>
+              {userSolved !== undefined && userSolved > 0 && (
+                <div className="flex items-center text-muted-foreground">
+                  <TrophyIcon className="text-yellow-500" />
+                  <span className="text-md font-base">{userSolved}</span>
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              {pset?.userProgress && (
+                <>
+                  <EndButton sNum={sNum} />
+                  <Separator
+                    orientation="vertical"
+                    className="mr-1 sm:mr-2 h-4"
+                  />
+                </>
+              )}
+              <StartButton
+                onCreatePSetProgress={createPSetProgress}
+                isLoading={isLoading}
+                isError={isError}
+                sNum={sNum}
+                problemOrder={pset?.userProgress?.problemOrder}
+              />
+            </div>
+          </CardTitle>
+          {description && (
+            <CardDescription className="mt-2 text-xs sm:text-sm text-muted-foreground">
+              {description}
+            </CardDescription>
+          )}
+        </CardHeader>
+        <CardContent className="p-2 sm:p-4 space-y-4">
+          <InfoBar
+            info={{
+              author,
+              rank: getRank(averageRank, true),
+              count: problemCount,
+              userLiked: pset.userLiked,
+              userStarred: pset.userStarred,
+              views,
+              likes: pset.likes,
+              rate: completedCount,
+              userSolved: userSolved !== undefined && userSolved > 0,
+            }}
+            toggleLike={debounce(toggleLike, 300)}
+            toggleStar={debounce(toggleStar, 300)}
+            likeDisabled={lLoading}
+            starDisabled={sLoading}
           />
-        </CardTitle>
-        {description && (
-          <CardDescription className="mt-2 text-xs sm:text-sm text-muted-foreground">
-            {description}
-          </CardDescription>
+        </CardContent>
+        {pset?.userProgress && (
+          <div className="text-sm sm:text-lg text-muted-foreground px-2 sm:px-4 text-center">
+            Solved: <span className="font-semibold">{currentSolvedCount}</span>{" "}
+            of <span className="font-semibold">{problemCount}</span>
+          </div>
         )}
-      </CardHeader>
-      <CardContent className="p-2 sm:p-4 space-y-4">
-        <InfoBar
-          info={{
-            author,
-            rank: getRank(averageRank, true),
-            count: problemCount,
-            userLiked: pset.userLiked,
-            userStarred: pset.userStarred,
-            views,
-            likes: pset.likes,
-            rate: completedCount,
-            userSolved: userSolved !== undefined && userSolved > 0,
-          }}
-          toggleLike={debounce(toggleLike, 300)}
-          toggleStar={debounce(toggleStar, 300)}
-          likeDisabled={lLoading}
-          starDisabled={sLoading}
-        />
-      </CardContent>
-      {pset?.userProgress && (
-        <div className="text-sm sm:text-lg text-muted-foreground px-2 sm:px-4 text-center">
-          Solved: <span className="font-semibold">{currentSolvedCount}</span> of{" "}
-          <span className="font-semibold">{problemCount}</span>
-        </div>
-      )}
-      <CardFooter className="gap-2 sm:gap-4 p-2 sm:p-4 flex flex-wrap max-h-[1/2]">
-        <ProblemGrid
-          problems={problems}
-          problemOrder={pset?.userProgress?.problemOrder}
-          onProblemClick={handleProblemClick}
-        />
-      </CardFooter>
-    </Card>
+        <CardFooter className="gap-2 sm:gap-4 p-2 sm:p-4 flex flex-wrap max-h-[1/2]">
+          <ProblemGrid
+            problems={problems}
+            problemOrder={pset?.userProgress?.problemOrder}
+            onProblemClick={handleProblemClick}
+          />
+        </CardFooter>
+      </Card>
+      <ProblemSetLeaderboard
+        className="container mx-auto max-w-7xl"
+        leaderboard={leaderboard}
+      />
+    </>
   );
 }

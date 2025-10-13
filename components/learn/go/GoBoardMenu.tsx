@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   CircleAlertIcon,
+  CopyIcon,
   DownloadIcon,
   FolderUpIcon,
   MoreVerticalIcon,
@@ -77,6 +78,15 @@ export function GoBoardMenu({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const handleCopySgf = () => {
+    if (!handleExportSgf) {
+      return;
+    }
+
+    const sgfContent = handleExportSgf();
+    navigator.clipboard.writeText(sgfContent);
   };
 
   return (
@@ -156,9 +166,13 @@ export function GoBoardMenu({
         {handleExportSgf && (
           <DropdownMenuItem onClick={downloadTxtFile}>
             <DownloadIcon />
-            <span>Export SGF</span>
+            <span>Download as SGF</span>
           </DropdownMenuItem>
         )}
+        <DropdownMenuItem onClick={handleCopySgf}>
+          <CopyIcon />
+          <span>Copy to clipboard</span>
+        </DropdownMenuItem>
         <DropdownMenuItem onClick={toggleShowCoord}>
           <span className={showCoord ? "" : "line-through"}>A1</span>
           <span>Coordinates</span>

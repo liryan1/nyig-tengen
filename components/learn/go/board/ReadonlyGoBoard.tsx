@@ -1,15 +1,20 @@
 import React from "react";
 import { GoBoardView, GoBoardViewProps } from "./GoBoardView";
 import { getPixelSize } from "@/lib/go/display";
+import { getRootBoardState } from "@/lib/go/parser";
 
-interface ReadonlyGoBoardProps extends GoBoardViewProps {}
+interface ReadonlyGoBoardProps
+  extends Omit<GoBoardViewProps, "boardSize" | "boardState"> {
+  sgf: string;
+}
 
 export function ReadonlyGoBoard({
-  boardSize = 19,
   cellSize = 40,
   icon,
-  boardState,
+  sgf,
 }: ReadonlyGoBoardProps) {
+  const boardState = getRootBoardState(sgf);
+  const boardSize = boardState.boardSize;
   const { boardPixelSize } = getPixelSize({ boardSize, cellSize });
   return (
     <div

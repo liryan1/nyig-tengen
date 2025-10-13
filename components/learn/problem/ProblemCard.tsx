@@ -65,11 +65,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
           style={{ width: `${boardPixelSize}px` }}
           href={`/learn/problems/${num}`}
         >
-          <ReadonlyGoBoard
-            cellSize={cellSize}
-            boardSize={boardSize}
-            boardState={getRootBoardState(initial)}
-          />
+          <ReadonlyGoBoard cellSize={cellSize} sgf={initial} />
         </Link>
       </CardContent>
       <CardFooter className="flex items-center justify-between text-xs text-muted-foreground p-0 sm:px-1 py-1 select-none">

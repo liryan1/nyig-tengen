@@ -15,6 +15,7 @@ export async function GET(req: Request, { params }: Params) {
       params,
     ]);
     const userId = session?.user?.id;
+
     const problemSet = await db.problemSet.findUnique({
       where: { num },
       select: {
@@ -24,20 +25,10 @@ export async function GET(req: Request, { params }: Params) {
         averageRank: true,
         createdAt: true,
         author: { select: { id: true, name: true, role: true } },
-        problemSetProblems: {
-          select: { problem: true, position: true },
-        },
+        problemSetProblems: { select: { problem: true, position: true } },
         problemSetStats: { select: { views: true, completed: true } },
-        problemSetLikes: {
-          select: {
-            userId: true,
-          },
-        },
-        problemSetStars: {
-          select: {
-            userId: true,
-          },
-        },
+        problemSetLikes: { select: { userId: true } },
+        problemSetStars: { select: { userId: true } },
         problemSetProgresses: userId
           ? {
               where: {
@@ -47,11 +38,7 @@ export async function GET(req: Request, { params }: Params) {
                   { status: ProgressStatus.completed },
                 ],
               },
-              select: {
-                id: true,
-                problemOrder: true,
-                status: true,
-              },
+              select: { id: true, problemOrder: true, status: true },
             }
           : false,
       },
@@ -59,6 +46,66 @@ export async function GET(req: Request, { params }: Params) {
 
     if (!problemSet) {
       return NextResponse.json("Problem set not found", { status: 404 });
+    }
+
+    // Parse leaderboard flag
+    const search = new URL(req.url).searchParams;
+    const wantLeaderboard = ["1", "true", "yes"].includes(
+      (search.get("leaderboard") ?? "").toLowerCase(),
+    );
+
+    // Conditionally compute leaderboard: shortest (updatedAt - createdAt)
+    let leaderboard:
+      | Array<{
+          user: { id: string; name: string | null };
+          startedAt: Date;
+          completedAt: Date;
+          durationMs: number;
+        }>
+      | undefined;
+
+    if (wantLeaderboard) {
+      const completions = await db.problemSetProgress.findMany({
+        where: { problemSetNum: num, status: ProgressStatus.completed },
+        select: {
+          userId: true,
+          createdAt: true,
+          updatedAt: true,
+          user: { select: { id: true, name: true } },
+        },
+        // no orderBy needed for correctness since we compute min in-code
+        take: 2000, // safety upper bound; adjust as needed
+      });
+
+      const bestByUser = new Map<
+        string,
+        {
+          user: { id: string; name: string | null };
+          startedAt: Date;
+          completedAt: Date;
+          durationMs: number;
+        }
+      >();
+
+      for (const c of completions) {
+        const durationMs = Math.max(
+          0,
+          c.updatedAt.getTime() - c.createdAt.getTime(),
+        );
+        const prev = bestByUser.get(c.userId);
+        if (!prev || durationMs < prev.durationMs) {
+          bestByUser.set(c.userId, {
+            user: c.user,
+            startedAt: c.createdAt,
+            completedAt: c.updatedAt,
+            durationMs,
+          });
+        }
+      }
+
+      leaderboard = Array.from(bestByUser.values())
+        .sort((a, b) => a.durationMs - b.durationMs)
+        .slice(0, 50);
     }
 
     const problems = problemSet.problemSetProblems.map((psp) => ({
@@ -69,11 +116,10 @@ export async function GET(req: Request, { params }: Params) {
     }));
 
     const userLiked = problemSet.problemSetLikes.some(
-      (like) => like.userId === userId,
+      (l) => l.userId === userId,
     );
-
     const userStarred = problemSet.problemSetStars.some(
-      (like) => like.userId === userId,
+      (s) => s.userId === userId,
     );
 
     const userProgress = problemSet.problemSetProgresses?.find(
@@ -85,14 +131,12 @@ export async function GET(req: Request, { params }: Params) {
 
     const order = userProgress?.problemOrder as ProblemOrderItem[] | undefined;
     if (order) {
-      // If order exists, then sort the problems array based on order.num
       problems.sort((a, b) => {
-        const aIndex = order.findIndex((item) => item.problemNum === a.num);
-        const bIndex = order.findIndex((item) => item.problemNum === b.num);
-        return aIndex - bIndex;
+        const ai = order.findIndex((it) => it.problemNum === a.num);
+        const bi = order.findIndex((it) => it.problemNum === b.num);
+        return ai - bi;
       });
     } else {
-      // If order does not exist, then sort the problems array based on default position
       problems.sort((a, b) => a.position - b.position);
     }
 
@@ -113,6 +157,7 @@ export async function GET(req: Request, { params }: Params) {
         userProgress,
         userCompletions,
         createdAt: problemSet.createdAt,
+        ...(wantLeaderboard ? { leaderboard } : {}),
       },
       { status: 200 },
     );

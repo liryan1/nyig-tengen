@@ -52,7 +52,9 @@ export const mapProblemSetResponse = (
   userId?: string,
 ): ProblemSetResponse => {
   const userProgress = pset.problemSetProgresses?.length
-    ? pset.problemSetProgresses[0]
+    ? pset.problemSetProgresses.find(
+        (psp: { userId: string }) => psp.userId === userId,
+      )
     : undefined;
   const userLiked = userId
     ? pset.problemSetLikes.findIndex(

@@ -33,10 +33,13 @@ import { StatefulPagination } from "../nav/StatefulPagination";
 import { ScrollArea } from "../ui/scroll-area";
 import { InviteMember } from "./InviteMember";
 import { TeamRole } from "@prisma/client";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 const membersLimit = 10;
-const problemsLimit = 20;
-const problemSetsLimit = 4;
+const problemsLimit = 24;
+const problemSetsLimit = 6;
+
+type TeamTab = "members" | "problems" | "problemsets";
 
 function getSlicedArray<T>(arr: T[], pageIndex: number, limit: number): T[] {
   const start = (pageIndex - 1) * limit;
@@ -50,6 +53,11 @@ export const TeamPage = () => {
   const [membersTabIndex, setMembersTabIndex] = useState(1);
 
   const { slug } = useParams();
+  const [activeTab, setActiveTab] = useLocalStorage<TeamTab>(
+    `tengen-team-${slug}-tab`,
+    "members",
+  );
+
   const { data: session } = useSession();
   const {
     data: team,
@@ -68,6 +76,10 @@ export const TeamPage = () => {
   if (!team) {
     return <PageError>Team not found</PageError>;
   }
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as TeamTab);
+  };
 
   const isTeamMember =
     team.owner.id === session?.user?.id ||
@@ -133,7 +145,7 @@ export const TeamPage = () => {
       </div>
 
       {isTeamMember && (
-        <Tabs defaultValue="problems">
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList>
             <TabsTrigger value="members">Members</TabsTrigger>
             <TabsTrigger value="problems">Problems</TabsTrigger>
@@ -245,7 +257,7 @@ export const TeamPage = () => {
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-[460px]">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 2xl:grid-cols-3 4xl:grid-cols-4 6xl:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {getSlicedArray(
                       team.problemSets,
                       problemSetsTabIndex,

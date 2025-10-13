@@ -31,7 +31,7 @@ import { Visibility } from "@prisma/client";
 import { CircleAlertIcon, SendHorizonalIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -85,10 +85,18 @@ export function ProblemForm({ problem }: Props) {
   const { data: teams, isLoading: tLoading } = useGetMyTeamsQuery();
   const teamOptions =
     teams?.map((team) => ({ value: team.slug, label: team.name })) || [];
-  const goGameRef = useRef<GoGame | null>(null);
-  if (problem) {
-    goGameRef.current = GoGame.fromSgf(problem.correct || problem.initial);
-  }
+
+  // Board state management
+  const initialSgf = problem?.correct || problem?.initial;
+  const goGameRef = useRef<GoGame>(
+    initialSgf ? GoGame.fromSgf(initialSgf) : GoGame.empty(),
+  );
+  // useEffect(() => {
+  //   if (initialSgf) {
+  //     goGameRef.current = GoGame.fromSgf(initialSgf);
+  //   }
+  // }, [initialSgf]);
+
   const [create, { isLoading: cLoading }] = useCreateProblemMutation();
   const [update, { isLoading: uLoading }] = useUpdateProblemMutation();
   const isLoading = cLoading || uLoading || tLoading;
@@ -170,7 +178,7 @@ export function ProblemForm({ problem }: Props) {
 
   return (
     <Form {...form}>
-      <form className="space-y-4">
+      <form className="space-y-4 mb-8">
         <h1 className="text-2xl font-semibold">{actionWord} Problem</h1>
         {form.formState.errors.root && (
           <div className="flex items-center text-red-600 text-sm gap-1">

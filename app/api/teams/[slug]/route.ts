@@ -58,6 +58,7 @@ export async function GET(req: Request, { params }: Params) {
       const personalData: TeamResponse = {
         id: "me",
         name: "My Personal Team",
+        description: "Your private problems and collections",
         memberCount: 1,
         members: [you],
         problemCount: problems.length,

@@ -1,28 +1,29 @@
-import { ChartNoAxesCombinedIcon, LucideIcon, StarIcon } from "lucide-react";
+import {
+  ChartNoAxesCombinedIcon,
+  LucideIcon,
+  StarIcon,
+  SwordsIcon,
+} from "lucide-react";
 
 export interface NavItem {
   title: string;
   url: string;
   icon?: LucideIcon;
   isActive?: boolean;
+  isAdminOnly?: boolean;
   items?: NavItem[];
 }
 
 export const LEFT_SIDEBAR_MENU: NavItem[] = [
   {
-    title: "Starred problems",
-    url: "/learn/problems?starred=true",
-    icon: StarIcon,
-  },
-  {
-    title: "Learn",
+    title: "Practice",
     url: "/learn",
     icon: ChartNoAxesCombinedIcon,
     isActive: true,
     items: [
       {
-        title: "Home",
-        url: "/learn",
+        title: "Starred problems",
+        url: "/learn/problems?starred=true",
       },
       {
         title: "Problems",
@@ -31,6 +32,11 @@ export const LEFT_SIDEBAR_MENU: NavItem[] = [
       {
         title: "Problem sets",
         url: "/learn/sets",
+      },
+      {
+        title: "Create problem",
+        url: "/learn/problems/new",
+        isAdminOnly: true,
       },
     ],
   },

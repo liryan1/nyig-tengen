@@ -105,6 +105,10 @@ export class GoGame {
     this.boardSize = boardSize;
   }
 
+  public static empty(boardSize: number = 19) {
+    return new GoGame({ boardSize });
+  }
+
   /**
    * Builds and returns the board state from the root up to `targetNode`.
    * This method climbs from `targetNode` back to the root, collects nodes,
@@ -126,6 +130,7 @@ export class GoGame {
     const boardState: BoardState = {
       stones: {},
       labels: {},
+      boardSize: this.boardSize,
     };
 
     // 3) Apply each node's content

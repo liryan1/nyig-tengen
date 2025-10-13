@@ -54,7 +54,7 @@ export function InviteMember({ teamSlug }: InviteMemberProps) {
         if (selectedUsers.length > 1) {
           `Successfully invited ${selectedUsers.length} users!`;
         }
-        return `Successfully invited ${selectedUsers[0]}`;
+        return `Successfully invited ${selectedUsers[0].label}`;
       },
       error: (err) => `Invite failed: ${err.data?.message}`,
     });

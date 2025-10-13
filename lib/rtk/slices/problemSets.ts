@@ -39,6 +39,16 @@ export interface PSetProblem {
   initial: string;
 }
 
+export interface LeaderboardResponse {
+  user: {
+    id: string;
+    name: string;
+  };
+  createdAt: string;
+  completedAt: string;
+  durationMs: string;
+}
+
 export interface PSetResponse extends Omit<ProblemSetResponse, "problems"> {
   completedCount: number;
   attemptedCount: number;
@@ -47,6 +57,7 @@ export interface PSetResponse extends Omit<ProblemSetResponse, "problems"> {
   userLiked: boolean;
   userCompletions: number;
   problems: PSetProblem[];
+  leaderboard?: LeaderboardResponse[];
 }
 
 export interface PSetProblemResponse {
@@ -92,7 +103,7 @@ const problemSetApiSlice = apiSlice.injectEndpoints({
       providesTags: [PROBLEM_SETS_TAG],
     }),
     getPSet: builder.query<PSetResponse, string>({
-      query: (num) => `problems/sets/${num}`,
+      query: (num) => `problems/sets/${num}?leaderboard=true`,
       providesTags: (result, error, arg) => [
         { type: PROBLEM_SET_TAG, id: arg },
       ],
@@ -114,6 +125,15 @@ const problemSetApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (result, error, arg) => [
         { type: PROBLEM_SET_TAG, id: arg.id },
+      ],
+    }),
+    endPSetProgress: builder.mutation<void, string>({
+      query: (num) => ({
+        url: `problems/sets/${num}/progress/end`,
+        method: "PATCH",
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: PROBLEM_SET_TAG, id: arg },
       ],
     }),
     pSetLike: builder.mutation<{ liked: boolean }, string>({
@@ -150,6 +170,7 @@ export const {
   useGetPSetQuery,
   useGetPSetProgressQuery,
   useCreatePSetProgressMutation,
+  useEndPSetProgressMutation,
   usePSetLikeMutation,
   usePSetStarMutation,
 
