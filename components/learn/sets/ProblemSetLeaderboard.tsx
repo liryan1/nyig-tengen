@@ -1,20 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { LeaderboardResponse } from "@/lib/rtk/slices/problemSets";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { Trophy } from "lucide-react";
 import { StatefulPagination } from "@/components/nav/StatefulPagination";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
+import { LeaderboardResponse } from "@/lib/rtk/slices/problemSets";
+import { ChevronDown, ChevronUp, Trophy } from "lucide-react";
+import { useMemo, useState } from "react";
 
 type Props = {
   leaderboard?: LeaderboardResponse[];
@@ -79,7 +71,7 @@ function RankCell({ rank }: { rank: number }) {
 export function ProblemSetLeaderboard({ leaderboard, className }: Props) {
   const pageSize = 10;
   const [expanded, setExpanded] = useState(false);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
 
   const rowsWithRank = useMemo(() => {
     const rows = (leaderboard ?? [])
@@ -142,7 +134,9 @@ export function ProblemSetLeaderboard({ leaderboard, className }: Props) {
 
       <CardContent className="p-0 border-b">
         {total === 0 ? (
-          <p className="text-sm text-muted-foreground">No completions yet.</p>
+          <p className="text-sm text-muted-foreground text-center my-1">
+            No completions yet.
+          </p>
         ) : (
           <>
             <Table className="border-b">

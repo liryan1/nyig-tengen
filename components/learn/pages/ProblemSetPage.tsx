@@ -258,7 +258,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
         </CardFooter>
       </Card>
       <ProblemSetLeaderboard
-        className="container mx-auto max-w-7xl"
+        className="container mx-auto max-w-7xl mb-8"
         leaderboard={leaderboard}
       />
     </>

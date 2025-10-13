@@ -109,58 +109,28 @@ export const TeamPage = () => {
         </div>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 max-w-3xl">
-        <Card className="p-0">
-          <CardContent className="p-2 sm:p-0 sm:pl-6 flex items-center space-x-4 h-full">
-            <Avatar>
-              <AvatarFallback>
-                {team.owner.name?.charAt(0).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <p className="font-medium">{team.owner.name}</p>
-              <p className="text-sm text-muted-foreground">Owner</p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Members</span>
-              <span className="font-medium">{team.memberCount}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Problems</span>
-              <span className="font-medium">{team.problems?.length || 0}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Problem Sets</span>
-              <span className="font-medium">
-                {team.problemSets?.length || 0}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {isTeamMember && (
         <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList>
-            <TabsTrigger value="members">Members</TabsTrigger>
-            <TabsTrigger value="problems">Problems</TabsTrigger>
-            <TabsTrigger value="problemsets">Problem Sets</TabsTrigger>
+            <TabsTrigger value="members">
+              Members {team.memberCount}
+            </TabsTrigger>
+            <TabsTrigger value="problems">
+              Team Problems {team.problems?.length}
+            </TabsTrigger>
+            <TabsTrigger value="problemsets">
+              Team Problem Sets {team.problemSets?.length}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="members">
             <Card>
               <CardContent className="m-0 p-0">
-                <ScrollArea className="h-[450px]">
-                  <Table>
+                <ScrollArea className="h-[60vh]">
+                  <Table className="border-b">
                     <TableHeader>
                       <TableRow>
                         <TableHead>Member</TableHead>
-                        <TableHead>Role</TableHead>
                         <TableHead>Joined</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -178,17 +148,12 @@ export const TeamPage = () => {
                               </AvatarFallback>
                             </Avatar>
                             <span>{member.name}</span>
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              variant={
-                                ["ADMIN", "OWNER"].includes(member.role)
-                                  ? "default"
-                                  : "secondary"
-                              }
-                            >
-                              {member.role}
-                            </Badge>
+                            {["OWNER", "ADMIN"].includes(member.role) && (
+                              <Badge variant="outline">{member.role}</Badge>
+                            )}
+                            {member.id === session?.user?.id && (
+                              <Badge>ME</Badge>
+                            )}
                           </TableCell>
                           <TableCell>
                             {member.joinedAt
@@ -217,12 +182,9 @@ export const TeamPage = () => {
 
           <TabsContent value="problems">
             <Card>
-              <CardHeader>
-                <CardTitle>Problems</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[460px]">
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 pr-2">
+              <CardContent className="p-0">
+                <ScrollArea className="h-[60vh]">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 m-4 pr-2">
                     {getSlicedArray(
                       team.problems,
                       problemsTabIndex,
@@ -236,7 +198,7 @@ export const TeamPage = () => {
                   </div>
                 </ScrollArea>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="p-2">
                 <StatefulPagination
                   currentPage={problemsTabIndex}
                   onPageChange={setProblemsTabIndex}
@@ -252,12 +214,9 @@ export const TeamPage = () => {
 
           <TabsContent value="problemsets">
             <Card>
-              <CardHeader>
-                <CardTitle>Problem Sets</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[460px]">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <CardContent className="p-0">
+                <ScrollArea className="h-[60vh]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 m-4">
                     {getSlicedArray(
                       team.problemSets,
                       problemSetsTabIndex,
@@ -274,7 +233,7 @@ export const TeamPage = () => {
                   </div>
                 </ScrollArea>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="p-2">
                 <StatefulPagination
                   currentPage={problemSetsTabIndex}
                   onPageChange={setProblemSetsTabIndex}
