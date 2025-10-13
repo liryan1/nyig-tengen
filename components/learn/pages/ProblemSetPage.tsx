@@ -199,16 +199,8 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
                 </div>
               )}
             </div>
-            <div className="flex items-center gap-1">
-              {pset?.userProgress && (
-                <>
-                  <EndButton sNum={sNum} />
-                  <Separator
-                    orientation="vertical"
-                    className="mr-1 sm:mr-2 h-4"
-                  />
-                </>
-              )}
+            <div className="flex items-center gap-4">
+              {pset?.userProgress && <EndButton sNum={sNum} />}
               <StartButton
                 onCreatePSetProgress={createPSetProgress}
                 isLoading={isLoading}

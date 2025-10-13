@@ -61,7 +61,7 @@ export function EndButton({ sNum, ...buttonProps }: EndButtonProps) {
     <>
       <Button
         size={isMobile ? "sm" : "default"}
-        variant="destructive"
+        variant="outline"
         className="flex items-center gap-1"
         disabled={isLoading || isError || !sNum}
         onClick={handleClick}
@@ -79,7 +79,7 @@ export function EndButton({ sNum, ...buttonProps }: EndButtonProps) {
           <DialogContent>
             <DialogHeader>Abandon Problem Set {sNum}</DialogHeader>
             <div className="text-muted-foreground text-sm">
-              This will clear all your existing progress. You can start again
+              This will clear all your current progress. You can start again
               later.
             </div>
             <DialogFooter>

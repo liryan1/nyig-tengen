@@ -141,8 +141,8 @@ export const TeamPage = () => {
                         membersLimit,
                       ).map((member) => (
                         <TableRow key={member.id}>
-                          <TableCell className="flex items-center space-x-4">
-                            <Avatar>
+                          <TableCell className="flex items-center gap-2">
+                            <Avatar className="h-8 w-8">
                               <AvatarFallback>
                                 {member.name?.charAt(0).toUpperCase()}
                               </AvatarFallback>
@@ -166,7 +166,7 @@ export const TeamPage = () => {
                   </Table>
                 </ScrollArea>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="p-2">
                 <StatefulPagination
                   currentPage={membersTabIndex}
                   onPageChange={setMembersTabIndex}

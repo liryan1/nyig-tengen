@@ -87,15 +87,15 @@ export function ProblemSetLeaderboard({ leaderboard, className }: Props) {
   const total = rowsWithRank.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
   const topCollapsed = rowsWithRank.slice(0, 3);
-  const pageStart = page * pageSize;
+  const safePage = Math.min(Math.max(page, 1), totalPages);
+  const pageStart = (safePage - 1) * pageSize;
   const pageRows = rowsWithRank.slice(pageStart, pageStart + pageSize);
-
   const visibleRows = expanded ? pageRows : topCollapsed;
 
   const onToggle = () => {
     setExpanded((v) => {
       const next = !v;
-      if (next) setPage(0);
+      if (next) setPage(1);
       return next;
     });
   };
@@ -107,7 +107,7 @@ export function ProblemSetLeaderboard({ leaderboard, className }: Props) {
         <div className="flex items-center gap-2">
           {expanded && totalPages > 1 && (
             <StatefulPagination
-              currentPage={page}
+              currentPage={safePage}
               onPageChange={setPage}
               totalPages={totalPages}
             />
