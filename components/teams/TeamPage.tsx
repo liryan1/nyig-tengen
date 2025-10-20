@@ -3,13 +3,7 @@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,8 +13,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import useLocalStorage from "@/hooks/useLocalStorage";
 import { useCreatePSetProgressMutation } from "@/lib/rtk/slices/problemSets";
 import { useGetTeamQuery } from "@/lib/rtk/slices/teams";
+import { TeamRole } from "@prisma/client";
 import { UserPlus2 } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
@@ -32,8 +28,6 @@ import { TeamPageSkeleton } from "../loading/TeamSkeleton";
 import { StatefulPagination } from "../nav/StatefulPagination";
 import { ScrollArea } from "../ui/scroll-area";
 import { InviteMember } from "./InviteMember";
-import { TeamRole } from "@prisma/client";
-import useLocalStorage from "@/hooks/useLocalStorage";
 
 const membersLimit = 10;
 const problemsLimit = 24;
@@ -111,15 +105,15 @@ export const TeamPage = () => {
 
       {isTeamMember && (
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList>
+          <TabsList className="overflow-x-auto">
             <TabsTrigger value="members">
               Members {team.memberCount}
             </TabsTrigger>
             <TabsTrigger value="problems">
-              Team Problems {team.problems?.length}
+              Problems {team.problems?.length}
             </TabsTrigger>
             <TabsTrigger value="problemsets">
-              Team Problem Sets {team.problemSets?.length}
+              Problem Sets {team.problemSets?.length}
             </TabsTrigger>
           </TabsList>
 

@@ -47,6 +47,7 @@ export interface LeaderboardResponse {
   createdAt: string;
   completedAt: string;
   durationMs: string;
+  completionCount: number;
 }
 
 export interface PSetResponse extends Omit<ProblemSetResponse, "problems"> {

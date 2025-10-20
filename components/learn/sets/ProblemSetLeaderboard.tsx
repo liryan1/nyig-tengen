@@ -152,7 +152,9 @@ export function ProblemSetLeaderboard({ leaderboard, className }: Props) {
                           {r.user.name ?? "Player"}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          Completed on {fmtTime(r.completedAt)}
+                          Completed on {fmtTime(r.completedAt)} ·{" "}
+                          {r.completionCount} completion
+                          {r.completionCount !== 1 ? "s" : ""}
                         </span>
                       </div>
                     </TableCell>

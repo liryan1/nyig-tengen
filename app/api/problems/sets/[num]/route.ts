@@ -84,6 +84,7 @@ export async function GET(req: Request, { params }: Params) {
           startedAt: Date;
           completedAt: Date;
           durationMs: number;
+          completionCount: number;
         }
       >();
 
@@ -93,12 +94,20 @@ export async function GET(req: Request, { params }: Params) {
           c.updatedAt.getTime() - c.createdAt.getTime(),
         );
         const prev = bestByUser.get(c.userId);
+
         if (!prev || durationMs < prev.durationMs) {
           bestByUser.set(c.userId, {
             user: c.user,
             startedAt: c.createdAt,
             completedAt: c.updatedAt,
             durationMs,
+            completionCount: prev ? prev.completionCount + 1 : 1,
+          });
+        } else {
+          // Update the completion count even if this isn't the best time
+          bestByUser.set(c.userId, {
+            ...prev,
+            completionCount: prev.completionCount + 1,
           });
         }
       }
