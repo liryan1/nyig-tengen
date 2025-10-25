@@ -3,12 +3,18 @@
 import { StatefulPagination } from "@/components/nav/StatefulPagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { LeaderboardResponse } from "@/lib/rtk/slices/problemSets";
 import { cn } from "@/lib/utils";
-import { ChevronDown, ChevronUp, Trophy } from "lucide-react";
+import { ChevronDown, ChevronUp, InfoIcon, Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
 
 type ProblemSetLeaderboardProps = {
@@ -32,7 +38,6 @@ export function ProblemSetLeaderboard({
         ...r,
         _duration: Number(r.durationMs) || 0,
       }))
-      .sort((a, b) => a._duration - b._duration)
       .map((r, i) => ({ ...r, rank: i + 1 }));
     return rows;
   }, [leaderboard]);
@@ -56,7 +61,25 @@ export function ProblemSetLeaderboard({
   return (
     <Card className={className}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 border-b p-0 pl-2 md:pl-4 py-1">
-        <CardTitle>Leaderboard</CardTitle>
+        <CardTitle className="flex items-center gap-1 ">
+          <span>Leaderboard</span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <InfoIcon className="h-4 w-4 text-muted-foreground cursor-help" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p className="font-semibold mb-1">
+                  Maximum score: {problemCount * 100}
+                </p>
+                <p className="text-sm">
+                  Each problem is worth 100 points. Incorrect attempts deduct 25
+                  points (max 50 deduction per problem).
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </CardTitle>
         <div className="flex items-center gap-2">
           {expanded && totalPages > 1 && (
             <StatefulPagination
@@ -165,6 +188,15 @@ function relativeTime(iso: string) {
   return `${y}y ago`;
 }
 
+function scoreColor(score: number, maxScore: number) {
+  if (score >= maxScore * 0.9) {
+    return "[&>div]:bg-green-500";
+  } else if (score >= maxScore * 0.8) {
+    return "[&>div]:bg-yellow-500";
+  }
+  return undefined;
+}
+
 function rankStyles(rank: number) {
   if (rank === 1)
     return "border-yellow-400 text-yellow-500 bg-yellow-500/10 ring-2 ring-yellow-300/40";
@@ -263,7 +295,7 @@ function LeaderboardRow({
             value={percent}
             className={cn(
               "h-1 sm:h-1.5 w-20 sm:w-28",
-              `${r.score === maxScore ? "[&>div]:bg-green-500" : undefined}`,
+              scoreColor(r.score, maxScore),
             )}
             aria-label={`Score ${Math.round(percent)}%`}
           />
