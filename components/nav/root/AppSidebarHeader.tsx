@@ -21,7 +21,7 @@ export function AppSidebarHeader() {
           className="flex items-center gap-2"
         >
           <Button variant="outline" size="sm">
-            Take a Go class
+            Classes
             <ExternalLinkIcon />
           </Button>
         </Link>

@@ -48,6 +48,7 @@ export async function POST(req: Request, { params }: Params) {
     // If all problems are completed, set the status
     let updateProgressData: any = { updatedAt: new Date() };
     let updateProblemSetStats: any;
+    let updateProblemSetLeaderboard: any;
     let problemSetCompleted: boolean | undefined = undefined;
     let problemSetNum: string | undefined = undefined;
     if (problemSetProgressId) {
@@ -56,6 +57,7 @@ export async function POST(req: Request, { params }: Params) {
         select: {
           problemSetNum: true,
           problemOrder: true,
+          createdAt: true,
         },
       });
       if (!progress) {
@@ -81,11 +83,47 @@ export async function POST(req: Request, { params }: Params) {
           data: { completed: { increment: 1 } },
           where: { problemSetNum: progress.problemSetNum },
         };
+
+        // Leaderboard calculations
+        const mismatches = await db.submission.findMany({
+          where: { problemSetProgressId, status: SubmissionStatus.mismatch },
+          select: { problemNum: true },
+        });
+        const score = calculateScore(problemOrder.length, mismatches);
+        updateProblemSetLeaderboard = {
+          where: {
+            problemSetNum_userId: {
+              problemSetNum: progress.problemSetNum,
+              userId,
+            },
+          },
+          create: {
+            problemSetNum: progress.problemSetNum,
+            userId,
+            durationMs:
+              updateProgressData.updatedAt.getTime() -
+              progress.createdAt.getTime(),
+            startedAt: progress.createdAt,
+            completedAt: updateProgressData.updatedAt,
+            completionCount: 1,
+            score,
+          },
+          update: {
+            durationMs:
+              updateProgressData.updatedAt.getTime() -
+              progress.createdAt.getTime(),
+            startedAt: progress.createdAt,
+            completedAt: updateProgressData.updatedAt,
+            completionCount: { increment: 1 },
+            score,
+          },
+        };
       }
     }
 
     // Update the problem and save the submission
     await db.$transaction([
+      // Update problem set properties if the user completed the final problem
       ...(problemSetProgressId
         ? [
             db.problemSetProgress.update({
@@ -97,6 +135,10 @@ export async function POST(req: Request, { params }: Params) {
       ...(updateProblemSetStats?.data
         ? [db.problemSetStats.update(updateProblemSetStats)]
         : []),
+      ...(updateProblemSetLeaderboard
+        ? [db.problemSetLeaderboardEntry.upsert(updateProblemSetLeaderboard)]
+        : []),
+
       db.problemStats.upsert({
         where: { problemNum: problem.num },
         update: {
@@ -133,4 +175,26 @@ export async function POST(req: Request, { params }: Params) {
       { status: 500 },
     );
   }
+}
+
+/**
+ * Problem Set score based on how many mismatches observed per problem
+ * minus 25 points for each mismatch count, max 50 points deducted per problem
+ */
+function calculateScore(
+  problemCount: number,
+  mismatches: { problemNum: string }[],
+) {
+  const mismatchesByProblem: Record<string, number> = {};
+  mismatches.forEach((submission) => {
+    mismatchesByProblem[submission.problemNum] =
+      (mismatchesByProblem[submission.problemNum] ?? 0) + 1;
+  });
+
+  let score = problemCount * 100;
+  Object.values(mismatchesByProblem).forEach((mismatches) => {
+    score -= Math.min(50, mismatches * 25);
+  });
+
+  return score;
 }

@@ -252,6 +252,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
       <ProblemSetLeaderboard
         className="container mx-auto max-w-7xl mb-8"
         leaderboard={leaderboard}
+        problemCount={problemCount}
       />
     </>
   );

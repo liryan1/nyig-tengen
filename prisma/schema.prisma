@@ -14,33 +14,34 @@ enum UserRole {
 }
 
 model User {
-  id                   String               @id @default(auto()) @map("_id") @db.ObjectId
-  name                 String
-  role                 UserRole             @default(USER)
-  email                String               @unique
-  password             String?
-  emailVerified        DateTime?
-  image                String?
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
-  info                 UserInfo?
-  accounts             Account[]
-  sessions             Session[]
-  problems             Problem[]
-  problemSets          ProblemSet[]
-  problemSetProgresses ProblemSetProgress[]
-  problemLikes         ProblemLike[]
-  problemSetLikes      ProblemSetLike[]
-  problemSetStars      ProblemSetStar[]
-  problemStars         ProblemStar[]
-  endorsements         ProblemEndorsement[]
-  teamMemberships      TeamMembership[]
-  teamInvites          TeamInvite[]         @relation("user")
-  teamInvitesSent      TeamInvite[]         @relation("InviteSender")
-  teams                Team[]
-  challengeAttempts    ChallengeAttempt[]
-  challengeSessions    ChallengeSession[]
-  challengeRecords     ChallengeRecord[]
+  id                           String                       @id @default(auto()) @map("_id") @db.ObjectId
+  name                         String
+  role                         UserRole                     @default(USER)
+  email                        String                       @unique
+  password                     String?
+  emailVerified                DateTime?
+  image                        String?
+  createdAt                    DateTime                     @default(now())
+  updatedAt                    DateTime                     @updatedAt
+  info                         UserInfo?
+  accounts                     Account[]
+  sessions                     Session[]
+  problems                     Problem[]
+  problemSets                  ProblemSet[]
+  problemSetProgresses         ProblemSetProgress[]
+  problemSetLeaderboardEntries ProblemSetLeaderboardEntry[]
+  problemLikes                 ProblemLike[]
+  problemSetLikes              ProblemSetLike[]
+  problemSetStars              ProblemSetStar[]
+  problemStars                 ProblemStar[]
+  endorsements                 ProblemEndorsement[]
+  teamMemberships              TeamMembership[]
+  teamInvites                  TeamInvite[]                 @relation("user")
+  teamInvitesSent              TeamInvite[]                 @relation("InviteSender")
+  teams                        Team[]
+  challengeAttempts            ChallengeAttempt[]
+  challengeSessions            ChallengeSession[]
+  challengeRecords             ChallengeRecord[]
 }
 
 model UserInfo {
@@ -155,13 +156,7 @@ model ProblemStar {
   @@unique([userId, problemNum])
 }
 
-enum SubmissionStatus {
-  solved
-  mismatch
-  partial
-}
-
-// Join table between ProblemSet and Problem for problemNumefficient queries
+// Join table between ProblemSet and Problem for problemNum efficient queries
 // Position is the Default position of the problem in the set (e.g., 1, 2, ...)
 model ProblemSetProblem {
   id            String     @id @default(auto()) @map("_id") @db.ObjectId
@@ -176,23 +171,24 @@ model ProblemSetProblem {
 }
 
 model ProblemSet {
-  id                   String               @id @default(auto()) @map("_id") @db.ObjectId
-  num                  String               @unique
+  id                   String                       @id @default(auto()) @map("_id") @db.ObjectId
+  num                  String                       @unique
   name                 String
   description          String
-  authorId             String               @db.ObjectId
-  problemCount         Int                  @default(0)
-  averageRank          Float                @default(0)
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
-  visibility           Visibility           @default(PUBLIC)
-  author               User                 @relation(fields: [authorId], references: [id])
+  authorId             String                       @db.ObjectId
+  problemCount         Int                          @default(0)
+  averageRank          Float                        @default(0)
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
+  visibility           Visibility                   @default(PUBLIC)
+  author               User                         @relation(fields: [authorId], references: [id])
   problemSetProblems   ProblemSetProblem[]
   problemSetProgresses ProblemSetProgress[]
   problemSetStats      ProblemSetStats?
   problemSetLikes      ProblemSetLike[]
   problemSetStars      ProblemSetStar[]
   teamProblemSets      TeamProblemSet[]
+  leaderboardEntries   ProblemSetLeaderboardEntry[]
 
   @@index([authorId]) // Find how many problem sets a user has created
 }
@@ -225,6 +221,23 @@ model ProblemSetStar {
   @@unique([userId, problemSetNum])
 }
 
+model ProblemSetLeaderboardEntry {
+  id              String     @id @default(auto()) @map("_id") @db.ObjectId
+  problemSetNum   String
+  userId          String     @db.ObjectId
+  durationMs      Int
+  startedAt       DateTime
+  completedAt     DateTime
+  score           Int
+  completionCount Int        @default(1)
+  user            User       @relation(fields: [userId], references: [id])
+  problemSet      ProblemSet @relation(fields: [problemSetNum], references: [num])
+  updatedAt       DateTime   @updatedAt
+
+  @@unique([problemSetNum, userId])
+  @@index([problemSetNum, score, durationMs]) // Fast sorted leaderboard queries
+}
+
 model Submission {
   id                   String              @id @default(auto()) @map("_id") @db.ObjectId
   userId               String              @db.ObjectId
@@ -237,6 +250,12 @@ model Submission {
   problem              Problem             @relation(fields: [problemNum], references: [num])
   progress             ProblemSetProgress? @relation(fields: [problemSetProgressId], references: [id])
   createdAt            DateTime            @default(now())
+}
+
+enum SubmissionStatus {
+  solved
+  mismatch
+  partial
 }
 
 enum ProgressStatus {
@@ -407,8 +426,8 @@ model ChallengeProblem {
   sgf           String
   correctAnswer ChallengeAnswer
   difficulty    Int?            @default(1)
-  createdAt     DateTime?        @default(now())
-  updatedAt     DateTime?        @updatedAt
+  createdAt     DateTime?       @default(now())
+  updatedAt     DateTime?       @updatedAt
 
   attempts ChallengeAttempt[]
 

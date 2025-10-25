@@ -48,73 +48,37 @@ export async function GET(req: Request, { params }: Params) {
       return NextResponse.json("Problem set not found", { status: 404 });
     }
 
-    // Parse leaderboard flag
+    // Return problem set leaderboard if query parameter is true
     const search = new URL(req.url).searchParams;
     const wantLeaderboard = ["1", "true", "yes"].includes(
       (search.get("leaderboard") ?? "").toLowerCase(),
     );
 
-    // Conditionally compute leaderboard: shortest (updatedAt - createdAt)
-    let leaderboard:
-      | Array<{
-          user: { id: string; name: string | null };
-          startedAt: Date;
-          completedAt: Date;
-          durationMs: number;
-        }>
-      | undefined;
-
-    if (wantLeaderboard) {
-      const completions = await db.problemSetProgress.findMany({
-        where: { problemSetNum: num, status: ProgressStatus.completed },
-        select: {
-          userId: true,
-          createdAt: true,
-          updatedAt: true,
-          user: { select: { id: true, name: true } },
-        },
-        // no orderBy needed for correctness since we compute min in-code
-        take: 2000, // safety upper bound; adjust as needed
-      });
-
-      const bestByUser = new Map<
-        string,
-        {
-          user: { id: string; name: string | null };
-          startedAt: Date;
-          completedAt: Date;
-          durationMs: number;
-          completionCount: number;
-        }
-      >();
-
-      for (const c of completions) {
-        const durationMs = Math.max(
-          0,
-          c.updatedAt.getTime() - c.createdAt.getTime(),
-        );
-        const prev = bestByUser.get(c.userId);
-
-        if (!prev || durationMs < prev.durationMs) {
-          bestByUser.set(c.userId, {
-            user: c.user,
-            startedAt: c.createdAt,
-            completedAt: c.updatedAt,
-            durationMs,
-            completionCount: prev ? prev.completionCount + 1 : 1,
-          });
-        } else {
-          // Update the completion count even if this isn't the best time
-          bestByUser.set(c.userId, {
-            ...prev,
-            completionCount: prev.completionCount + 1,
-          });
-        }
-      }
-
-      leaderboard = Array.from(bestByUser.values())
-        .sort((a, b) => a.durationMs - b.durationMs)
-        .slice(0, 50);
+    let leaderboard;
+    try {
+      leaderboard = wantLeaderboard
+        ? await db.problemSetLeaderboardEntry.findMany({
+            where: { problemSetNum: num },
+            select: {
+              user: { select: { id: true, name: true } },
+              score: true,
+              startedAt: true,
+              completedAt: true,
+              durationMs: true,
+              completionCount: true,
+            },
+            orderBy: [
+              { score: "desc" }, // First by score descending
+              { durationMs: "asc" }, // Then by duration ascending
+            ],
+            take: 50,
+          })
+        : undefined;
+    } catch (error) {
+      logStack(error);
+      console.warn(
+        "Failed to fetch leaderboard, gracefully returning problem set without leaderboard",
+      );
     }
 
     const problems = problemSet.problemSetProblems.map((psp) => ({

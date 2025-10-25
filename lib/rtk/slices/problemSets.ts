@@ -47,6 +47,7 @@ export interface LeaderboardResponse {
   createdAt: string;
   completedAt: string;
   durationMs: string;
+  score: number;
   completionCount: number;
 }
 

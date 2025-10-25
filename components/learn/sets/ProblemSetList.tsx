@@ -45,7 +45,7 @@ export function ProblemSetList({ fixedLimit }: ProblemSetListProps) {
   const isError = psetsError || cError;
 
   return (
-    <>
+    <div className="space-y-2">
       {fixedLimit === undefined && (
         <StatefulPagination
           currentPage={currentPage}
@@ -53,7 +53,7 @@ export function ProblemSetList({ fixedLimit }: ProblemSetListProps) {
           onPageChange={setCurrentPage}
         />
       )}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {isError ? (
           <PageError>Error getting problem sets</PageError>
         ) : isLoading ? (
@@ -79,6 +79,6 @@ export function ProblemSetList({ fixedLimit }: ProblemSetListProps) {
           onPageChange={setCurrentPage}
         />
       )}
-    </>
+    </div>
   );
 }

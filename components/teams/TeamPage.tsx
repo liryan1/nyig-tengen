@@ -210,7 +210,7 @@ export const TeamPage = () => {
             <Card>
               <CardContent className="p-0">
                 <ScrollArea className="h-[60vh]">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 m-4">
+                  <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 m-4">
                     {getSlicedArray(
                       team.problemSets,
                       problemSetsTabIndex,

@@ -32,7 +32,7 @@ export function BreadcrumbNav({ children }: BreadcrumbNavProps) {
 
   return (
     <Breadcrumb className="flex justify-between items-center">
-      <BreadcrumbList>
+      <BreadcrumbList className="text-xs sm:text-sm">
         <BreadcrumbItem className="hover:text-primary hover:underline">
           <BreadcrumbLink href="/">
             <HomeIcon size={16} />
