@@ -237,8 +237,27 @@ export function GoProblem({
               </div>
             )}
             <GoBoardMenu
-              className="absolute right-1 bottom-1 aspect-square"
+              className="hidden sm:flex absolute right-1 bottom-1 aspect-square gap-0"
               handleExportSgf={() => toSgf(goGame.root, boardSize)}
+            />
+            <PassButton
+              className="sm:hidden absolute top-1 right-1"
+              onClick={() => handleMove(-1, -1)}
+            />
+            <CooldownButton
+              className="sm:hidden absolute bottom-1 right-1"
+              throttleMs={5_000}
+              text="Submit"
+              icon={
+                isLoading ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  <SendHorizonalIcon />
+                )
+              }
+              size="sm"
+              onClick={handleSubmitAnswer}
+              disabled={isLoading}
             />
           </div>
           <GoProblemToolbar
@@ -247,10 +266,14 @@ export function GoProblem({
             onSelectNode={handleSelectNode}
             onDeleteNode={handleDeleteNode}
           >
-            <div className="flex items-end gap-1">
+            <GoBoardMenu
+              className="aspect-square sm:hidden ml-1"
+              handleExportSgf={() => toSgf(goGame.root, boardSize)}
+            />
+            <div className="hidden sm:flex items-end gap-1">
               <PassButton onClick={() => handleMove(-1, -1)} />
             </div>
-            <div className="flex items-end gap-2">
+            <div className="hidden sm:flex items-end gap-2">
               <CooldownButton
                 throttleMs={5_000}
                 text="Submit"
