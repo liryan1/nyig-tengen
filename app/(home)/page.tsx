@@ -11,8 +11,8 @@ export default async function Home() {
   const session = await getServerSession(authOptions);
   return (
     <div className="max-w-[56rem] w-full mx-auto text-center">
-      <div className="pt-12 pb-4 space-y-12">
-        <div className="space-y-4">
+      <div className="space-y-6 sm:space-y-12">
+        <div className="space-y-2 sm:space-y-4">
           <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-normal">
             Tengen
           </div>

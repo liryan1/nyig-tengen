@@ -44,7 +44,6 @@ export interface LeaderboardResponse {
     id: string;
     name: string;
   };
-  createdAt: string;
   completedAt: string;
   durationMs: string;
   score: number;

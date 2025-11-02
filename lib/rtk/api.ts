@@ -9,7 +9,6 @@ export const PROBLEMS_TAG = "Problems";
 export const PROBLEM_TAG = "Problem";
 export const PROBLEM_SETS_TAG = "ProblemSets";
 export const PROBLEM_SET_TAG = "ProblemSet";
-export const CHALLENGE_TAG = "Challenge";
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
@@ -27,6 +26,5 @@ export const apiSlice = createApi({
     AUTH_TAG,
     TEAMS_TAG,
     TEAM_INVITES_TAG,
-    CHALLENGE_TAG,
   ],
 });

@@ -40,4 +40,20 @@ export const LEFT_SIDEBAR_MENU: NavItem[] = [
       },
     ],
   },
+  {
+    title: "Challenge",
+    url: "/challenge",
+    icon: SwordsIcon,
+    isActive: true,
+    items: [
+      {
+        title: "Home",
+        url: "/challenge",
+      },
+      {
+        title: "Run",
+        url: "/challenge/run",
+      },
+    ],
+  },
 ];

@@ -1,5 +1,10 @@
 import { Button } from "@/components/ui/button";
-import { LayersIcon, MoveRightIcon, Target } from "lucide-react";
+import {
+  CloudLightningIcon,
+  LayersIcon,
+  MoveRightIcon,
+  Target,
+} from "lucide-react";
 import Link from "next/link";
 import {
   Card,
@@ -16,7 +21,7 @@ const cards = [
       "bg-gradient-to-br from-green-50 to-green-100 border-green-200",
     title: "Problems",
     description:
-      "Read like you play. In Tengen, you submit moves for both sides—the side to play and the opponent's best reply. This two-step workflow builds valuable real-game habits, develops deeper reading, and reduces blunders as you strengthen your mental muscle.",
+      "Read like you play. In Tengen, you submit moves for both sides—the side to play and the opponent's best reply. This two-step workflow builds valuable real-game habits while strengthening your mental muscle.",
     link: "/learn/problems",
     linkText: "Do problems",
   },
@@ -28,6 +33,16 @@ const cards = [
       "Train in focused packs. Curated by theme and rank, sets turn repetition into mastery—sharpen patterns, track streaks, and climb with your team.",
     link: "/learn/sets",
     linkText: "Tackle problem sets",
+  },
+  {
+    titleIcon: <CloudLightningIcon className="h-6 w-6 text-indigo-600" />,
+    cardClassName:
+      "bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200",
+    title: "Challenge Mode",
+    description:
+      "Race against the clock in this fast-paced puzzle sprint. Start with 30 seconds, earn +3s for each correct answer, but one mistake ends your run. How long can you keep your streak alive?",
+    link: "/challenge",
+    linkText: "Start challenge",
   },
 ];
 
@@ -47,7 +62,7 @@ export function HomeCards() {
               </CardTitle>
             </CardHeader>
 
-            <CardContent className="text-gray-700 text-sm flex-1">
+            <CardContent className="text-gray-700 text-xs flex-1">
               {card.description}
             </CardContent>
 

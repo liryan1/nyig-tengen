@@ -8,7 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog-w-sidebar";
 import { useIsMobile } from "@/hooks/isMobile";
 import { useEndPSetProgressMutation } from "@/lib/rtk/slices/problemSets";
 import { CircleAlertIcon } from "lucide-react";

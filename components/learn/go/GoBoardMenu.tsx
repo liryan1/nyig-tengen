@@ -23,7 +23,7 @@ import {
   DialogFooter,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog-w-sidebar";
 import { Input } from "@/components/ui/input";
 
 interface GoBoardMenuProps {

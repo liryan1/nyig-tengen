@@ -40,7 +40,6 @@ model User {
   teamInvitesSent              TeamInvite[]                 @relation("InviteSender")
   teams                        Team[]
   challengeAttempts            ChallengeAttempt[]
-  challengeSessions            ChallengeSession[]
   challengeRecords             ChallengeRecord[]
 }
 
@@ -404,19 +403,20 @@ enum InviteStatus {
 enum ChallengeAnswer {
   DEAD
   ALIVE
-  UNFINISHED
+  UNSETTLED
 }
 
-enum ChallengeSessionEndReason {
-  INCORRECT
-  TIMEUP
+enum ChallengeAttemptStatus {
+  RUNNING
   QUIT
+  COMPLETED
 }
 
 enum ChallengeLeaderboardPeriod {
-  DAILY
-  WEEKLY
-  MONTHLY
+  DAY
+  WEEK
+  MONTH
+  YEAR
   ALLTIME
 }
 
@@ -429,69 +429,44 @@ model ChallengeProblem {
   createdAt     DateTime?       @default(now())
   updatedAt     DateTime?       @updatedAt
 
-  attempts ChallengeAttempt[]
-
   @@unique([num])
 }
 
-model ChallengeSession {
-  id              String                     @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String                     @db.ObjectId
-  currProblemNums String[]
-  problemsCorrect Int                        @default(0)
-  remainingTimeMs Int
-  totalTimeMs     Int
-  isActive        Boolean                    @default(true)
-  completedAt     DateTime?
-  endReason       ChallengeSessionEndReason?
-  createdAt       DateTime                   @default(now())
-  updatedAt       DateTime                   @updatedAt
+model ChallengeAttempt {
+  id                   String                 @id @default(auto()) @map("_id") @db.ObjectId
+  userId               String                 @db.ObjectId
+  challengeProblemNums String[]
+  answers              ChallengeAnswer[]
+  score                Int                    @default(0) // number of correct problems
+  timeSpentMs          Int                    @default(0)
+  status               ChallengeAttemptStatus @default(RUNNING)
+  createdAt            DateTime               @default(now())
+  completedAt          DateTime               @updatedAt
 
-  user             User               @relation(fields: [userId], references: [id])
-  attempts         ChallengeAttempt[]
+  user             User              @relation(fields: [userId], references: [id])
   challengeRecords ChallengeRecord[]
 
-  @@index([userId, createdAt])
-}
-
-// Each problem attempt in a challenge
-model ChallengeAttempt {
-  id                  String          @id @default(auto()) @map("_id") @db.ObjectId
-  sessionId           String          @db.ObjectId
-  userId              String          @db.ObjectId
-  challengeProblemNum String
-  answer              ChallengeAnswer
-  isCorrect           Boolean
-  timeSpentMs         Int
-  sequenceNumber      Int // Order within the session
-  createdAt           DateTime        @default(now())
-
-  session          ChallengeSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
-  user             User             @relation(fields: [userId], references: [id])
-  challengeProblem ChallengeProblem @relation(fields: [challengeProblemNum], references: [num])
-
-  @@index([sessionId, sequenceNumber])
   @@index([userId])
-  @@index([challengeProblemNum])
 }
 
 model ChallengeRecord {
   id              String                     @id @default(auto()) @map("_id") @db.ObjectId
   userId          String                     @db.ObjectId
   period          ChallengeLeaderboardPeriod
+  completionCount Int                        @default(1)
   periodStart     DateTime
   problemsCorrect Int
-  totalTimeMs     Int
-  sessionId       String                     @db.ObjectId // Reference to the best session
+  timeSpentMs     Int
+  attemptId       String                     @db.ObjectId // Reference to the best attempt
   createdAt       DateTime                   @default(now())
   updatedAt       DateTime                   @updatedAt
 
   user    User             @relation(fields: [userId], references: [id])
-  session ChallengeSession @relation(fields: [sessionId], references: [id])
+  attempt ChallengeAttempt @relation(fields: [attemptId], references: [id])
 
   @@unique([userId, period, periodStart])
   @@index([period, periodStart, problemsCorrect])
-  @@index([period, periodStart, totalTimeMs])
+  @@index([period, periodStart, timeSpentMs])
 }
 
 // -------------------- End Challenge Models --------------------

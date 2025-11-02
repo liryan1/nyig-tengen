@@ -13,7 +13,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog-w-sidebar";
 import { Button } from "@/components/ui/button";
 import { BOARD_SIZES } from "@/lib/go/constants";
 import { CircleAlertIcon } from "lucide-react";

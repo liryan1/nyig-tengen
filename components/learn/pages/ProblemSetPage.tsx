@@ -37,7 +37,7 @@ import { InfoBar } from "../InfoBar";
 import { StartButton } from "../sets/StartButton";
 import { EndButton } from "../sets/EndButton";
 import { Separator } from "@/components/ui/separator";
-import { ProblemSetLeaderboard } from "../sets/ProblemSetLeaderboard";
+import { ProblemSetLeaderboard } from "../ProblemSetLeaderboard";
 
 const ProblemGrid = dynamic(
   () => import("@/components/learn/sets/ProblemGrid"),
@@ -252,7 +252,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
       <ProblemSetLeaderboard
         className="container mx-auto max-w-7xl mb-8"
         leaderboard={leaderboard}
-        problemCount={problemCount}
+        maxScore={problemCount * 100}
       />
     </>
   );

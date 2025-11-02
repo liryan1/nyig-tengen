@@ -62,7 +62,6 @@ export async function GET(req: Request, { params }: Params) {
             select: {
               user: { select: { id: true, name: true } },
               score: true,
-              startedAt: true,
               completedAt: true,
               durationMs: true,
               completionCount: true,
