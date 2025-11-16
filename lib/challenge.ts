@@ -6,6 +6,21 @@ export const PROBLEMS_BATCH_SIZE = 10;
 export const START_TIME_MS = 30_000;
 export const CORRECT_BONUS_MS = 3_000;
 
+// Difficulty zones for the randomizer
+// Zone configurations: 5 zones of 20 problems each with progressive difficulty
+const DIFFICULTY_ZONES = [
+  // Zone 1 (1-20): Easy start
+  { size: 20, distribution: { 1: 0.35, 2: 0.35, 3: 0.3, 4: 0, 5: 0 } },
+  // Zone 2 (21-40): Gradual increase
+  { size: 20, distribution: { 1: 0.3, 2: 0.25, 3: 0.25, 4: 0.2, 5: 0 } },
+  // Zone 3 (41-60): Middle difficulty
+  { size: 20, distribution: { 1: 0, 2: 0.3, 3: 0.5, 4: 0.2, 5: 0 } },
+  // Zone 4 (61-80): Getting harder
+  { size: 20, distribution: { 1: 0, 2: 0, 3: 0.4, 4: 0.4, 5: 0.2 } },
+  // Zone 5 (81-100): Challenging endgame
+  { size: 20, distribution: { 1: 0, 2: 0.2, 3: 0.4, 4: 0.2, 5: 0.2 } },
+];
+
 export const CHALLEGE_ANSWER_LABEL = {
   [ChallengeAnswer.DEAD]: "Dead",
   [ChallengeAnswer.UNSETTLED]: "Unsettled",
@@ -16,30 +31,69 @@ export interface ChallengeAttemptProblem
   extends Pick<ChallengeProblem, "num" | "sgf" | "correctAnswer"> {}
 
 export async function getRandomProblems(
-  count: number = 5,
+  count: number = PROBLEMS_BATCH_SIZE,
   attemptedProblemNums: string[] = [],
 ) {
-  const response: unknown = await db.challengeProblem.aggregateRaw({
-    pipeline: [
-      { $sample: { size: count } },
-      { $project: { _id: 0, num: 1, sgf: 1, correctAnswer: 1 } },
-      ...(attemptedProblemNums.length > 0
-        ? [
-            {
-              $match: {
-                num: { $nin: attemptedProblemNums },
-              },
-            },
-          ]
-        : []),
-    ],
-  });
+  const allProblems: ChallengeAttemptProblem[] = [];
 
-  if (!response || (response as any[]).length === 0) {
+  for (const zone of DIFFICULTY_ZONES) {
+    const zoneProblems: ChallengeAttemptProblem[] = [];
+
+    // Sample problems for each difficulty level in this zone
+    for (const [difficultyStr, percentage] of Object.entries(
+      zone.distribution,
+    )) {
+      const difficulty = parseInt(difficultyStr);
+      const neededCount = Math.round(zone.size * percentage);
+
+      if (neededCount === 0) continue;
+
+      // Build match criteria
+      const matchStage: any = { difficulty };
+      if (attemptedProblemNums.length > 0) {
+        matchStage.num = { $nin: attemptedProblemNums };
+      }
+
+      const response: unknown = await db.challengeProblem.aggregateRaw({
+        pipeline: [
+          { $match: matchStage },
+          { $sample: { size: neededCount } },
+          {
+            $project: {
+              _id: 0,
+              num: 1,
+              sgf: 1,
+              correctAnswer: 1,
+              difficulty: 1,
+            },
+          },
+        ],
+      });
+
+      if (response && (response as any[]).length > 0) {
+        zoneProblems.push(...(response as ChallengeAttemptProblem[]));
+      }
+    }
+
+    // Shuffle problems within the zone to add randomness
+    shuffleArray(zoneProblems);
+    allProblems.push(...zoneProblems);
+  }
+
+  if (allProblems.length === 0) {
     throw new Error("No challenge problems available");
   }
 
-  return response as ChallengeAttemptProblem[];
+  // Return exactly count problems (or all if less available)
+  return allProblems.slice(0, count);
+}
+
+// Fisher-Yates shuffle algorithm
+function shuffleArray<T>(array: T[]): void {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
 }
 
 export function getPeriodStart(

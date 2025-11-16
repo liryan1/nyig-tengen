@@ -80,6 +80,7 @@ export async function GET(request: Request) {
         problemsCorrect: entry.problemsCorrect,
         timeSpentMs: entry.timeSpentMs,
         completedAt: entry.updatedAt,
+        completionCount: entry.completionCount,
       })),
       userEntry: userBest
         ? {
@@ -90,6 +91,7 @@ export async function GET(request: Request) {
             problemsCorrect: userBest.problemsCorrect,
             timeSpentMs: userBest.timeSpentMs,
             completedAt: userBest.updatedAt,
+            completionCount: userBest.completionCount,
           }
         : null,
     });

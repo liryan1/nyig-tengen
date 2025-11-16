@@ -1,5 +1,5 @@
 import { authOptions } from "@/app/api/auth/authOptions";
-import { getRandomProblems, PROBLEMS_BATCH_SIZE } from "@/lib/challenge";
+import { getRandomProblems } from "@/lib/challenge";
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
 import {
@@ -28,7 +28,7 @@ export async function GET(req: Request) {
       },
     });
 
-    const problems = await getRandomProblems(PROBLEMS_BATCH_SIZE);
+    const problems = await getRandomProblems();
 
     const createdAttempt = await db.challengeAttempt.create({
       data: {

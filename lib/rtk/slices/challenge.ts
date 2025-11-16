@@ -27,6 +27,7 @@ export interface LeaderboardEntry {
   };
   problemsCorrect: number;
   timeSpentMs: number;
+  completionCount: number;
   completedAt: string;
 }
 

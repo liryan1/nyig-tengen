@@ -90,7 +90,7 @@ function ChallengeLeaderboardRow({
       user={entry.user}
       durationMs={entry.timeSpentMs}
       completedAt={entry.completedAt}
-      completionCount={entry.problemsCorrect}
+      completionCount={entry.completionCount}
       hideTime
     >
       <TableCell>
