@@ -2,7 +2,7 @@ import { db } from "@/lib/db";
 import { ChallengeAnswer, ChallengeProblem } from "@prisma/client";
 import { ChallengeLeaderboardPeriod } from "@prisma/client";
 
-export const PROBLEMS_BATCH_SIZE = 10;
+export const PROBLEMS_BATCH_SIZE = 100;
 export const START_TIME_MS = 30_000;
 export const CORRECT_BONUS_MS = 3_000;
 
@@ -10,15 +10,15 @@ export const CORRECT_BONUS_MS = 3_000;
 // Zone configurations: 5 zones of 20 problems each with progressive difficulty
 const DIFFICULTY_ZONES = [
   // Zone 1 (1-20): Easy start
-  { size: 20, distribution: { 1: 0.35, 2: 0.35, 3: 0.3, 4: 0, 5: 0 } },
+  { size: 20, distribution: { 1: 0.6, 2: 0.3, 3: 0.1, 4: 0, 5: 0 } },
   // Zone 2 (21-40): Gradual increase
-  { size: 20, distribution: { 1: 0.3, 2: 0.25, 3: 0.25, 4: 0.2, 5: 0 } },
+  { size: 20, distribution: { 1: 0.4, 2: 0.3, 3: 0.2, 4: 0.1, 5: 0 } },
   // Zone 3 (41-60): Middle difficulty
-  { size: 20, distribution: { 1: 0, 2: 0.3, 3: 0.5, 4: 0.2, 5: 0 } },
+  { size: 20, distribution: { 1: 0.1, 2: 0.3, 3: 0.4, 4: 0.2, 5: 0 } },
   // Zone 4 (61-80): Getting harder
-  { size: 20, distribution: { 1: 0, 2: 0, 3: 0.4, 4: 0.4, 5: 0.2 } },
+  { size: 20, distribution: { 1: 0, 2: 0.1, 3: 0.4, 4: 0.4, 5: 0.1 } },
   // Zone 5 (81-100): Challenging endgame
-  { size: 20, distribution: { 1: 0, 2: 0.2, 3: 0.4, 4: 0.2, 5: 0.2 } },
+  { size: 20, distribution: { 1: 0, 2: 0, 3: 0.5, 4: 0.3, 5: 0.2 } },
 ];
 
 export const CHALLEGE_ANSWER_LABEL = {

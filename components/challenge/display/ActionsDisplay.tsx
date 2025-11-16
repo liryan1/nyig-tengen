@@ -38,7 +38,7 @@ export const ActionsDisplay = memo(
     return (
       <>
         <Separator />
-        <CardDescription className="text-center mt-2">
+        <CardDescription className="text-center mt-2 sm:text-lg">
           The position is
         </CardDescription>
         <CardFooter className="grid gap-4 p-4 grid-cols-3 sm:gap-6 sm:p-6">

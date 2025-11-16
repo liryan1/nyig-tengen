@@ -62,7 +62,6 @@ export async function POST(req: Request, { params }: Params) {
           completedAt: now,
         },
       });
-
       // Update or create records for each period
       const recordPromises = periods.map(async (period) => {
         const periodStart = getPeriodStart(period, now);
@@ -78,42 +77,45 @@ export async function POST(req: Request, { params }: Params) {
           },
         });
 
-        // If no record exists or the new score is better, upsert the record
-        if (
-          !existingRecord ||
-          isBetterScore(
-            score,
-            timeSpentMs,
-            existingRecord.problemsCorrect,
-            existingRecord.timeSpentMs,
-          )
-        ) {
-          return tx.challengeRecord.upsert({
-            where: {
-              userId_period_periodStart: {
-                userId,
-                period,
-                periodStart,
-              },
-            },
-            create: {
+        const isNewRecord = !existingRecord;
+        const isBetter = existingRecord
+          ? isBetterScore(
+              score,
+              timeSpentMs,
+              existingRecord.problemsCorrect,
+              existingRecord.timeSpentMs,
+            )
+          : false;
+
+        // Always upsert to increment completionCount
+        return tx.challengeRecord.upsert({
+          where: {
+            userId_period_periodStart: {
               userId,
               period,
               periodStart,
+            },
+          },
+          create: {
+            userId,
+            period,
+            periodStart,
+            problemsCorrect: score,
+            timeSpentMs,
+            attemptId,
+            completionCount: 1,
+          },
+          update: {
+            // Only update score/time if it's better
+            ...(isBetter && {
               problemsCorrect: score,
               timeSpentMs,
               attemptId,
-            },
-            update: {
-              problemsCorrect: score,
-              timeSpentMs,
-              attemptId,
-              completionCount: (existingRecord?.completionCount ?? 0) + 1,
-            },
-          });
-        }
-
-        return existingRecord;
+            }),
+            // Always increment completion count
+            completionCount: (existingRecord?.completionCount ?? 0) + 1,
+          },
+        });
       });
 
       return Promise.all(recordPromises);
