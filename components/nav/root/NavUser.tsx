@@ -28,7 +28,6 @@ import { logStack } from "@/lib/error";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { Button } from "../../ui/button";
 
 export function NavUser() {
   const { data: session } = useSession();

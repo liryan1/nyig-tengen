@@ -2,8 +2,11 @@
 
 import { ProblemGridSkeleton } from "@/components/loading/ProblemGridSkeleton";
 import { ProblemSetPageSkeleton } from "@/components/loading/ProblemSetPageSkeleton";
-import { logStack } from "@/lib/error";
 import { getRank } from "@/lib/go/display";
+import {
+  selectPsetCompletion,
+  setPsetCompletion,
+} from "@/lib/rtk/psetCompletion";
 import { useAppDispatch, useAppSelector } from "@/lib/rtk/slices/hooks";
 import {
   useCreatePSetProgressMutation,
@@ -11,10 +14,6 @@ import {
   usePSetLikeMutation,
   usePSetStarMutation,
 } from "@/lib/rtk/slices/problemSets";
-import {
-  selectPsetCompletion,
-  setPsetCompletion,
-} from "@/lib/rtk/psetCompletion";
 import { debounce } from "@/lib/utils";
 import { SubmissionStatus } from "@prisma/client";
 import { TrophyIcon } from "lucide-react";
@@ -34,10 +33,9 @@ import {
   CardTitle,
 } from "../../ui/card";
 import { InfoBar } from "../InfoBar";
-import { StartButton } from "../sets/StartButton";
-import { EndButton } from "../sets/EndButton";
-import { Separator } from "@/components/ui/separator";
 import { ProblemSetLeaderboard } from "../ProblemSetLeaderboard";
+import { EndButton } from "../sets/EndButton";
+import { StartButton } from "../sets/StartButton";
 
 const ProblemGrid = dynamic(
   () => import("@/components/learn/sets/ProblemGrid"),

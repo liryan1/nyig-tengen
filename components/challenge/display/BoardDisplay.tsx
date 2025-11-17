@@ -3,16 +3,18 @@ import { CardContent } from "@/components/ui/card";
 import { useCellSize } from "@/hooks/useCellSize";
 import { getBoardSize } from "@/lib/go/parser";
 import { cn } from "@/lib/utils";
-import { useRef } from "react";
+import React, { useRef } from "react";
 
 interface BoardSectionProps {
   sgf?: string;
   className?: string;
+  icon?: React.ReactNode;
 }
 
 export function BoardDisplay({
   sgf = "(;SZ[13])",
   className,
+  icon,
 }: BoardSectionProps) {
   const boardSize = getBoardSize(sgf);
   const boardContainerRef = useRef<HTMLDivElement>(null);
@@ -28,7 +30,7 @@ export function BoardDisplay({
           style={{ width: `${boardPixelSize}px`, maxWidth: "100%" }}
           className="mx-auto"
         >
-          <ReadonlyGoBoard sgf={sgf} cellSize={cellSize} />
+          <ReadonlyGoBoard sgf={sgf} cellSize={cellSize} icon={icon} />
         </div>
       </div>
     </CardContent>

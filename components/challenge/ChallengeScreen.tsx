@@ -8,6 +8,7 @@ import {
   CardFooter,
   CardHeader,
 } from "@/components/ui/card";
+import { useIsMobile } from "@/hooks/isMobile";
 import { useChallenge } from "@/hooks/useChallenge";
 import {
   useChallengeSubmitMutation,
@@ -15,12 +16,12 @@ import {
 } from "@/lib/rtk/slices/challenge";
 import { FileWarningIcon, Loader2, PlayCircle } from "lucide-react";
 import { useState } from "react";
-import { PageError } from "../labels/Error";
+import Confetti from "react-confetti-boom";
+import { toast } from "sonner";
 import { ActionsDisplay } from "./display/ActionsDisplay";
 import { BoardDisplay } from "./display/BoardDisplay";
 import { ChallengeComplete } from "./display/ChallengeComplete";
 import { TimerDisplay } from "./display/TimeDisplay";
-import { useIsMobile } from "@/hooks/isMobile";
 
 export function ChallengeScreen() {
   const isMobile = useIsMobile();
@@ -37,19 +38,33 @@ export function ChallengeScreen() {
   const [newPersonalBest, setNewPersonalBest] = useState(0);
   const isLoading = startLoading || submitLoading || isFetching;
 
+  const [showConfetti, setShowConfetti] = useState(false);
+
   const handleChallengeEnded = async () => {
     const attemptId = data?.attemptId;
     if (!attemptId) {
       console.error("Unable to find attempt to update");
       return;
     }
-    if (problemsCorrect >= 1) {
-      const newPersonalBest = await submit({
-        attemptId,
-        timeSpentMs: totalRunTimeMs,
-        score: problemsCorrect,
-      }).unwrap();
-      setNewPersonalBest(newPersonalBest.problemsCorrect);
+
+    const callback = async () => {
+      if (problemsCorrect >= 1) {
+        const newPersonalBest = await submit({
+          attemptId,
+          timeSpentMs: totalRunTimeMs,
+          score: problemsCorrect,
+        }).unwrap();
+        setShowConfetti(true);
+        setNewPersonalBest(newPersonalBest.problemsCorrect);
+      }
+    };
+    toast.promise(callback, {
+      loading: "Submitting results to high scores...",
+      success: () => "Keep practicing 💪",
+      error: (err) => `Failed to submit results: ${err.data?.message}`,
+    });
+    if (showConfetti) {
+      setShowConfetti(false);
     }
     setShowCompleted(true);
   };
@@ -89,8 +104,19 @@ export function ChallengeScreen() {
 
   return (
     <div className="container mx-auto max-w-4xl py-6">
-      <Card className="">
-        <CardHeader className="p-4 sm:p-6">
+      {showConfetti && (
+        <div className="z-50">
+          <Confetti
+            x={0.4}
+            effectInterval={3000}
+            effectCount={5}
+            particleCount={800}
+            launchSpeed={2.5}
+          />
+        </div>
+      )}
+      <Card>
+        <CardHeader className="p-2 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <Badge variant="secondary" className="text-sm">
               {isMobile ? "Streak" : "Current streak"}: {problemsCorrect}
@@ -110,7 +136,7 @@ export function ChallengeScreen() {
           />
 
           {isError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+            <div className="absolute flex items-center justify-center bg-background/50 backdrop-blur-sm">
               <Card className="w-full max-w-sm">
                 <CardContent className="flex items-center gap-3 p-6 text-destructive">
                   <FileWarningIcon className="h-5 w-5" />
@@ -171,6 +197,7 @@ export function ChallengeScreen() {
                 problemsCorrect={problemsCorrect}
                 totalRunTimeMs={totalRunTimeMs}
                 newPersonalBest={newPersonalBest}
+                lastProblemSgf={currentProblem?.sgf}
               />
             </div>
           )}
