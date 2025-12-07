@@ -31,7 +31,7 @@ import { Visibility } from "@prisma/client";
 import { CircleAlertIcon, SendHorizonalIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef } from "react";
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -48,9 +48,9 @@ const GoProblemEditor = dynamic(
 // Update schema with teamId and add a refinement for TEAM visibility
 const formSchema = z
   .object({
-    rank: z.coerce.number().int().min(-30).max(8),
+    rank: z.int().min(-30).max(8),
     description: z.string().optional(),
-    visibility: z.nativeEnum(Visibility),
+    visibility: z.enum(Visibility),
     teamSlugs: z
       .array(
         z.object({
@@ -91,11 +91,6 @@ export function ProblemForm({ problem }: Props) {
   const goGameRef = useRef<GoGame>(
     initialSgf ? GoGame.fromSgf(initialSgf) : GoGame.empty(),
   );
-  // useEffect(() => {
-  //   if (initialSgf) {
-  //     goGameRef.current = GoGame.fromSgf(initialSgf);
-  //   }
-  // }, [initialSgf]);
 
   const [create, { isLoading: cLoading }] = useCreateProblemMutation();
   const [update, { isLoading: uLoading }] = useUpdateProblemMutation();
