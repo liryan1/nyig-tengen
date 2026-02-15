@@ -58,7 +58,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
         </div>
       </CardTitle>
       <CardContent
-        className="flex items-center justify-center p-0"
+        className="flex items-center justify-center !p-0"
         ref={boardContainerRef}
       >
         <Link
@@ -68,7 +68,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
           <ReadonlyGoBoard cellSize={cellSize} sgf={initial} />
         </Link>
       </CardContent>
-      <CardFooter className="flex items-center justify-between text-xs text-muted-foreground p-0 sm:px-1 py-1 select-none">
+      <CardFooter className="flex items-center justify-between text-xs text-muted-foreground !p-0 !sm:px-1 !py-1 select-none">
         <div className="flex gap-1">
           <span className="flex items-center gap-0.5">
             <EyeIcon size={16} />

@@ -95,16 +95,12 @@ export function LoginForm({ referer }: { referer?: string | null }) {
     <div className="my-16 sm:mx-auto sm:w-full sm:max-w-md">
       <div className="px-4 py-8 shadow sm:rounded-lg sm:px-10">
         <div className="pb-6 sm:mx-auto sm:w-full sm:max-w-md">
-          <LogoWithText text="Tengen" school="NYIG" />
-        </div>
-        <div className="pb-6">
-          <p className="text-2xl">Sign In</p>
-          <p className="text-base text-gray-500">to continue to NYIG Tengen</p>
+          <LogoWithText text="Sign in" />
         </div>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {form.formState.errors.root && (
-              <div className="flex items-center text-red-600 text-sm gap-1">
+              <div className="flex items-center text-destructive text-sm gap-1">
                 <CircleAlertIcon className="h-4 w-4" />
                 {form.formState.errors.root.message}
               </div>

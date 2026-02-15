@@ -120,7 +120,7 @@ export function SignUpForm({ referer }: { referer?: string | null }) {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {form.formState.errors.root && (
-              <div className="flex items-center text-red-600 text-sm gap-1">
+              <div className="flex items-center text-destructive text-sm gap-1">
                 <CircleAlertIcon className="h-4 w-4" />
                 {form.formState.errors.root.message}
               </div>

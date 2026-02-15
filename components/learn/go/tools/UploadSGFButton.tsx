@@ -1,17 +1,16 @@
 "use client";
 
-import { RefObject, useState } from "react";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Dialog,
-  DialogTrigger,
   DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
   DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog-w-sidebar";
 import { Input } from "@/components/ui/input";
-import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -20,7 +19,7 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { CircleAlertIcon, FolderUpIcon } from "lucide-react";
-import { GoGame } from "@/lib/go/goGame";
+import { useState } from "react";
 
 interface UploadSGFButtonProps {
   notEmpty?: boolean;

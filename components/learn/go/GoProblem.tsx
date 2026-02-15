@@ -53,6 +53,7 @@ export function GoProblem({
     handleMove,
     handleSelectNode,
     handleDeleteNode,
+    handleResetVariations,
     currentNode,
     nextPlayer,
   } = useGo({
@@ -239,6 +240,7 @@ export function GoProblem({
             <GoBoardMenu
               className="hidden sm:flex absolute right-1 bottom-1 aspect-square gap-0"
               handleExportSgf={() => toSgf(goGame.root, boardSize)}
+              onResetVariations={handleResetVariations}
             />
             <PassButton
               className="sm:hidden absolute top-1 right-1"
@@ -269,6 +271,7 @@ export function GoProblem({
             <GoBoardMenu
               className="aspect-square sm:hidden ml-1"
               handleExportSgf={() => toSgf(goGame.root, boardSize)}
+              onResetVariations={handleResetVariations}
             />
             <div className="hidden sm:flex items-end gap-1">
               <PassButton onClick={() => handleMove(-1, -1)} />

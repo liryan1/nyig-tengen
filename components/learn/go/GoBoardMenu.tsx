@@ -1,11 +1,21 @@
 import { useShowCoord } from "@/components/providers/ShowCoordProvider";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog-w-sidebar";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
   CircleAlertIcon,
@@ -13,18 +23,9 @@ import {
   DownloadIcon,
   FolderUpIcon,
   MoreVerticalIcon,
+  XIcon,
 } from "lucide-react";
 import { useState } from "react";
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogFooter,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog-w-sidebar";
-import { Input } from "@/components/ui/input";
 
 interface GoBoardMenuProps {
   className?: string;
@@ -32,6 +33,7 @@ interface GoBoardMenuProps {
   onUpload?: (sgfContent: string) => void;
   boardIsNotEmpty?: boolean;
   dropdownMenuSide?: "top" | "bottom" | "left" | "right";
+  onResetVariations?: () => void;
 }
 
 export function GoBoardMenu({
@@ -40,6 +42,7 @@ export function GoBoardMenu({
   onUpload,
   boardIsNotEmpty,
   dropdownMenuSide,
+  onResetVariations,
 }: GoBoardMenuProps) {
   const { toggleShowCoord, showCoord } = useShowCoord();
   const [fileContent, setFileContent] = useState("");
@@ -167,6 +170,12 @@ export function GoBoardMenu({
           <DropdownMenuItem onClick={downloadTxtFile}>
             <DownloadIcon />
             <span>Download as SGF</span>
+          </DropdownMenuItem>
+        )}
+        {onResetVariations && (
+          <DropdownMenuItem onClick={onResetVariations}>
+            <XIcon />
+            <span>Clear Variations</span>
           </DropdownMenuItem>
         )}
         <DropdownMenuItem onClick={handleCopySgf}>

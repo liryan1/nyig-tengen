@@ -39,6 +39,7 @@ import { CooldownButton } from "../CooldownButton";
 import { Spinner } from "../labels/Spinner";
 import { GoProblemSkeleton } from "../loading/GoProblemSkeleton";
 import { MultiSelect } from "../ui/multiselect";
+import { useSession } from "next-auth/react";
 
 const GoProblemEditor = dynamic(
   () => import("@/components/learn/go/GoProblemEditor"),
@@ -48,9 +49,9 @@ const GoProblemEditor = dynamic(
 // Update schema with teamId and add a refinement for TEAM visibility
 const formSchema = z
   .object({
-    rank: z.int().min(-30).max(8),
+    rank: z.coerce.number().int().min(-30).max(8),
     description: z.string().optional(),
-    visibility: z.enum(Visibility),
+    visibility: z.nativeEnum(Visibility),
     teamSlugs: z
       .array(
         z.object({
@@ -81,6 +82,8 @@ interface Props {
 }
 
 export function ProblemForm({ problem }: Props) {
+  const { data } = useSession();
+  const userId = data?.user?.id;
   const router = useRouter();
   const { data: teams, isLoading: tLoading } = useGetMyTeamsQuery();
   const teamOptions =
@@ -117,6 +120,13 @@ export function ProblemForm({ problem }: Props) {
   const selectedVisibility = form.watch("visibility");
 
   const onSubmit = async (values: FormValues) => {
+    if (!userId) {
+      form.setError("root", {
+        message: "You must be logged in to create a problem",
+      });
+      return;
+    }
+
     const goGame = goGameRef.current;
     if (!goGame) {
       return;
@@ -176,7 +186,7 @@ export function ProblemForm({ problem }: Props) {
       <form className="space-y-4 mb-8">
         <h1 className="text-2xl font-semibold">{actionWord} Problem</h1>
         {form.formState.errors.root && (
-          <div className="flex items-center text-red-600 text-sm gap-1">
+          <div className="flex items-center text-destructive text-sm gap-1">
             <CircleAlertIcon className="h-4 w-4" />
             {form.formState.errors.root.message}
           </div>
@@ -187,54 +197,27 @@ export function ProblemForm({ problem }: Props) {
           initialMode={problem ? "move" : "edit"}
         />
 
-        <FormField
-          control={form.control}
-          name="rank"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Difficulty</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value.toString()}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue placeholder="Select rank" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {RANK_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>
-                        {o.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
           <FormField
             control={form.control}
-            name="visibility"
+            name="rank"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Visibility</FormLabel>
+                <FormLabel>Difficulty</FormLabel>
                 <FormControl>
-                  <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue placeholder="Select visibility" />
+                  <Select
+                    value={field.value.toString()}
+                    onValueChange={field.onChange}
+                  >
+                    <SelectTrigger className="w-32">
+                      <SelectValue placeholder="Select rank" />
                     </SelectTrigger>
                     <SelectContent>
-                      {Object.values(Visibility)
-                        .filter((v) => v !== Visibility.DELETED)
-                        .map((o) => (
-                          <SelectItem key={o} value={o}>
-                            {o.toLowerCase()}
-                          </SelectItem>
-                        ))}
+                      {RANK_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value.toString()}>
+                          {o.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </FormControl>
@@ -242,26 +225,55 @@ export function ProblemForm({ problem }: Props) {
               </FormItem>
             )}
           />
-          {selectedVisibility === Visibility.TEAM && (
+
+          <div className="flex flex-wrap gap-4">
             <FormField
               control={form.control}
-              name="teamSlugs"
+              name="visibility"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Select Teams</FormLabel>
-                  <FormControl className="flex-1">
-                    <MultiSelect
-                      placeholder="Select teams"
-                      options={teamOptions}
-                      selected={field.value}
-                      onChange={field.onChange}
-                    />
+                  <FormLabel>Visibility</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-40">
+                        <SelectValue placeholder="Select visibility" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.values(Visibility)
+                          .filter((v) => v !== Visibility.DELETED)
+                          .map((o) => (
+                            <SelectItem key={o} value={o}>
+                              {o.toLowerCase()}
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-          )}
+            {selectedVisibility === Visibility.TEAM && (
+              <FormField
+                control={form.control}
+                name="teamSlugs"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Select Teams</FormLabel>
+                    <FormControl className="flex-1">
+                      <MultiSelect
+                        placeholder="Select teams"
+                        options={teamOptions}
+                        selected={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+          </div>
         </div>
 
         <FormField

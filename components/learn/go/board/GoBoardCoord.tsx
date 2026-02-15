@@ -1,7 +1,8 @@
 import { cn } from "@/lib/utils";
 import React from "react";
 
-const coordinateCN = "absolute h-4 w-4 flex items-center justify-center";
+const coordinateCN =
+  "absolute h-4 w-4 flex items-center justify-center text-black";
 
 interface GoBoardCoordProps {
   className?: string;

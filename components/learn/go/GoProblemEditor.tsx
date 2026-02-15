@@ -60,6 +60,7 @@ export function GoProblemEditor({
     getNextPlayer,
     handleMove,
     handleClickBoard,
+    handleResetVariations,
   } = useGo({
     goGame,
     initialMode,
@@ -160,6 +161,7 @@ export function GoProblemEditor({
               dropdownMenuSide="top"
               onUpload={handleUploadSgfChange}
               boardIsNotEmpty={!goGame.isEmpty()}
+              onResetVariations={handleResetVariations}
             />
           </div>
         </GoProblemToolbar>

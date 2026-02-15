@@ -163,6 +163,11 @@ export function useGo({ goGame, readonly, initialMode = "move" }: UseGoProps) {
     [readonly, currentNode, goGame],
   );
 
+  const handleResetVariations = () => {
+    goGame.root.children = [];
+    handleSelectNode(goGame.root);
+  };
+
   const handleClickBoard = useCallback(
     (row: number, col: number, editTool?: BoardEditTool) => {
       if (readonly) {
@@ -218,6 +223,7 @@ export function useGo({ goGame, readonly, initialMode = "move" }: UseGoProps) {
     setCurrentNode,
     handleSelectNode,
     handleDeleteNode,
+    handleResetVariations,
 
     nextPlayer,
     setNextPlayer,

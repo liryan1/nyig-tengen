@@ -17,7 +17,7 @@ export function AppSidebarLogo() {
           >
             <Logo />
             <div className="truncate flex flex-col text-left leading-tight">
-              <span className="text-3xl font-medium">NYIG</span>
+              <span className="text-3xl font-medium">Tengen</span>
             </div>
           </SidebarMenuButton>
         </Link>
