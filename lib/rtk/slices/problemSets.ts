@@ -101,7 +101,15 @@ const problemSetApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getPSets: builder.query<GetPSetsResponse, string>({
       query: (search) => `problems/sets?${search}`,
-      providesTags: [PROBLEM_SETS_TAG],
+      providesTags: (result) =>
+        result?.problemSets
+          ? [
+              ...result.problemSets.map((pset) => ({
+                type: PROBLEM_SET_TAG,
+                id: pset.num,
+              })),
+            ]
+          : [PROBLEM_SETS_TAG],
     }),
     getPSet: builder.query<PSetResponse, string>({
       query: (num) => `problems/sets/${num}?leaderboard=true`,

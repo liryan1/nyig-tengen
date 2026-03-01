@@ -2,13 +2,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 export const BASE_URL: string = "/api";
 
-export const AUTH_TAG = "Auth";
-export const TEAMS_TAG = "Teams";
-export const TEAM_INVITES_TAG = "TeamInvites";
-export const PROBLEMS_TAG = "Problems";
-export const PROBLEM_TAG = "Problem";
-export const PROBLEM_SETS_TAG = "ProblemSets";
-export const PROBLEM_SET_TAG = "ProblemSet";
+export const AUTH_TAG = "Auth" as const;
+export const TEAMS_TAG = "Teams" as const;
+export const TEAM_INVITES_TAG = "TeamInvites" as const;
+export const PROBLEMS_TAG = "Problems" as const;
+export const PROBLEM_TAG = "Problem" as const;
+export const PROBLEM_SETS_TAG = "ProblemSets" as const;
+export const PROBLEM_SET_TAG = "ProblemSet" as const;
 
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
