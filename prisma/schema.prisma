@@ -124,6 +124,10 @@ model Problem {
   teamProblems       TeamProblem[]
 
   @@index([authorId])
+  @@index([rank])
+  @@index([createdAt])
+  @@index([visibility])
+  @@index([rank, createdAt])
 }
 
 model ProblemStats {

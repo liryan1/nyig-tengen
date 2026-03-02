@@ -88,31 +88,3 @@ export const mapProblemResponse = (
   },
   visibility: problem.visibility,
 });
-
-/**
- * Represents permissions on the problem:
- * 1. The problem is public
- * 2. The problem is owned by the user
- * 3. The problem is team-based and the user is a member of the team
- */
-export const getProblemSelectOR = (
-  userId?: string,
-): Prisma.ProblemWhereInput[] => [
-  { visibility: Visibility.PUBLIC },
-  {
-    authorId: userId,
-  },
-  {
-    teamProblems: {
-      some: {
-        team: {
-          memberships: {
-            some: {
-              userId: userId,
-            },
-          },
-        },
-      },
-    },
-  },
-];

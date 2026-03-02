@@ -1,14 +1,10 @@
 import { db } from "@/lib/db";
 import { logStack } from "@/lib/error";
-import { Prisma } from "@prisma/client";
+import { Prisma, Visibility } from "@prisma/client";
 import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../auth/authOptions";
-import {
-  getProblemSelect,
-  getProblemSelectOR,
-  mapProblemResponse,
-} from "./problemQuery";
+import { getProblemSelect, mapProblemResponse } from "./problemQuery";
 
 const DEFAULT_PAGE = "1";
 const DEFAULT_LIMIT = "20";
@@ -61,9 +57,25 @@ export async function GET(req: Request) {
       );
     }
 
+    let teamSlugs: string[] = [];
+    if (userId) {
+      const userWithTeams = await db.user.findUnique({
+        where: { id: userId },
+        include: {
+          teamMemberships: {
+            select: {
+              teamSlug: true,
+            },
+          },
+        },
+      });
+      if (userWithTeams) {
+        teamSlugs = userWithTeams.teamMemberships.map((m) => m.teamSlug);
+      }
+    }
+
     const where: Prisma.ProblemWhereInput = {
       rank: { gte, lte },
-      OR: getProblemSelectOR(userId),
       ...(params.starred === "true" && userId
         ? {
             problemStars: {
@@ -74,6 +86,25 @@ export async function GET(req: Request) {
           }
         : {}),
     };
+
+    const orConditions: Prisma.ProblemWhereInput[] = [
+      { visibility: Visibility.PUBLIC },
+    ];
+    if (userId) {
+      orConditions.push({ authorId: userId });
+    }
+    if (teamSlugs.length > 0) {
+      orConditions.push({
+        teamProblems: {
+          some: {
+            teamSlug: {
+              in: teamSlugs,
+            },
+          },
+        },
+      });
+    }
+    where.OR = orConditions;
 
     if (params.creatorId) {
       where.authorId = params.creatorId;
