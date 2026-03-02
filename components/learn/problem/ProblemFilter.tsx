@@ -42,7 +42,7 @@ export function ProblemFilter() {
     },
     options,
   );
-  const [creator, setCreator] = useQueryState("creator", {
+  const [creatorId, setCreatorId] = useQueryState("creatorId", {
     ...options,
     defaultValue: "",
   });
@@ -54,10 +54,10 @@ export function ProblemFilter() {
 
   const clearFilters = useCallback(() => {
     setRankRange({ rank_min: -30, rank_max: 8 });
-    setCreator(null);
+    setCreatorId(null);
     setSort(null);
     setStarred(false);
-  }, [setRankRange, setCreator, setSort, setStarred]);
+  }, [setRankRange, setCreatorId, setSort, setStarred]);
 
   return (
     <div className="flex flex-wrap gap-x-2 sm:gap-x-4 gap-y-2 justify-center">
@@ -78,7 +78,7 @@ export function ProblemFilter() {
           step={1}
         />
       </div>
-      <ProblemCreatorInput value={creator} onSelect={setCreator} />
+      <ProblemCreatorInput value={creatorId} onSelect={setCreatorId} />
       <div>
         <Select value={sort} onValueChange={setSort}>
           <SelectTrigger className="w-32">

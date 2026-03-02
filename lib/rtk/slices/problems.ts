@@ -42,6 +42,7 @@ export interface GetProblemsResponse {
 }
 
 export interface ProblemCreator {
+  id: string;
   name: string;
 }
 

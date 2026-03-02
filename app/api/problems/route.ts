@@ -18,7 +18,7 @@ type QueryParams = {
   limit?: string;
   rank_min?: string;
   rank_max?: string;
-  creator?: string;
+  creatorId?: string;
   sort?: string;
   starred?: string;
 };
@@ -75,20 +75,17 @@ export async function GET(req: Request) {
         : {}),
     };
 
-    if (params.creator) {
-      where.author = {
-        name: params.creator,
-      };
+    if (params.creatorId) {
+      where.authorId = params.creatorId;
     }
 
-    const orderBy: Prisma.ProblemOrderByWithRelationInput[] = [
-      { createdAt: "desc" },
-    ];
+    const orderBy: Prisma.ProblemOrderByWithRelationInput[] = [];
     if (params.sort === "likes") {
       orderBy.push({ problemLikes: { _count: "desc" } });
     } else if (params.sort === "views") {
       orderBy.push({ problemStats: { views: "desc" } });
     }
+    orderBy.push({ createdAt: "desc" });
 
     // Fetch the problem sets with pagination and get count
     const [totalProblems, problems] = await db.$transaction([
@@ -99,7 +96,7 @@ export async function GET(req: Request) {
         where,
         skip,
         take: limit,
-        orderBy: orderBy.toReversed(),
+        orderBy,
         select: getProblemSelect(userId),
       }),
     ]);

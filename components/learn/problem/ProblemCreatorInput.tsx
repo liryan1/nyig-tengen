@@ -15,7 +15,7 @@ export const ProblemCreatorInput: React.FC<ProblemCreatorInputProps> = ({
 }) => {
   const { data, isLoading } = useGetProblemCreatorsQuery();
   const creators = (data ?? []).map((creator) => ({
-    value: creator.name,
+    value: creator.id,
     label: creator.name,
   }));
 
