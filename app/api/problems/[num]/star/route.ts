@@ -34,16 +34,29 @@ export async function POST(req: NextRequest, { params }: Params) {
 
     if (existingStar) {
       // Already starred => remove the star
-      await db.problemStar.delete({ where: { id: existingStar.id } });
+      await db.$transaction([
+        db.problemStar.delete({ where: { id: existingStar.id } }),
+        db.problemStats.update({
+          where: { problemNum: num },
+          data: { stars: { decrement: 1 } },
+        }),
+      ]);
       return NextResponse.json({ starred: false }, { status: 200 });
     } else {
       // Not starred yet => create the star
-      await db.problemStar.create({
-        data: {
-          userId: session.user.id,
-          problemNum: num,
-        },
-      });
+      await db.$transaction([
+        db.problemStar.create({
+          data: {
+            userId: session.user.id,
+            problemNum: num,
+          },
+        }),
+        db.problemStats.upsert({
+          where: { problemNum: num },
+          create: { problemNum: num, stars: 1 },
+          update: { stars: { increment: 1 } },
+        }),
+      ]);
       return NextResponse.json({ starred: true }, { status: 201 });
     }
   } catch (error) {

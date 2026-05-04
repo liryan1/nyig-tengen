@@ -121,9 +121,6 @@ export function ProblemForm({ problem }: Props) {
 
   const onSubmit = async (values: FormValues) => {
     if (!userId) {
-      form.setError("root", {
-        message: "You must be logged in to create a problem",
-      });
       return;
     }
 
@@ -185,6 +182,12 @@ export function ProblemForm({ problem }: Props) {
     <Form {...form}>
       <form className="space-y-4 mb-8">
         <h1 className="text-2xl font-semibold">{actionWord} Problem</h1>
+        {!userId && (
+          <div className="flex items-center text-destructive text-sm gap-1">
+            <CircleAlertIcon className="h-4 w-4" />
+            You must be logged in to create a problem
+          </div>
+        )}
         {form.formState.errors.root && (
           <div className="flex items-center text-destructive text-sm gap-1">
             <CircleAlertIcon className="h-4 w-4" />

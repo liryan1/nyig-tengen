@@ -20,35 +20,10 @@ export const getProblemSelect = (userId?: string): Prisma.ProblemSelect => ({
       views: true,
       submissionCount: true,
       correctCount: true,
+      likes: true,
+      stars: true,
     },
   },
-  _count: {
-    select: {
-      problemLikes: true,
-    },
-  },
-  problemLikes: userId
-    ? {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-        take: 1,
-      }
-    : false,
-  problemStars: userId
-    ? {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-        take: 1,
-      }
-    : false,
   visibility: true,
   endorsement: {
     select: {
@@ -75,6 +50,8 @@ export const getProblemSelect = (userId?: string): Prisma.ProblemSelect => ({
 export const mapProblemResponse = (
   problem: any,
   userId?: string,
+  userLiked: boolean = false,
+  userStarred: boolean = false,
 ): GoProblemResponse => ({
   num: problem.num,
   initial: problem.initial,
@@ -93,9 +70,9 @@ export const mapProblemResponse = (
     views: problem.problemStats?.views,
     submissionCount: problem.problemStats?.submissionCount,
     correctCount: problem.problemStats?.correctCount,
-    userLiked: problem.problemLikes?.length > 0,
-    userStarred: problem.problemStars?.length > 0,
-    likes: problem._count?.problemLikes || 0,
+    userLiked,
+    userStarred,
+    likes: problem.problemStats?.likes || 0,
   },
   visibility: problem.visibility,
 });

@@ -45,16 +45,29 @@ export async function POST(request: NextRequest, { params }: Params) {
     // 4. Toggle logic
     if (existingLike) {
       // Already liked => remove the like
-      await db.problemLike.delete({ where: { id: existingLike.id } });
+      await db.$transaction([
+        db.problemLike.delete({ where: { id: existingLike.id } }),
+        db.problemStats.update({
+          where: { problemNum: num },
+          data: { likes: { decrement: 1 } },
+        }),
+      ]);
       return NextResponse.json({ liked: false }, { status: 200 });
     } else {
       // Not liked yet => create the like
-      await db.problemLike.create({
-        data: {
-          userId: session.user.id,
-          problemNum: num,
-        },
-      });
+      await db.$transaction([
+        db.problemLike.create({
+          data: {
+            userId: session.user.id,
+            problemNum: num,
+          },
+        }),
+        db.problemStats.upsert({
+          where: { problemNum: num },
+          create: { problemNum: num, likes: 1 },
+          update: { likes: { increment: 1 } },
+        }),
+      ]);
       return NextResponse.json({ liked: true }, { status: 201 });
     }
   } catch (error) {

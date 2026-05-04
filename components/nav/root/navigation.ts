@@ -11,6 +11,7 @@ export interface NavItem {
   icon?: LucideIcon;
   isActive?: boolean;
   isAdminOnly?: boolean;
+  isSignedInOnly?: boolean;
   items?: NavItem[];
 }
 
@@ -24,6 +25,7 @@ export const LEFT_SIDEBAR_MENU: NavItem[] = [
       {
         title: "Starred problems",
         url: "/learn/problems?starred=true",
+        isSignedInOnly: true,
       },
       {
         title: "Problems",

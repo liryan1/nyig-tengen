@@ -15,6 +15,7 @@ export function GoProblemPage({ num }: { num?: string }) {
     { num: num ?? "" },
     { skip: !num },
   );
+
   if (isLoading) {
     return <GoProblemSkeleton />;
   }

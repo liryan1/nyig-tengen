@@ -1,13 +1,18 @@
 import { ProblemSetPage } from "@/components/learn/pages/ProblemSetPage";
-import { fetchSafe } from "@/lib/fetch";
+import { db } from "@/lib/db";
 
 type Params = { params: Promise<{ sNum: string }> };
 
 async function ProblemSetIdPage({ params }: Params) {
   const { sNum } = await params;
-  fetchSafe(`/problems/sets/${sNum}/view`, {
-    method: "POST",
-    cache: "no-store",
+
+  await db.problemSetStats.upsert({
+    where: { problemSetNum: sNum },
+    update: { views: { increment: 1 } },
+    create: {
+      problemSetNum: sNum,
+      views: 1,
+    },
   });
 
   return <ProblemSetPage sNum={sNum} />;

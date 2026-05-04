@@ -58,7 +58,7 @@ export async function GET(req: Request) {
     };
 
     // Fetch the problem sets with pagination and get count
-    const [totalProblemSets, problemSets] = await db.$transaction([
+    const [totalProblemSets, problemSets] = await Promise.all([
       db.problemSet.count({ where }),
       db.problemSet.findMany({
         where,
@@ -69,6 +69,25 @@ export async function GET(req: Request) {
       }),
     ]);
 
+    const psetNums = problemSets.map((p) => p.num);
+    const [userLikes, userStars] = await Promise.all([
+      userId
+        ? db.problemSetLike.findMany({
+            where: { userId, problemSetNum: { in: psetNums } },
+            select: { problemSetNum: true },
+          })
+        : [],
+      userId
+        ? db.problemSetStar.findMany({
+            where: { userId, problemSetNum: { in: psetNums } },
+            select: { problemSetNum: true },
+          })
+        : [],
+    ]);
+
+    const likedNums = new Set(userLikes.map((l) => l.problemSetNum));
+    const starredNums = new Set(userStars.map((s) => s.problemSetNum));
+
     return NextResponse.json(
       {
         currentPage: page,
@@ -76,7 +95,12 @@ export async function GET(req: Request) {
         totalPages: Math.ceil(totalProblemSets / limit),
         totalProblemSets,
         problemSets: problemSets.map((pset) =>
-          mapProblemSetResponse(pset, userId),
+          mapProblemSetResponse(
+            pset,
+            userId,
+            likedNums.has(pset.num),
+            starredNums.has(pset.num),
+          ),
         ),
       },
       { status: 200 },

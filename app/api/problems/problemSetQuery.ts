@@ -17,33 +17,6 @@ export const getProblemSetSelect = (
     include: { problem: { select: { initial: true } } },
     take: 10,
   },
-  _count: {
-    select: {
-      problemSetLikes: true,
-    },
-  },
-  problemSetLikes: userId
-    ? {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-        take: 1,
-      }
-    : false,
-  problemSetStars: userId
-    ? {
-        where: {
-          userId,
-        },
-        select: {
-          userId: true,
-        },
-        take: 1,
-      }
-    : false,
   problemSetProgresses: userId
     ? {
         where: {
@@ -57,7 +30,9 @@ export const getProblemSetSelect = (
         take: 1,
       }
     : false,
-  problemSetStats: { select: { views: true, completed: true } },
+  problemSetStats: {
+    select: { views: true, completed: true, likes: true, stars: true },
+  },
   description: true,
   problemCount: true,
   averageRank: true,
@@ -67,10 +42,10 @@ export const getProblemSetSelect = (
 export const mapProblemSetResponse = (
   pset: any,
   userId?: string,
+  userLiked: boolean = false,
+  userStarred: boolean = false,
 ): ProblemSetResponse => {
   const userProgress = pset.problemSetProgresses?.[0];
-  const userLiked = userId ? pset.problemSetLikes?.length > 0 : false;
-  const userStarred = userId ? pset.problemSetStars?.length > 0 : false;
 
   return {
     num: pset.num,
@@ -79,7 +54,7 @@ export const mapProblemSetResponse = (
     description: pset.description,
     problems: pset.problemSetProblems.map((psp: any) => psp.problem.initial),
     views: pset.problemSetStats?.views,
-    likes: pset._count?.problemSetLikes || 0,
+    likes: pset.problemSetStats?.likes || 0,
     completedCount: pset.problemSetStats?.completed,
     userLiked,
     userStarred,

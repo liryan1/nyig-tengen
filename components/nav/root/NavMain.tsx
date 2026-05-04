@@ -24,10 +24,14 @@ import { LEFT_SIDEBAR_MENU } from "./navigation";
 
 export function NavMain({ title }: { title: string }) {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
-  const showItem = (isAdminOnly?: boolean) => {
+  const showAdminOnlyItem = (isAdminOnly?: boolean) => {
     return !isAdminOnly || isUserAdmin(session);
+  };
+
+  const showSignedInOnlyItem = (isSignedInOnly?: boolean) => {
+    return !isSignedInOnly || status === "authenticated";
   };
 
   return (
@@ -36,7 +40,8 @@ export function NavMain({ title }: { title: string }) {
       <SidebarMenu>
         {LEFT_SIDEBAR_MENU.map(
           (item) =>
-            showItem(item.isAdminOnly) && (
+            showAdminOnlyItem(item.isAdminOnly) &&
+            showSignedInOnlyItem(item.isSignedInOnly) && (
               <Collapsible
                 key={item.title}
                 asChild
@@ -60,7 +65,8 @@ export function NavMain({ title }: { title: string }) {
                     <SidebarMenuSub>
                       {item.items?.map(
                         (subItem) =>
-                          showItem(item.isAdminOnly) && (
+                          showAdminOnlyItem(subItem.isAdminOnly) &&
+                          showSignedInOnlyItem(subItem.isSignedInOnly) && (
                             <SidebarMenuSubItem key={subItem.title}>
                               <SidebarMenuSubButton asChild>
                                 <Link href={subItem.url}>

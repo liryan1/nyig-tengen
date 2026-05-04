@@ -137,6 +137,8 @@ model ProblemStats {
   views           Int     @default(0)
   submissionCount Int     @default(0)
   correctCount    Int     @default(0)
+  likes           Int     @default(0)
+  stars           Int     @default(0)
 }
 
 model ProblemLike {
@@ -204,6 +206,8 @@ model ProblemSetStats {
   views         Int        @default(0)
   attempted     Int        @default(0)
   completed     Int        @default(0)
+  likes         Int        @default(0)
+  stars         Int        @default(0)
   problemSet    ProblemSet @relation(fields: [problemSetNum], references: [num])
 }
 

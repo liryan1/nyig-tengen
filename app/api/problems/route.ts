@@ -66,18 +66,29 @@ export async function GET(req: Request) {
       teamSlugs = memberships.map((m) => m.teamSlug);
     }
 
-    const where: Prisma.ProblemWhereInput = {
-      rank: { gte, lte },
-      ...(params.starred === "true" && userId
-        ? {
-            problemStars: {
-              some: {
-                userId,
-              },
-            },
-          }
-        : {}),
-    };
+    const isStarred = searchParams.get("starred") === "true";
+
+    const andConditions: Prisma.ProblemWhereInput[] = [{ rank: { gte, lte } }];
+
+    if (isStarred) {
+      if (!userId) {
+        return NextResponse.json(
+          {
+            currentPage: page,
+            limit,
+            totalPages: 0,
+            totalProblems: 0,
+            problems: [],
+          },
+          { status: 200 },
+        );
+      }
+      const starred = await db.problemStar.findMany({
+        where: { userId },
+        select: { problemNum: true },
+      });
+      andConditions.push({ num: { in: starred.map((s) => s.problemNum) } });
+    }
 
     const orConditions: Prisma.ProblemWhereInput[] = [
       { visibility: Visibility.PUBLIC },
@@ -96,21 +107,25 @@ export async function GET(req: Request) {
         },
       });
     }
-    where.OR = orConditions;
+    andConditions.push({ OR: orConditions });
 
     if (params.creatorId) {
-      where.authorId = params.creatorId;
+      andConditions.push({ authorId: params.creatorId });
     }
+
+    const where: Prisma.ProblemWhereInput = {
+      AND: andConditions,
+    };
 
     const orderBy: Prisma.ProblemOrderByWithRelationInput[] = [];
     if (params.sort === "likes") {
-      orderBy.push({ problemLikes: { _count: "desc" } });
+      orderBy.push({ problemStats: { likes: "desc" } });
     } else if (params.sort === "views") {
       orderBy.push({ problemStats: { views: "desc" } });
     }
     orderBy.push({ createdAt: "desc" });
 
-    // Fetch the problem sets with pagination and get count
+    // Fetch the problems with pagination and get count
     const [totalProblems, problems] = await Promise.all([
       db.problem.count({
         where,
@@ -124,6 +139,25 @@ export async function GET(req: Request) {
       }),
     ]);
 
+    const problemNums = problems.map((p) => p.num);
+    const [userLikes, userStars] = await Promise.all([
+      userId
+        ? db.problemLike.findMany({
+            where: { userId, problemNum: { in: problemNums } },
+            select: { problemNum: true },
+          })
+        : [],
+      userId
+        ? db.problemStar.findMany({
+            where: { userId, problemNum: { in: problemNums } },
+            select: { problemNum: true },
+          })
+        : [],
+    ]);
+
+    const likedNums = new Set(userLikes.map((l) => l.problemNum));
+    const starredNums = new Set(userStars.map((s) => s.problemNum));
+
     return NextResponse.json(
       {
         currentPage: page,
@@ -131,7 +165,12 @@ export async function GET(req: Request) {
         totalPages: Math.ceil(totalProblems / limit),
         totalProblems,
         problems: problems.map((problem) =>
-          mapProblemResponse(problem, userId),
+          mapProblemResponse(
+            problem,
+            userId,
+            likedNums.has(problem.num),
+            starredNums.has(problem.num),
+          ),
         ),
       },
       { status: 200 },

@@ -26,9 +26,9 @@ export async function GET(req: Request, { params }: Params) {
         createdAt: true,
         author: { select: { id: true, name: true, role: true } },
         problemSetProblems: { select: { problem: true, position: true } },
-        problemSetStats: { select: { views: true, completed: true } },
-        problemSetLikes: { select: { userId: true } },
-        problemSetStars: { select: { userId: true } },
+        problemSetStats: {
+          select: { views: true, completed: true, likes: true, stars: true },
+        },
         problemSetProgresses: userId
           ? {
               where: {
@@ -47,6 +47,19 @@ export async function GET(req: Request, { params }: Params) {
     if (!problemSet) {
       return NextResponse.json("Problem set not found", { status: 404 });
     }
+
+    const [userLike, userStar] = await Promise.all([
+      userId
+        ? db.problemSetLike.findUnique({
+            where: { userId_problemSetNum: { userId, problemSetNum: num } },
+          })
+        : null,
+      userId
+        ? db.problemSetStar.findUnique({
+            where: { userId_problemSetNum: { userId, problemSetNum: num } },
+          })
+        : null,
+    ]);
 
     // Return problem set leaderboard if query parameter is true
     const search = new URL(req.url).searchParams;
@@ -87,12 +100,8 @@ export async function GET(req: Request, { params }: Params) {
       position: psp.position,
     }));
 
-    const userLiked = problemSet.problemSetLikes.some(
-      (l) => l.userId === userId,
-    );
-    const userStarred = problemSet.problemSetStars.some(
-      (s) => s.userId === userId,
-    );
+    const userLiked = !!userLike;
+    const userStarred = !!userStar;
 
     const userProgress = problemSet.problemSetProgresses?.find(
       (psp) => psp.status === "inprogress",
@@ -121,7 +130,7 @@ export async function GET(req: Request, { params }: Params) {
         averageRank: problemSet.averageRank,
         completedCount: problemSet.problemSetStats?.completed,
         views: problemSet.problemSetStats?.views,
-        likes: problemSet.problemSetLikes.length,
+        likes: problemSet.problemSetStats?.likes || 0,
         userLiked,
         userStarred,
         author: problemSet.author,

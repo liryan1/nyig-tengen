@@ -55,11 +55,25 @@ export async function GET(req: Request, { params }: Params) {
         { status: 404 },
       );
     }
+
+    const [userLike, userStar] = await Promise.all([
+      userId
+        ? db.problemLike.findUnique({
+            where: { userId_problemNum: { userId, problemNum: num } },
+          })
+        : null,
+      userId
+        ? db.problemStar.findUnique({
+            where: { userId_problemNum: { userId, problemNum: num } },
+          })
+        : null,
+    ]);
+
     const includeCorrect = qParams.isEdit && userId === problem.author.id;
 
     return NextResponse.json(
       {
-        ...mapProblemResponse(problem, userId),
+        ...mapProblemResponse(problem, userId, !!userLike, !!userStar),
         correct: includeCorrect ? problem.correct : undefined,
         visibility: includeCorrect ? problem.visibility : undefined,
         teams: includeCorrect
