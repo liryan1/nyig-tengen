@@ -59,19 +59,11 @@ export async function GET(req: Request) {
 
     let teamSlugs: string[] = [];
     if (userId) {
-      const userWithTeams = await db.user.findUnique({
-        where: { id: userId },
-        include: {
-          teamMemberships: {
-            select: {
-              teamSlug: true,
-            },
-          },
-        },
+      const memberships = await db.teamMembership.findMany({
+        where: { userId },
+        select: { teamSlug: true },
       });
-      if (userWithTeams) {
-        teamSlugs = userWithTeams.teamMemberships.map((m) => m.teamSlug);
-      }
+      teamSlugs = memberships.map((m) => m.teamSlug);
     }
 
     const where: Prisma.ProblemWhereInput = {
@@ -119,7 +111,7 @@ export async function GET(req: Request) {
     orderBy.push({ createdAt: "desc" });
 
     // Fetch the problem sets with pagination and get count
-    const [totalProblems, problems] = await db.$transaction([
+    const [totalProblems, problems] = await Promise.all([
       db.problem.count({
         where,
       }),

@@ -4,11 +4,16 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
+    const authorIdsResult = await db.problem.findMany({
+      select: { authorId: true },
+      distinct: ["authorId"],
+    });
+
+    const authorIds = authorIdsResult.map((a) => a.authorId);
+
     const creators = await db.user.findMany({
       where: {
-        problems: {
-          some: {},
-        },
+        id: { in: authorIds },
       },
       select: {
         id: true,

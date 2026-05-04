@@ -145,6 +145,8 @@ model ProblemLike {
   problemNum String
   user       User    @relation(fields: [userId], references: [id])
   problem    Problem @relation(fields: [problemNum], references: [num])
+
+  @@unique([userId, problemNum])
 }
 
 model ProblemStar {
@@ -211,6 +213,8 @@ model ProblemSetLike {
   problemSetNum String
   user          User       @relation(fields: [userId], references: [id])
   problemSet    ProblemSet @relation(fields: [problemSetNum], references: [num])
+
+  @@unique([userId, problemSetNum])
 }
 
 model ProblemSetStar {

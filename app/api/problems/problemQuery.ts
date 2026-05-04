@@ -22,16 +22,33 @@ export const getProblemSelect = (userId?: string): Prisma.ProblemSelect => ({
       correctCount: true,
     },
   },
-  problemLikes: {
+  _count: {
     select: {
-      userId: true,
+      problemLikes: true,
     },
   },
-  problemStars: {
-    select: {
-      userId: true,
-    },
-  },
+  problemLikes: userId
+    ? {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+        take: 1,
+      }
+    : false,
+  problemStars: userId
+    ? {
+        where: {
+          userId,
+        },
+        select: {
+          userId: true,
+        },
+        take: 1,
+      }
+    : false,
   visibility: true,
   endorsement: {
     select: {
@@ -71,20 +88,42 @@ export const mapProblemResponse = (
         rank: problem.endorsement.user.info?.rank,
       }
     : undefined,
-  userSolved: problem.submissions?.at(0)?.status === "solved",
+  userSolved: problem.submissions?.length > 0,
   stats: {
     views: problem.problemStats?.views,
     submissionCount: problem.problemStats?.submissionCount,
     correctCount: problem.problemStats?.correctCount,
-    userLiked:
-      problem.problemLikes.findIndex(
-        (p: { userId: string }) => p.userId === userId,
-      ) !== -1,
-    userStarred:
-      problem.problemStars.findIndex(
-        (p: { userId: string }) => p.userId === userId,
-      ) !== -1,
-    likes: problem.problemLikes?.length,
+    userLiked: problem.problemLikes?.length > 0,
+    userStarred: problem.problemStars?.length > 0,
+    likes: problem._count?.problemLikes || 0,
   },
   visibility: problem.visibility,
 });
+
+/**
+ * Represents permissions on the problem:
+ * 1. The problem is public
+ * 2. The problem is owned by the user
+ * 3. The problem is team-based and the user is a member of the team
+ */
+export const getProblemSelectOR = (
+  userId?: string,
+): Prisma.ProblemWhereInput[] => [
+  { visibility: Visibility.PUBLIC },
+  {
+    authorId: userId,
+  },
+  {
+    teamProblems: {
+      some: {
+        team: {
+          memberships: {
+            some: {
+              userId: userId,
+            },
+          },
+        },
+      },
+    },
+  },
+];
