@@ -46,12 +46,12 @@ export function StartButton({
   const { status: authStatus } = useSession();
 
   const getRedirectUrl = (problemOrder?: ProblemOrderItem[]) => {
-    const currentProblemNum = problemOrder?.find(
+    const currentIndex = problemOrder?.findIndex(
       (p) => !p.status || p.status !== "solved",
-    )?.problemNum;
-    return currentProblemNum
-      ? `/learn/sets/${sNum}/${currentProblemNum}`
-      : `/learn/sets/${sNum}`;
+    );
+    return currentIndex !== undefined && currentIndex !== -1
+      ? `/learn/sets/${sNum}/${currentIndex + 1}`
+      : `/learn/sets/${sNum}/1`;
   };
 
   const buttonIcon = isLoading ? (

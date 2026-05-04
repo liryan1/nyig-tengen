@@ -56,7 +56,7 @@ export async function GET(req: Request, { params }: Params) {
       );
     }
 
-    const [userLike, userStar] = await Promise.all([
+    const [userLike, userStar, userSolved] = await Promise.all([
       userId
         ? db.problemLike.findUnique({
             where: { userId_problemNum: { userId, problemNum: num } },
@@ -67,13 +67,25 @@ export async function GET(req: Request, { params }: Params) {
             where: { userId_problemNum: { userId, problemNum: num } },
           })
         : null,
+      userId
+        ? db.submission.findFirst({
+            where: { userId, problemNum: num, status: "solved" },
+            select: { id: true },
+          })
+        : null,
     ]);
 
     const includeCorrect = qParams.isEdit && userId === problem.author.id;
 
     return NextResponse.json(
       {
-        ...mapProblemResponse(problem, userId, !!userLike, !!userStar),
+        ...mapProblemResponse(
+          problem,
+          userId,
+          !!userLike,
+          !!userStar,
+          !!userSolved,
+        ),
         correct: includeCorrect ? problem.correct : undefined,
         visibility: includeCorrect ? problem.visibility : undefined,
         teams: includeCorrect

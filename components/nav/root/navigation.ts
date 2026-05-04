@@ -18,22 +18,22 @@ export interface NavItem {
 export const LEFT_SIDEBAR_MENU: NavItem[] = [
   {
     title: "Practice",
-    url: "/learn",
+    url: "/learn/sets",
     icon: ChartNoAxesCombinedIcon,
     isActive: true,
     items: [
       {
-        title: "Starred problems",
-        url: "/learn/problems?starred=true",
-        isSignedInOnly: true,
+        title: "Problem sets",
+        url: "/learn/sets",
       },
       {
         title: "Problems",
         url: "/learn/problems",
       },
       {
-        title: "Problem sets",
-        url: "/learn/sets",
+        title: "Starred problems",
+        url: "/learn/problems?starred=true",
+        isSignedInOnly: true,
       },
       {
         title: "Create problem",

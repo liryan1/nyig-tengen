@@ -5,7 +5,7 @@ import { Spinner } from "@/components/labels/Spinner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useIsMobile } from "@/hooks/isMobile";
-import { coordToIndices, GoGame } from "@/lib/go/goGame";
+import { coordToIndices, getNextColor, GoGame } from "@/lib/go/goGame";
 import { GoProblemResponse } from "@/lib/go/interface";
 import { getBoardSize, toSgf } from "@/lib/go/parser";
 import { useAppDispatch } from "@/lib/rtk/slices/hooks";
@@ -50,19 +50,76 @@ export function GoProblem({
   }
   const goGame = goGameRef.current;
   const {
-    handleMove,
-    handleSelectNode,
-    handleDeleteNode,
-    handleResetVariations,
+    handleMove: baseHandleMove,
+    handleSelectNode: baseHandleSelectNode,
+    handleDeleteNode: baseHandleDeleteNode,
+    handleResetVariations: baseHandleResetVariations,
     currentNode,
     nextPlayer,
   } = useGo({
     goGame,
   });
+
+  const [showSuccess, setShowSuccess] = useState(!!initialSuccess);
+
+  const handleMove = (...args: Parameters<typeof baseHandleMove>) => {
+    setShowSuccess(false);
+    baseHandleMove(...args);
+  };
+
+  const handleSelectNode = (
+    ...args: Parameters<typeof baseHandleSelectNode>
+  ) => {
+    setShowSuccess(false);
+    baseHandleSelectNode(...args);
+  };
+
+  const handleDeleteNode = (
+    ...args: Parameters<typeof baseHandleDeleteNode>
+  ) => {
+    setShowSuccess(false);
+    baseHandleDeleteNode(...args);
+  };
+
+  const handleResetVariations = (
+    ...args: Parameters<typeof baseHandleResetVariations>
+  ) => {
+    setShowSuccess(false);
+    baseHandleResetVariations(...args);
+  };
+
+  const hasInitialized = useRef(false);
+  if (
+    !hasInitialized.current &&
+    initialSuccess &&
+    problem.userMoves &&
+    problem.userMoves.length > 0
+  ) {
+    hasInitialized.current = true;
+    let node = goGame.root;
+    for (const move of problem.userMoves) {
+      try {
+        const color =
+          node === goGame.root
+            ? 1
+            : node.moveColor
+              ? getNextColor(node.moveColor)
+              : 1;
+        if (!move) {
+          node = goGame.playPass(node, color);
+        } else {
+          node = goGame.playMove(node, color, move);
+        }
+      } catch (e) {
+        console.error("Failed to replay move", move, e);
+      }
+    }
+    baseHandleSelectNode(node);
+  }
+
   const isMobile = useIsMobile();
   const boardContainerRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState<React.ReactNode>("");
-  const [showSuccess, setShowSuccess] = useState(!!initialSuccess);
   const { cellSize, boardPixelSize } = useCellSize({
     boardSize,
     boardContainerRef,
@@ -210,6 +267,7 @@ export function GoProblem({
           className="overflow-hidden"
           ref={boardContainerRef}
           style={{ height: boardPixelSize }}
+          onClick={() => setShowSuccess(false)}
         >
           <GoProblemBoard
             cellSize={cellSize}
@@ -221,7 +279,7 @@ export function GoProblem({
           />
         </div>
         <div
-          className="overflow-hidden"
+          className="overflow-hidden flex flex-col"
           style={{ maxHeight: isMobile ? "30vh" : boardPixelSize }}
         >
           <div className="relative p-2 text-sm sm:text-base min-h-20 max-h-20 sm:min-h-24 sm:max-h-24 sm:space-y-2 overflow-hidden">
@@ -262,37 +320,42 @@ export function GoProblem({
               disabled={isLoading}
             />
           </div>
-          <GoProblemToolbar
-            rootNode={goGame.root}
-            currentNode={currentNode}
-            onSelectNode={handleSelectNode}
-            onDeleteNode={handleDeleteNode}
+          <div
+            className="flex-1 overflow-hidden"
+            onClick={() => setShowSuccess(false)}
           >
-            <GoBoardMenu
-              className="aspect-square sm:hidden ml-1"
-              handleExportSgf={() => toSgf(goGame.root, boardSize)}
-              onResetVariations={handleResetVariations}
-            />
-            <div className="hidden sm:flex items-end gap-1">
-              <PassButton onClick={() => handleMove(-1, -1)} />
-            </div>
-            <div className="hidden sm:flex items-end gap-2">
-              <CooldownButton
-                throttleMs={5_000}
-                text="Submit"
-                icon={
-                  isLoading ? (
-                    <Spinner className="h-4 w-4" />
-                  ) : (
-                    <SendHorizonalIcon />
-                  )
-                }
-                size="sm"
-                onClick={handleSubmitAnswer}
-                disabled={isLoading}
+            <GoProblemToolbar
+              rootNode={goGame.root}
+              currentNode={currentNode}
+              onSelectNode={handleSelectNode}
+              onDeleteNode={handleDeleteNode}
+            >
+              <GoBoardMenu
+                className="aspect-square sm:hidden ml-1"
+                handleExportSgf={() => toSgf(goGame.root, boardSize)}
+                onResetVariations={handleResetVariations}
               />
-            </div>
-          </GoProblemToolbar>
+              <div className="hidden sm:flex items-end gap-1">
+                <PassButton onClick={() => handleMove(-1, -1)} />
+              </div>
+              <div className="hidden sm:flex items-end gap-2">
+                <CooldownButton
+                  throttleMs={5_000}
+                  text="Submit"
+                  icon={
+                    isLoading ? (
+                      <Spinner className="h-4 w-4" />
+                    ) : (
+                      <SendHorizonalIcon />
+                    )
+                  }
+                  size="sm"
+                  onClick={handleSubmitAnswer}
+                  disabled={isLoading}
+                />
+              </div>
+            </GoProblemToolbar>
+          </div>
         </div>
       </div>
     </div>

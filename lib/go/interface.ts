@@ -28,6 +28,7 @@ export interface GoProblemMeta {
   author: { id: string; name: string; role: string };
   stats?: ProblemStats;
   userSolved?: boolean;
+  userMoves?: string[];
   endorser?: { id: string; name: string; rank?: string };
   visibility: Visibility;
   teams?: { team: string; slug: string }[];

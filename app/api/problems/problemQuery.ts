@@ -1,5 +1,5 @@
 import { GoProblemResponse } from "@/lib/go/interface";
-import { Prisma, SubmissionStatus, Visibility } from "@prisma/client";
+import { Prisma, Visibility } from "@prisma/client";
 
 export const getProblemSelect = (userId?: string): Prisma.ProblemSelect => ({
   id: true,
@@ -32,19 +32,6 @@ export const getProblemSelect = (userId?: string): Prisma.ProblemSelect => ({
       },
     },
   },
-  // If the user is logged in, fetch the first solved submission
-  submissions: userId
-    ? {
-        where: {
-          userId,
-          status: SubmissionStatus.solved,
-        },
-        select: {
-          status: true,
-        },
-        take: 1,
-      }
-    : false,
 });
 
 export const mapProblemResponse = (
@@ -52,6 +39,7 @@ export const mapProblemResponse = (
   userId?: string,
   userLiked: boolean = false,
   userStarred: boolean = false,
+  userSolved: boolean = false,
 ): GoProblemResponse => ({
   num: problem.num,
   initial: problem.initial,
@@ -65,7 +53,7 @@ export const mapProblemResponse = (
         rank: problem.endorsement.user.info?.rank,
       }
     : undefined,
-  userSolved: problem.submissions?.length > 0,
+  userSolved,
   stats: {
     views: problem.problemStats?.views,
     submissionCount: problem.problemStats?.submissionCount,

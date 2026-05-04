@@ -261,6 +261,10 @@ model Submission {
   problem              Problem             @relation(fields: [problemNum], references: [num])
   progress             ProblemSetProgress? @relation(fields: [problemSetProgressId], references: [id])
   createdAt            DateTime            @default(now())
+
+  @@index([userId, problemNum])
+  @@index([problemNum])
+  @@index([problemSetProgressId])
 }
 
 enum SubmissionStatus {
@@ -288,6 +292,7 @@ model ProblemSetProgress {
   updatedAt     DateTime        @updatedAt
   createdAt     DateTime        @default(now())
 
+  @@index([userId, status])
   @@index([userId, problemSetNum]) // Common lookup for doing problem sets
 }
 

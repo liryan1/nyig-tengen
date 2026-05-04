@@ -20,8 +20,8 @@ export function ProblemSetDoPageHeader({
   const hasPrev = prevIndex >= 0;
   const hasNext = nextIndex < problemOrder.length;
 
-  const prevLink = `${pSetClientUrl}/${hasPrev ? problemOrder[prevIndex].problemNum : ""}`;
-  const nextLink = `${pSetClientUrl}/${hasNext ? problemOrder[nextIndex].problemNum : ""}`;
+  const prevLink = `${pSetClientUrl}/${hasPrev ? prevIndex + 1 : ""}`;
+  const nextLink = `${pSetClientUrl}/${hasNext ? nextIndex + 1 : ""}`;
 
   return (
     <div className="space-y-2 sm:space-y-6 overflow-x-auto">

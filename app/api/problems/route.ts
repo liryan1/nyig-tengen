@@ -140,7 +140,7 @@ export async function GET(req: Request) {
     ]);
 
     const problemNums = problems.map((p) => p.num);
-    const [userLikes, userStars] = await Promise.all([
+    const [userLikes, userStars, userSolved] = await Promise.all([
       userId
         ? db.problemLike.findMany({
             where: { userId, problemNum: { in: problemNums } },
@@ -153,10 +153,21 @@ export async function GET(req: Request) {
             select: { problemNum: true },
           })
         : [],
+      userId
+        ? db.submission.findMany({
+            where: {
+              userId,
+              problemNum: { in: problemNums },
+              status: "solved",
+            },
+            select: { problemNum: true },
+          })
+        : [],
     ]);
 
     const likedNums = new Set(userLikes.map((l) => l.problemNum));
     const starredNums = new Set(userStars.map((s) => s.problemNum));
+    const solvedNums = new Set(userSolved.map((s) => s.problemNum));
 
     return NextResponse.json(
       {
@@ -170,6 +181,7 @@ export async function GET(req: Request) {
             userId,
             likedNums.has(problem.num),
             starredNums.has(problem.num),
+            solvedNums.has(problem.num),
           ),
         ),
       },

@@ -1,5 +1,5 @@
 import { ProblemSetResponse } from "@/lib/rtk/slices/problemSets";
-import { Prisma, ProgressStatus } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 export const getProblemSetSelect = (
   userId?: string,
@@ -17,19 +17,6 @@ export const getProblemSetSelect = (
     include: { problem: { select: { initial: true } } },
     take: 10,
   },
-  problemSetProgresses: userId
-    ? {
-        where: {
-          userId,
-          status: ProgressStatus.inprogress,
-        },
-        select: {
-          id: true,
-          problemOrder: true,
-        },
-        take: 1,
-      }
-    : false,
   problemSetStats: {
     select: { views: true, completed: true, likes: true, stars: true },
   },
@@ -44,9 +31,8 @@ export const mapProblemSetResponse = (
   userId?: string,
   userLiked: boolean = false,
   userStarred: boolean = false,
+  userProgress: any = null,
 ): ProblemSetResponse => {
-  const userProgress = pset.problemSetProgresses?.[0];
-
   return {
     num: pset.num,
     name: pset.name,

@@ -117,7 +117,10 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
     if (!pset?.userProgress) {
       return router.push(`/learn/problems/${pNum}`);
     }
-    return router.push(`/learn/sets/${num}/${pNum}`);
+    const index = pset.userProgress.problemOrder.findIndex(
+      (p) => p.problemNum === pNum,
+    );
+    return router.push(`/learn/sets/${num}/${index + 1}`);
   };
 
   const toggleLike = async () => {

@@ -17,7 +17,7 @@ const GoProblem = dynamic(() => import("@/components/learn/go/GoProblem"), {
 
 export function ProblemSetDoPage({
   psetNum,
-  problemNum,
+  problemNum: problemIndexStr,
 }: {
   psetNum: string;
   problemNum: string;
@@ -30,11 +30,15 @@ export function ProblemSetDoPage({
   } = useGetPSetProgressQuery(psetNum, {
     skip: !psetNum || authStatus !== "authenticated",
   });
+
+  const currentIndex = parseInt(problemIndexStr) - 1;
+  const globalNum = progress?.problemOrder?.[currentIndex]?.problemNum;
+
   const {
     data: problem,
     isLoading: pLoading,
     isError: pError,
-  } = useGetProblemQuery({ num: problemNum }, { skip: !problemNum });
+  } = useGetProblemQuery({ num: globalNum ?? "" }, { skip: !globalNum });
 
   const isLoading = pgLoading || pLoading;
   if (isLoading) {
@@ -45,18 +49,16 @@ export function ProblemSetDoPage({
     return <PageError>Error loading problem!</PageError>;
   }
 
-  if (!problem) {
-    return <PageError>Problem could not be loaded</PageError>;
-  }
-
   if (!progress) {
     redirect(`/learn/sets/${psetNum}`);
   }
-  const currentIndex = progress.problemOrder?.findIndex(
-    (p) => p.problemNum === problemNum,
-  );
-  if (currentIndex === -1) {
+
+  if (currentIndex < 0 || currentIndex >= progress.problemOrder.length) {
     return <PageError>Problem not found in the problem order</PageError>;
+  }
+
+  if (!problem) {
+    return <PageError>Problem could not be loaded</PageError>;
   }
 
   return (
