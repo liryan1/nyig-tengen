@@ -45,8 +45,10 @@ export function ProblemSetFilter() {
       <div>
         <Select value={team || "public"} onValueChange={setTeam}>
           <SelectTrigger className="w-40">
-            <UsersIcon className="h-4 w-4 mr-1 text-muted-foreground" />
-            <SelectValue placeholder="Visibility" />
+            <div className="flex items-center gap-1">
+              <UsersIcon className="h-4 w-4 text-muted-foreground" />
+              <SelectValue placeholder="Visibility" />
+            </div>
           </SelectTrigger>
           <SelectContent>{teamOptions}</SelectContent>
         </Select>

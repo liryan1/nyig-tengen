@@ -10,7 +10,7 @@ import {
 import { DualRangeSlider } from "@/components/ui/slider";
 import { getRank } from "@/lib/go/display";
 import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
-import { Trash2, UsersIcon } from "lucide-react";
+import { ArrowUpDown, Star, Trash2, UsersIcon } from "lucide-react";
 import {
   createParser,
   parseAsBoolean,
@@ -104,16 +104,21 @@ export function ProblemFilter() {
       <div>
         <Select value={team || "public"} onValueChange={setTeam}>
           <SelectTrigger className="w-40">
-            <UsersIcon className="h-4 w-4 mr-1 text-muted-foreground" />
-            <SelectValue placeholder="Visibility" />
+            <div className="flex items-center gap-1">
+              <UsersIcon className="h-4 w-4 text-muted-foreground" />
+              <SelectValue placeholder="Visibility" />
+            </div>
           </SelectTrigger>
           <SelectContent>{teamOptions}</SelectContent>
         </Select>
       </div>
       <div>
         <Select value={sort} onValueChange={setSort}>
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="Sort by" />
+          <SelectTrigger className="w-36">
+            <div className="flex items-center gap-1">
+              <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+              <SelectValue placeholder="Sort by" />
+            </div>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="likes">Likes</SelectItem>
@@ -126,8 +131,11 @@ export function ProblemFilter() {
           value={starred?.toString()}
           onValueChange={(value) => setStarred(value === "true")}
         >
-          <SelectTrigger className="w-32">
-            <SelectValue placeholder="Favorites" />
+          <SelectTrigger className="w-36">
+            <div className="flex items-center gap-1">
+              <Star className="h-4 w-4 text-muted-foreground" />
+              <SelectValue placeholder="Favorites" />
+            </div>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="true">Starred</SelectItem>

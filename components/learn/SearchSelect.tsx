@@ -27,6 +27,7 @@ interface SearchSelectProps {
   placeholder?: string;
   disabled?: boolean;
   emptyMessage?: string;
+  icon?: React.ReactNode;
   options: {
     value: string;
     label: string;
@@ -42,6 +43,7 @@ export function SearchSelect({
   disabled,
   emptyMessage = "No options found",
   placeholder = "Select an option",
+  icon,
 }: SearchSelectProps) {
   const [open, setOpen] = React.useState(false);
 
@@ -54,10 +56,15 @@ export function SearchSelect({
           aria-expanded={open}
           className={cn("justify-between", triggerClassName)}
         >
-          {value
-            ? options.find((option) => option.value === value)?.label
-            : placeholder}
-          <ChevronsUpDown className="opacity-50" />
+          <div className="flex items-center gap-1 overflow-hidden">
+            {icon}
+            <span className="truncate">
+              {value
+                ? options.find((option) => option.value === value)?.label
+                : placeholder}
+            </span>
+          </div>
+          <ChevronsUpDown className="opacity-50 flex-shrink-0" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className={cn("p-0", contentClassName)}>

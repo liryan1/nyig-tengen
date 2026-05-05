@@ -52,7 +52,13 @@ export async function GET(req: Request) {
           { status: 403 },
         );
       }
-      andConditions.push({ teamProblemSets: { some: { teamSlug: team } } });
+      // OPTIMIZATION: Manually fetch problem set numbers for the team to avoid slow relation joins in MongoDB
+      const teamProblemSets = await db.teamProblemSet.findMany({
+        where: { teamSlug: team },
+        select: { problemSetNum: true },
+      });
+      const psetNums = teamProblemSets.map((tps) => tps.problemSetNum);
+      andConditions.push({ num: { in: psetNums } });
     } else {
       const orConditions: Prisma.ProblemSetWhereInput[] = [
         { visibility: Visibility.PUBLIC },

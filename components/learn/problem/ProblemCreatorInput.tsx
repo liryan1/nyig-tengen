@@ -1,6 +1,7 @@
 "use client";
 import { SearchSelect } from "@/components/learn/SearchSelect";
 import { useGetProblemCreatorsQuery } from "@/lib/rtk/slices/problems";
+import { UserIcon } from "lucide-react";
 
 interface ProblemCreatorInputProps {
   onSelect: (creator: string) => void;
@@ -28,6 +29,7 @@ export const ProblemCreatorInput: React.FC<ProblemCreatorInputProps> = ({
       onValueChange={onSelect}
       disabled={isLoading}
       placeholder={placeholder}
+      icon={<UserIcon className="h-4 w-4 text-muted-foreground" />}
     />
   );
 };

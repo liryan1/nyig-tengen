@@ -198,6 +198,8 @@ model ProblemSet {
   leaderboardEntries   ProblemSetLeaderboardEntry[]
 
   @@index([authorId]) // Find how many problem sets a user has created
+  @@index([createdAt])
+  @@index([visibility])
 }
 
 model ProblemSetStats {

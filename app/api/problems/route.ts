@@ -104,7 +104,13 @@ export async function GET(req: Request) {
           { status: 403 },
         );
       }
-      andConditions.push({ teamProblems: { some: { teamSlug: team } } });
+      // OPTIMIZATION: Manually fetch problem numbers for the team to avoid slow relation joins in MongoDB
+      const teamProblems = await db.teamProblem.findMany({
+        where: { teamSlug: team },
+        select: { problemNum: true },
+      });
+      const problemNums = teamProblems.map((tp) => tp.problemNum);
+      andConditions.push({ num: { in: problemNums } });
     } else {
       // Default: Public problems only (+ user's own problems if logged in)
       const orConditions: Prisma.ProblemWhereInput[] = [
