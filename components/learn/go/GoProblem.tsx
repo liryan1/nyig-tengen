@@ -294,7 +294,7 @@ export function GoProblem({
           <div className="relative p-2 text-sm sm:text-base min-h-20 max-h-20 sm:min-h-24 sm:max-h-24 sm:space-y-2 overflow-hidden">
             {message}
             {noProgress && (
-              <div className="flex items-center gap-1 text-orange-500 font-medium">
+              <div className="flex items-center gap-1 text-destructive font-medium">
                 {infoIcon}
                 Not attempting. Progress will not be saved.
               </div>

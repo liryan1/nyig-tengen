@@ -28,7 +28,7 @@ export function GoProblemPage({ num }: { num?: string }) {
   }
 
   return (
-    <div className="container mx-auto max-w-7xl">
+    <div className="container mx-auto max-w-7xl mb-6">
       <GoProblem problem={data} />
     </div>
   );

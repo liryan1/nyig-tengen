@@ -77,7 +77,7 @@ export function ProblemSetDoPage({
   }
 
   return (
-    <div className="container mx-auto max-w-7xl space-y-2 md:space-y-6">
+    <div className="container mx-auto max-w-7xl space-y-2 md:space-y-6 mb-6">
       <ProblemSetDoPageHeader
         currentIndex={currentIndex}
         problemOrder={problemOrder}
