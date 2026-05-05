@@ -1,12 +1,11 @@
 "use client";
+import ProblemCardSkeleton from "@/components/loading/ProblemCardSkeleton";
 import { StatefulPagination } from "@/components/nav/StatefulPagination";
 import { useGetProblemsQuery } from "@/lib/rtk/slices/problems";
+import { useSearchParams } from "next/navigation";
 import { type Options, parseAsInteger, useQueryState } from "nuqs";
 import { PageError } from "../../labels/Error";
 import ProblemCard from "./ProblemCard";
-import { useSearchParams } from "next/navigation";
-import ProblemCardSkeleton from "@/components/loading/ProblemCardSkeleton";
-import { useIsMobile } from "@/hooks/isMobile";
 
 const options: Options = { throttleMs: 800 };
 const limit = 20;
@@ -25,7 +24,6 @@ interface ProblemListProps {
 }
 
 export function ProblemList({ filter, fixedLimit }: ProblemListProps) {
-  const isMobile = useIsMobile();
   const searchParams = useSearchParams();
   const [currentPage, setCurrentPage] = useQueryState("page", {
     ...options,
@@ -44,13 +42,6 @@ export function ProblemList({ filter, fixedLimit }: ProblemListProps) {
   return (
     <>
       {filter}
-      {fixedLimit === undefined && !isMobile && (
-        <StatefulPagination
-          currentPage={currentPage}
-          totalPages={data?.totalPages}
-          onPageChange={setCurrentPage}
-        />
-      )}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
         {isError ? (
           <PageError>Error getting problems</PageError>

@@ -57,14 +57,6 @@ export async function GET(req: Request) {
       );
     }
 
-    let teamSlugs: string[] = [];
-    if (userId) {
-      const memberships = await db.teamMembership.findMany({
-        where: { userId },
-        select: { teamSlug: true },
-      });
-      teamSlugs = memberships.map((m) => m.teamSlug);
-    }
     const isStarred = searchParams.get("starred") === "true";
     const team = searchParams.get("team");
 
@@ -112,12 +104,15 @@ export async function GET(req: Request) {
       const problemNums = teamProblems.map((tp) => tp.problemNum);
       andConditions.push({ num: { in: problemNums } });
     } else {
-      // Default: Public problems only (+ user's own problems if logged in)
+      // Default: Public problems only (+ user's own private problems if logged in)
       const orConditions: Prisma.ProblemWhereInput[] = [
         { visibility: Visibility.PUBLIC },
       ];
       if (userId) {
-        orConditions.push({ authorId: userId });
+        orConditions.push({
+          authorId: userId,
+          visibility: Visibility.PRIVATE,
+        });
       }
       andConditions.push({ OR: orConditions });
     }

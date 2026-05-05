@@ -48,13 +48,6 @@ export function ProblemSetList({ filter, fixedLimit }: ProblemSetListProps) {
   return (
     <div className="space-y-2">
       {filter}
-      {fixedLimit === undefined && (
-        <StatefulPagination
-          currentPage={currentPage}
-          totalPages={data?.totalPages}
-          onPageChange={setCurrentPage}
-        />
-      )}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
         {isError ? (
           <PageError>Error getting problem sets</PageError>

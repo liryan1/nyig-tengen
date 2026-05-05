@@ -170,6 +170,18 @@ const problemSetApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body,
       }),
+      invalidatesTags: [PROBLEM_SETS_TAG],
+    }),
+
+    deletePSet: builder.mutation<void, string>({
+      query: (num) => ({
+        url: `problems/sets/${num}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: PROBLEM_SET_TAG, id: arg },
+        PROBLEM_SETS_TAG,
+      ],
     }),
   }),
 });
@@ -184,4 +196,5 @@ export const {
   usePSetStarMutation,
 
   useCreatePSetMutation,
+  useDeletePSetMutation,
 } = problemSetApiSlice;

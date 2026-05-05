@@ -59,8 +59,17 @@ export async function POST(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
-    if (!userId) {
+    const role = session?.user?.role;
+
+    if (!userId || !role) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    if (role !== "ADMIN" && role !== "SUPERADMIN") {
+      return NextResponse.json(
+        { message: "Only admins can create teams" },
+        { status: 403 },
+      );
     }
 
     const { name, description } = await req.json();

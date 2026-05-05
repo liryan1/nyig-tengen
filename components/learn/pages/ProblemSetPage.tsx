@@ -10,13 +10,14 @@ import {
 import { useAppDispatch, useAppSelector } from "@/lib/rtk/slices/hooks";
 import {
   useCreatePSetProgressMutation,
+  useDeletePSetMutation,
   useGetPSetQuery,
   usePSetLikeMutation,
   usePSetStarMutation,
 } from "@/lib/rtk/slices/problemSets";
 import { debounce } from "@/lib/utils";
 import { SubmissionStatus } from "@prisma/client";
-import { TrophyIcon } from "lucide-react";
+import { Trash2Icon, TrophyIcon } from "lucide-react";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
@@ -24,6 +25,7 @@ import { useEffect, useRef, useState } from "react";
 import Confetti from "react-confetti-boom";
 import { toast } from "sonner";
 import { PageError } from "../../labels/Error";
+import { Button } from "../../ui/button";
 import {
   Card,
   CardContent,
@@ -32,6 +34,15 @@ import {
   CardHeader,
   CardTitle,
 } from "../../ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../ui/dialog-w-sidebar";
 import { InfoBar } from "../InfoBar";
 import { ProblemSetLeaderboard } from "../ProblemSetLeaderboard";
 import { EndButton } from "../sets/EndButton";
@@ -74,7 +85,8 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
 
   const [like, { isLoading: lLoading }] = usePSetLikeMutation();
   const [star, { isLoading: sLoading }] = usePSetStarMutation();
-  const { status: authStatus } = useSession();
+  const [deletePSet, { isLoading: dLoading }] = useDeletePSetMutation();
+  const { data: session, status: authStatus } = useSession();
   const {
     data: pset,
     isLoading: psetLoading,
@@ -84,6 +96,8 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
     useCreatePSetProgressMutation();
   const isLoading = cLoading || psetLoading || authStatus === "loading";
   const isError = cError || psetError;
+
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   if (isLoading) {
     return <ProblemSetPageSkeleton />;
@@ -104,6 +118,24 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
     problems,
     leaderboard,
   } = pset;
+
+  const isSuperAdmin = session?.user?.role === "SUPERADMIN";
+  const isAdmin = session?.user?.role === "ADMIN";
+  const isAuthor = author?.id === session?.user?.id;
+  const canDelete = isSuperAdmin || (isAdmin && isAuthor);
+
+  const handleDelete = async () => {
+    if (!sNum) return;
+    try {
+      await deletePSet(sNum).unwrap();
+      toast.success("Problem set deleted successfully");
+      router.push("/learn/sets");
+    } catch (error: any) {
+      toast.error(error?.data?.message || "Failed to delete problem set");
+    } finally {
+      setIsDeleteDialogOpen(false);
+    }
+  };
 
   const userSolved = pset?.userCompletions;
 
@@ -201,6 +233,42 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
               )}
             </div>
             <div className="flex items-center gap-4">
+              {canDelete && (
+                <Dialog
+                  open={isDeleteDialogOpen}
+                  onOpenChange={setIsDeleteDialogOpen}
+                >
+                  <DialogTrigger asChild>
+                    <Button variant="destructive" size="icon">
+                      <Trash2Icon className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Delete Problem Set</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to permanently delete this problem
+                        set and ALL its problems? This action cannot be undone.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="gap-2 sm:gap-0">
+                      <Button
+                        variant="outline"
+                        onClick={() => setIsDeleteDialogOpen(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        onClick={handleDelete}
+                        disabled={dLoading}
+                      >
+                        {dLoading ? "Deleting..." : "Delete"}
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              )}
               {pset?.userProgress && <EndButton sNum={sNum} />}
               <StartButton
                 onCreatePSetProgress={createPSetProgress}

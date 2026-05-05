@@ -29,12 +29,14 @@ export default async function Home() {
             <MdWavingHand className="text-indigo-600 h-5 w-5" />
           </div>
         ) : (
-          <Link href="/login" className="flex items-center gap-2">
-            <Button variant="outline">
-              Sign in
-              <LogInIcon />
-            </Button>
-          </Link>
+          <div className="flex items-center justify-center">
+            <Link href="/login" className="flex items-center gap-2">
+              <Button variant="outline">
+                Sign in
+                <LogInIcon />
+              </Button>
+            </Link>
+          </div>
         )}
         <HomeCards />
       </div>

@@ -64,7 +64,10 @@ export async function GET(req: Request) {
         { visibility: Visibility.PUBLIC },
       ];
       if (userId) {
-        orConditions.push({ authorId: userId });
+        orConditions.push({
+          authorId: userId,
+          visibility: Visibility.PRIVATE,
+        });
       }
       andConditions.push({ OR: orConditions });
     }
