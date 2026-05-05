@@ -6,6 +6,7 @@ import { PageError } from "../../labels/Error";
 import ProblemCard from "./ProblemCard";
 import { useSearchParams } from "next/navigation";
 import ProblemCardSkeleton from "@/components/loading/ProblemCardSkeleton";
+import { useIsMobile } from "@/hooks/isMobile";
 
 const options: Options = { throttleMs: 800 };
 const limit = 20;
@@ -24,6 +25,7 @@ interface ProblemListProps {
 }
 
 export function ProblemList({ filter, fixedLimit }: ProblemListProps) {
+  const isMobile = useIsMobile();
   const searchParams = useSearchParams();
   const [currentPage, setCurrentPage] = useQueryState("page", {
     ...options,
@@ -42,7 +44,7 @@ export function ProblemList({ filter, fixedLimit }: ProblemListProps) {
   return (
     <>
       {filter}
-      {fixedLimit === undefined && (
+      {fixedLimit === undefined && !isMobile && (
         <StatefulPagination
           currentPage={currentPage}
           totalPages={data?.totalPages}

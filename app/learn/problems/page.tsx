@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 export default async function AllProblemsPage() {
   const session = await getServerSession(authOptions);
   return (
-    <div className="container space-y-6 mx-auto">
+    <div className="container space-y-6 mx-auto mb-6">
       <div className="flex items-center justify-between">
         <span className="text-2xl font-medium">Problems</span>
         {isUserAdmin(session) && (

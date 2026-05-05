@@ -1,4 +1,5 @@
 import { authOptions } from "@/app/api/auth/authOptions";
+import { ProblemSetFilter } from "@/components/learn/sets/ProblemSetFilter";
 import { ProblemSetList } from "@/components/learn/sets/ProblemSetList";
 import { Button } from "@/components/ui/button";
 import { isUserAdmin } from "@/lib/utils";
@@ -28,7 +29,7 @@ export default async function ProblemSetsPage() {
           </Link>
         )}
       </div>
-      <ProblemSetList />
+      <ProblemSetList filter={<ProblemSetFilter />} />
     </div>
   );
 }

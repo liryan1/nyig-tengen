@@ -65,8 +65,8 @@ export async function GET(req: Request) {
       });
       teamSlugs = memberships.map((m) => m.teamSlug);
     }
-
     const isStarred = searchParams.get("starred") === "true";
+    const team = searchParams.get("team");
 
     const andConditions: Prisma.ProblemWhereInput[] = [{ rank: { gte, lte } }];
 
@@ -90,24 +90,31 @@ export async function GET(req: Request) {
       andConditions.push({ num: { in: starred.map((s) => s.problemNum) } });
     }
 
-    const orConditions: Prisma.ProblemWhereInput[] = [
-      { visibility: Visibility.PUBLIC },
-    ];
-    if (userId) {
-      orConditions.push({ authorId: userId });
-    }
-    if (teamSlugs.length > 0) {
-      orConditions.push({
-        teamProblems: {
-          some: {
-            teamSlug: {
-              in: teamSlugs,
-            },
-          },
-        },
+    if (team && team !== "public") {
+      // User requested a specific team
+      if (!userId) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      }
+      const membership = await db.teamMembership.findUnique({
+        where: { userId_teamSlug: { userId, teamSlug: team } },
       });
+      if (!membership) {
+        return NextResponse.json(
+          { message: "You are not a member of this team" },
+          { status: 403 },
+        );
+      }
+      andConditions.push({ teamProblems: { some: { teamSlug: team } } });
+    } else {
+      // Default: Public problems only (+ user's own problems if logged in)
+      const orConditions: Prisma.ProblemWhereInput[] = [
+        { visibility: Visibility.PUBLIC },
+      ];
+      if (userId) {
+        orConditions.push({ authorId: userId });
+      }
+      andConditions.push({ OR: orConditions });
     }
-    andConditions.push({ OR: orConditions });
 
     if (params.creatorId) {
       andConditions.push({ authorId: params.creatorId });

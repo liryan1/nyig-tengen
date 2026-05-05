@@ -14,6 +14,7 @@ const limit = 8;
 const options: Options = { throttleMs: 800 };
 
 interface ProblemSetListProps {
+  filter?: React.ReactNode;
   /**
    * If true, ignores all query params and uses the fixed limit to fetch
    * useful for summary pages that don't need pagination
@@ -21,7 +22,7 @@ interface ProblemSetListProps {
   fixedLimit?: number;
 }
 
-export function ProblemSetList({ fixedLimit }: ProblemSetListProps) {
+export function ProblemSetList({ filter, fixedLimit }: ProblemSetListProps) {
   const searchParams = useSearchParams();
   const [currentPage, setCurrentPage] = useQueryState("page", {
     ...options,
@@ -46,6 +47,7 @@ export function ProblemSetList({ fixedLimit }: ProblemSetListProps) {
 
   return (
     <div className="space-y-2">
+      {filter}
       {fixedLimit === undefined && (
         <StatefulPagination
           currentPage={currentPage}

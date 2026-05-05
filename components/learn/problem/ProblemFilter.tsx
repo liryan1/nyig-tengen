@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/select";
 import { DualRangeSlider } from "@/components/ui/slider";
 import { getRank } from "@/lib/go/display";
-import { Trash2 } from "lucide-react";
+import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
+import { Trash2, UsersIcon } from "lucide-react";
 import {
   createParser,
   parseAsBoolean,
@@ -18,7 +19,7 @@ import {
   useQueryStates,
   type Options,
 } from "nuqs";
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { ProblemCreatorInput } from "./ProblemCreatorInput";
 
 const parseRank = createParser({
@@ -35,6 +36,8 @@ const parseRank = createParser({
 const options: Options = { throttleMs: 800 };
 
 export function ProblemFilter() {
+  const { data: myTeams } = useGetMyTeamsQuery();
+
   const [rankRange, setRankRange] = useQueryStates(
     {
       rank_min: parseRank.withDefault(-30),
@@ -51,13 +54,32 @@ export function ProblemFilter() {
     defaultValue: "",
   });
   const [starred, setStarred] = useQueryState("starred", parseAsBoolean);
+  const [team, setTeam] = useQueryState("team", {
+    ...options,
+    defaultValue: "public",
+  });
 
   const clearFilters = useCallback(() => {
     setRankRange({ rank_min: -30, rank_max: 8 });
     setCreatorId(null);
     setSort(null);
     setStarred(false);
-  }, [setRankRange, setCreatorId, setSort, setStarred]);
+    setTeam(null);
+  }, [setRankRange, setCreatorId, setSort, setStarred, setTeam]);
+
+  const teamOptions = useMemo(() => {
+    const teams = (myTeams || []).map((t) => (
+      <SelectItem key={t.slug} value={t.slug}>
+        {t.name}
+      </SelectItem>
+    ));
+    return [
+      <SelectItem key="public" value="public">
+        Public
+      </SelectItem>,
+      ...teams,
+    ];
+  }, [myTeams]);
 
   return (
     <div className="flex flex-wrap gap-x-2 sm:gap-x-4 gap-y-2 justify-center">
@@ -79,6 +101,15 @@ export function ProblemFilter() {
         />
       </div>
       <ProblemCreatorInput value={creatorId} onSelect={setCreatorId} />
+      <div>
+        <Select value={team || "public"} onValueChange={setTeam}>
+          <SelectTrigger className="w-40">
+            <UsersIcon className="h-4 w-4 mr-1 text-muted-foreground" />
+            <SelectValue placeholder="Visibility" />
+          </SelectTrigger>
+          <SelectContent>{teamOptions}</SelectContent>
+        </Select>
+      </div>
       <div>
         <Select value={sort} onValueChange={setSort}>
           <SelectTrigger className="w-32">

@@ -21,8 +21,8 @@ export const ProblemCreatorInput: React.FC<ProblemCreatorInputProps> = ({
 
   return (
     <SearchSelect
-      triggerClassName="w-80 sm:w-auto sm:min-w-60"
-      contentClassName="w-80 sm:w-auto sm:min-w-60"
+      triggerClassName="sm:w-auto sm:min-w-60"
+      contentClassName="sm:w-auto sm:min-w-60"
       options={creators}
       value={value}
       onValueChange={onSelect}

@@ -35,26 +35,36 @@ export async function GET(req: Request) {
     }
 
     const skip = (page - 1) * limit;
-    const where: Prisma.ProblemSetWhereInput = {
-      OR: [
+
+    const team = searchParams.get("team");
+    const andConditions: Prisma.ProblemSetWhereInput[] = [];
+
+    if (team && team !== "public") {
+      if (!userId) {
+        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+      }
+      const membership = await db.teamMembership.findUnique({
+        where: { userId_teamSlug: { userId, teamSlug: team } },
+      });
+      if (!membership) {
+        return NextResponse.json(
+          { message: "You are not a member of this team" },
+          { status: 403 },
+        );
+      }
+      andConditions.push({ teamProblemSets: { some: { teamSlug: team } } });
+    } else {
+      const orConditions: Prisma.ProblemSetWhereInput[] = [
         { visibility: Visibility.PUBLIC },
-        {
-          authorId: userId,
-        },
-        {
-          teamProblemSets: {
-            some: {
-              team: {
-                memberships: {
-                  some: {
-                    userId: userId,
-                  },
-                },
-              },
-            },
-          },
-        },
-      ],
+      ];
+      if (userId) {
+        orConditions.push({ authorId: userId });
+      }
+      andConditions.push({ OR: orConditions });
+    }
+
+    const where: Prisma.ProblemSetWhereInput = {
+      AND: andConditions,
     };
 
     // Fetch the problem sets with pagination and get count
