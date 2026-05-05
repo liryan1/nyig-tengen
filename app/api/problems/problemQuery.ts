@@ -1,4 +1,6 @@
+import { getBoardCutoff } from "@/lib/go/display";
 import { GoProblemResponse } from "@/lib/go/interface";
+import { fromSgf, getBoardSize } from "@/lib/go/parser";
 import { Prisma, Visibility } from "@prisma/client";
 
 export const getProblemSelect = (userId?: string): Prisma.ProblemSelect => ({
@@ -6,6 +8,7 @@ export const getProblemSelect = (userId?: string): Prisma.ProblemSelect => ({
   num: true,
   description: true,
   initial: true,
+  correct: true,
   author: {
     select: {
       id: true,
@@ -40,30 +43,39 @@ export const mapProblemResponse = (
   userLiked: boolean = false,
   userStarred: boolean = false,
   userSolved: boolean = false,
-): GoProblemResponse => ({
-  num: problem.num,
-  initial: problem.initial,
-  rank: problem.rank,
-  description: problem.description,
-  author: problem.author,
-  endorser: problem.endorsement?.user
-    ? {
-        id: problem.endorsement.user.id,
-        name: problem.endorsement.user.name,
-        rank: problem.endorsement.user.info?.rank,
-      }
-    : undefined,
-  userSolved,
-  stats: {
-    views: problem.problemStats?.views,
-    submissionCount: problem.problemStats?.submissionCount,
-    correctCount: problem.problemStats?.correctCount,
-    userLiked,
-    userStarred,
-    likes: problem.problemStats?.likes || 0,
-  },
-  visibility: problem.visibility,
-});
+): GoProblemResponse => {
+  const boardSize = getBoardSize(problem.initial);
+  const cutoff = getBoardCutoff(
+    [fromSgf(problem.initial), fromSgf(problem.correct)],
+    boardSize,
+  );
+
+  return {
+    num: problem.num,
+    initial: problem.initial,
+    cutoff,
+    rank: problem.rank,
+    description: problem.description,
+    author: problem.author,
+    endorser: problem.endorsement?.user
+      ? {
+          id: problem.endorsement.user.id,
+          name: problem.endorsement.user.name,
+          rank: problem.endorsement.user.info?.rank,
+        }
+      : undefined,
+    userSolved,
+    stats: {
+      views: problem.problemStats?.views,
+      submissionCount: problem.problemStats?.submissionCount,
+      correctCount: problem.problemStats?.correctCount,
+      userLiked,
+      userStarred,
+      likes: problem.problemStats?.likes || 0,
+    },
+    visibility: problem.visibility,
+  };
+};
 
 /**
  * Represents permissions on the problem:

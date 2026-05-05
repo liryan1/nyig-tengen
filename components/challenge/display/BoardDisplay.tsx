@@ -1,9 +1,10 @@
 import { ReadonlyGoBoard } from "@/components/learn/go/board/ReadonlyGoBoard";
 import { CardContent } from "@/components/ui/card";
 import { useCellSize } from "@/hooks/useCellSize";
-import { getBoardSize } from "@/lib/go/parser";
+import { getBoardCutoff } from "@/lib/go/display";
+import { fromSgf, getBoardSize } from "@/lib/go/parser";
 import { cn } from "@/lib/utils";
-import React, { useRef } from "react";
+import React, { useMemo, useRef } from "react";
 
 interface BoardSectionProps {
   sgf?: string;
@@ -17,10 +18,17 @@ export function BoardDisplay({
   icon,
 }: BoardSectionProps) {
   const boardSize = getBoardSize(sgf);
+  const root = useMemo(() => fromSgf(sgf), [sgf]);
+  const cutoff = useMemo(
+    () => getBoardCutoff([root], boardSize),
+    [root, boardSize],
+  );
+
   const boardContainerRef = useRef<HTMLDivElement>(null);
   const { cellSize, boardPixelSize } = useCellSize({
     boardContainerRef,
     boardSize,
+    cutoff,
   });
 
   return (
@@ -30,7 +38,12 @@ export function BoardDisplay({
           style={{ width: `${boardPixelSize}px`, maxWidth: "100%" }}
           className="mx-auto"
         >
-          <ReadonlyGoBoard sgf={sgf} cellSize={cellSize} icon={icon} />
+          <ReadonlyGoBoard
+            sgf={sgf}
+            cellSize={cellSize}
+            icon={icon}
+            cutoff={cutoff}
+          />
         </div>
       </div>
     </CardContent>

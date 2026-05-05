@@ -5,7 +5,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { getBoardSize, getRootBoardState } from "@/lib/go/parser";
+import { getBoardCutoff, makeCutoffSquare } from "@/lib/go/display";
+import { fromSgf, getBoardSize } from "@/lib/go/parser";
 import { useEffect, useRef, useState } from "react";
 import { ReadonlyGoBoard } from "../go/board/ReadonlyGoBoard";
 
@@ -25,7 +26,15 @@ export function ProblemsCarousel({ problems }: Props) {
 
       const newCellSizes = problems.map((p) => {
         const boardSize = getBoardSize(p);
-        return boardAreaWidth / (boardSize + 1);
+        const root = fromSgf(p);
+        let cutoff = getBoardCutoff([root], boardSize);
+        if (cutoff) {
+          cutoff = makeCutoffSquare(cutoff, boardSize);
+        }
+        const effectiveSize = cutoff
+          ? cutoff.maxX - cutoff.minX + 1
+          : boardSize;
+        return boardAreaWidth / (effectiveSize + 1);
       });
 
       setCellSizes(newCellSizes);

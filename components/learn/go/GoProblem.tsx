@@ -8,6 +8,7 @@ import { useIsMobile } from "@/hooks/isMobile";
 import { coordToIndices, getNextColor, GoGame } from "@/lib/go/goGame";
 import { GoProblemResponse } from "@/lib/go/interface";
 import { getBoardSize, toSgf } from "@/lib/go/parser";
+import { makeCutoffSquare } from "@/lib/go/display";
 import { useAppDispatch } from "@/lib/rtk/slices/hooks";
 import { useSubmitMutation } from "@/lib/rtk/slices/problems";
 import { setPsetCompletion } from "@/lib/rtk/psetCompletion";
@@ -34,12 +35,14 @@ interface GoProblemProps {
   problem: GoProblemResponse;
   problemSetProgressId?: string;
   initialSuccess?: boolean;
+  noProgress?: boolean;
 }
 
 export function GoProblem({
   problem,
   problemSetProgressId,
   initialSuccess,
+  noProgress,
 }: GoProblemProps) {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -123,7 +126,11 @@ export function GoProblem({
   const { cellSize, boardPixelSize } = useCellSize({
     boardSize,
     boardContainerRef,
+    cutoff: problem.cutoff,
   });
+
+  const viewHeight = boardPixelSize;
+
   const { data: session, status: authStatus } = useSession();
   const userOwnsProblem = session?.user?.id === problem.author.id;
   const isUserSuperAdmin = session?.user?.role === UserRole.SUPERADMIN;
@@ -135,6 +142,7 @@ export function GoProblem({
   const isLoading = sLoading || authStatus === "loading";
 
   const handleSubmitAnswer = async () => {
+    if (noProgress) return;
     if (authStatus !== "authenticated") {
       toast("Please sign in to submit a solution", {
         action: {
@@ -266,7 +274,7 @@ export function GoProblem({
         <div
           className="overflow-hidden"
           ref={boardContainerRef}
-          style={{ height: boardPixelSize }}
+          style={{ height: viewHeight }}
           onClick={() => setShowSuccess(false)}
         >
           <GoProblemBoard
@@ -276,14 +284,21 @@ export function GoProblem({
             nextPlayer={nextPlayer}
             onMove={handleMove}
             showSuccess={showSuccess}
+            cutoff={problem.cutoff}
           />
         </div>
         <div
           className="overflow-hidden flex flex-col"
-          style={{ maxHeight: isMobile ? "30vh" : boardPixelSize }}
+          style={{ maxHeight: isMobile ? "30vh" : viewHeight }}
         >
           <div className="relative p-2 text-sm sm:text-base min-h-20 max-h-20 sm:min-h-24 sm:max-h-24 sm:space-y-2 overflow-hidden">
             {message}
+            {noProgress && (
+              <div className="flex items-center gap-1 text-orange-500 font-medium">
+                {infoIcon}
+                Not attempting. Progress will not be saved.
+              </div>
+            )}
             {isLoading && (
               <div className="space-y-2">
                 <Skeleton className="h-4 w-full" />
@@ -317,7 +332,7 @@ export function GoProblem({
               }
               size="sm"
               onClick={handleSubmitAnswer}
-              disabled={isLoading}
+              disabled={isLoading || noProgress}
             />
           </div>
           <div
@@ -351,7 +366,7 @@ export function GoProblem({
                   }
                   size="sm"
                   onClick={handleSubmitAnswer}
-                  disabled={isLoading}
+                  disabled={isLoading || noProgress}
                 />
               </div>
             </GoProblemToolbar>

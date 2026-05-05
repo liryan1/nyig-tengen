@@ -38,6 +38,12 @@ export interface GoProblem {
   num: string;
   initial: string;
   correct?: string;
+  cutoff?: {
+    minX: number;
+    maxX: number;
+    minY: number;
+    maxY: number;
+  };
 }
 
 export type GoProblemResponse = GoProblem & GoProblemMeta;

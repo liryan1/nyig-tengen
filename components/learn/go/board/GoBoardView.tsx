@@ -1,5 +1,9 @@
 import { FLOWER_POINT_POSITIONS } from "@/lib/go/constants";
-import { getPixelSize } from "@/lib/go/display";
+import {
+  getPixelSize,
+  GoBoardCutoff,
+  makeCutoffSquare,
+} from "@/lib/go/display";
 import { BoardState, StoneColor } from "@/lib/go/interface";
 import { cn } from "@/lib/utils";
 import React from "react";
@@ -33,6 +37,15 @@ export interface GoBoardViewProps {
    * Show an icon in the middle of the board
    */
   icon?: React.ReactNode;
+  /**
+   * Optional cutoff region to display only part of the board
+   */
+  cutoff?: GoBoardCutoff;
+  /**
+   * Whether to force the aspect ratio to be square
+   * @default true
+   */
+  aspectIsSquare?: boolean;
 }
 
 export function GoBoardView({
@@ -41,6 +54,8 @@ export function GoBoardView({
   boardSize = 19,
   className,
   icon,
+  cutoff: initialCutoff,
+  aspectIsSquare = true,
 }: GoBoardViewProps) {
   const { stones, labels } = boardState;
   const { boardPixelSize, stoneSize, margin } = getPixelSize({
@@ -48,88 +63,158 @@ export function GoBoardView({
     cellSize,
   });
 
+  let viewBox: string | undefined;
+  let viewWidth = boardPixelSize;
+  let viewHeight = boardPixelSize;
+
+  let cutoff = initialCutoff;
+  if (cutoff && aspectIsSquare) {
+    cutoff = makeCutoffSquare(cutoff, boardSize);
+  }
+
+  if (cutoff) {
+    const { minX, maxX, minY, maxY } = cutoff;
+    const vx = minX * cellSize;
+    const vy = minY * cellSize;
+    const vw = (maxX - minX) * cellSize + margin * 2;
+    const vh = (maxY - minY) * cellSize + margin * 2;
+    viewBox = `${vx} ${vy} ${vw} ${vh}`;
+    viewWidth = vw;
+    viewHeight = vh;
+  }
+
+  const startX = cutoff ? cutoff.minX : 0;
+  const endX = cutoff ? cutoff.maxX : boardSize - 1;
+  const startY = cutoff ? cutoff.minY : 0;
+  const endY = cutoff ? cutoff.maxY : boardSize - 1;
+
   return (
     <>
       <svg
-        width={boardPixelSize}
-        height={boardPixelSize}
+        width={viewWidth}
+        height={viewHeight}
+        viewBox={viewBox}
         className={cn(
           "bg-[url(/board.jpg)] absolute inline-block select-none",
           className,
         )}
       >
-        {[...Array(boardSize)].map((_, i) => {
-          // Draw grid lines
-          const offset = i * cellSize + margin;
-          // Offset to ensure corners are drawn correctly
-          const addedLine = i === boardSize - 1 || i === 0 ? 0.75 : 0;
-          return (
-            <React.Fragment key={i}>
-              <line // Horizontal line
-                x1={margin - addedLine}
-                y1={offset}
-                x2={boardPixelSize - margin + addedLine}
-                y2={offset}
-                stroke="black"
-                strokeWidth={i === boardSize - 1 || i === 0 ? 1.5 : 1}
-              />
-              <line // Vertical line
-                x1={offset}
-                y1={margin}
-                x2={offset}
-                y2={boardPixelSize - margin}
-                stroke="black"
-                strokeWidth={i === boardSize - 1 || i === 0 ? 1.5 : 1}
-              />
-            </React.Fragment>
-          );
-        })}
+        {/* Horizontal lines */}
+        {Array.from({ length: endY - startY + 1 }, (_, i) => {
+          const row = startY + i;
+          const offset = row * cellSize + margin;
+          const addedLine = row === boardSize - 1 || row === 0 ? 0.75 : 0;
 
-        {FLOWER_POINT_POSITIONS[boardSize]?.map((c) => (
-          <circle
-            key={`star-point-${c[0]}-${c[1]}`}
-            cx={margin + c[1] * cellSize}
-            cy={margin + c[0] * cellSize}
-            r={stoneSize / 8}
-            fill="black"
-          />
-        ))}
+          const x1 =
+            startX === 0
+              ? margin - addedLine
+              : startX * cellSize + margin - cellSize * 0.5;
+          const x2 =
+            endX === boardSize - 1
+              ? (boardSize - 1) * cellSize + margin + addedLine
+              : endX * cellSize + margin + cellSize * 0.5;
 
-        {Object.entries(stones ?? {}).map(([coord, color], i) => {
-          const cx = margin + getCoord(coord[0]) * cellSize;
-          const cy = margin + getCoord(coord[1]) * cellSize;
           return (
-            <circle
-              key={`move-at-${i}`}
-              cx={cx}
-              cy={cy}
-              r={stoneSize / 2}
-              fill={fillColorMap[color]}
+            <line
+              key={`h-${row}`}
+              x1={x1}
+              y1={offset}
+              x2={x2}
+              y2={offset}
               stroke="black"
-              strokeWidth={color !== 0 ? "1.5px" : "0px"}
+              strokeWidth={row === boardSize - 1 || row === 0 ? 1.5 : 1}
             />
           );
         })}
 
-        {Object.entries(labels ?? {}).map(([coord, label], i) => {
+        {/* Vertical lines */}
+        {Array.from({ length: endX - startX + 1 }, (_, i) => {
+          const col = startX + i;
+          const offset = col * cellSize + margin;
+          const addedLine = col === boardSize - 1 || col === 0 ? 0.75 : 0;
+
+          const y1 =
+            startY === 0
+              ? margin - addedLine
+              : startY * cellSize + margin - cellSize * 0.5;
+          const y2 =
+            endY === boardSize - 1
+              ? (boardSize - 1) * cellSize + margin + addedLine
+              : endY * cellSize + margin + cellSize * 0.5;
+
           return (
-            <text
-              key={`label-at-${i}`}
-              x={margin + getCoord(coord[0]) * cellSize}
-              y={margin + getCoord(coord[1]) * cellSize}
-              // function of x that scales from f(1) = 1 to f(3) = 0.8
-              // to reduce font size for larger numbers
-              fontSize={
-                cellSize * 0.55 * (1 - 0.1 * (label.toString().length - 1))
-              }
-              fill={stones && stones[coord] === 1 ? "white" : "black"}
-              textAnchor="middle"
-              dominantBaseline="central"
-            >
-              {label}
-            </text>
+            <line
+              key={`v-${col}`}
+              x1={offset}
+              y1={y1}
+              x2={offset}
+              y2={y2}
+              stroke="black"
+              strokeWidth={col === boardSize - 1 || col === 0 ? 1.5 : 1}
+            />
           );
         })}
+
+        {FLOWER_POINT_POSITIONS[boardSize]
+          ?.filter(
+            (c) =>
+              c[1] >= startX && c[1] <= endX && c[0] >= startY && c[0] <= endY,
+          )
+          .map((c) => (
+            <circle
+              key={`star-point-${c[0]}-${c[1]}`}
+              cx={margin + c[1] * cellSize}
+              cy={margin + c[0] * cellSize}
+              r={stoneSize / 8}
+              fill="black"
+            />
+          ))}
+
+        {Object.entries(stones ?? {})
+          .filter(([coord]) => {
+            const col = getCoord(coord[0]);
+            const row = getCoord(coord[1]);
+            return col >= startX && col <= endX && row >= startY && row <= endY;
+          })
+          .map(([coord, color], i) => {
+            const cx = margin + getCoord(coord[0]) * cellSize;
+            const cy = margin + getCoord(coord[1]) * cellSize;
+            return (
+              <circle
+                key={`move-at-${i}`}
+                cx={cx}
+                cy={cy}
+                r={stoneSize / 2}
+                fill={fillColorMap[color]}
+                stroke="black"
+                strokeWidth={color !== 0 ? "1.5px" : "0px"}
+              />
+            );
+          })}
+
+        {Object.entries(labels ?? {})
+          .filter(([coord]) => {
+            const col = getCoord(coord[0]);
+            const row = getCoord(coord[1]);
+            return col >= startX && col <= endX && row >= startY && row <= endY;
+          })
+          .map(([coord, label], i) => {
+            return (
+              <text
+                key={`label-at-${i}`}
+                x={margin + getCoord(coord[0]) * cellSize}
+                y={margin + getCoord(coord[1]) * cellSize}
+                fontSize={
+                  cellSize * 0.55 * (1 - 0.1 * (label.toString().length - 1))
+                }
+                fill={stones && stones[coord] === 1 ? "white" : "black"}
+                textAnchor="middle"
+                dominantBaseline="central"
+              >
+                {label}
+              </text>
+            );
+          })}
       </svg>
 
       {icon && (

@@ -3,10 +3,13 @@
 import { GoProblemSkeleton } from "@/components/loading/GoProblemSkeleton";
 import { ProblemSetDoPageSkeleton } from "@/components/loading/ProblemSetDoPageSkeleton";
 import { useGetProblemQuery } from "@/lib/rtk/slices/problems";
-import { useGetPSetProgressQuery } from "@/lib/rtk/slices/problemSets";
+import {
+  ProblemOrderItem,
+  useGetPSetProgressQuery,
+  useGetPSetQuery,
+} from "@/lib/rtk/slices/problemSets";
 import { useSession } from "next-auth/react";
 import dynamic from "next/dynamic";
-import { redirect } from "next/navigation";
 import { PageError } from "../../labels/Error";
 import { ProblemSetDoPageHeader } from "../sets/ProblemSetDoPageHeader";
 
@@ -31,8 +34,20 @@ export function ProblemSetDoPage({
     skip: !psetNum || authStatus !== "authenticated",
   });
 
+  const {
+    data: pset,
+    isLoading: psLoading,
+    isError: psError,
+  } = useGetPSetQuery(psetNum, { skip: !psetNum });
+
   const currentIndex = parseInt(problemIndexStr) - 1;
-  const globalNum = progress?.problemOrder?.[currentIndex]?.problemNum;
+
+  const problemOrder =
+    progress?.problemOrder ||
+    pset?.problems?.map((p) => ({ problemNum: p.num })) ||
+    [];
+
+  const globalNum = problemOrder?.[currentIndex]?.problemNum;
 
   const {
     data: problem,
@@ -40,20 +55,20 @@ export function ProblemSetDoPage({
     isError: pError,
   } = useGetProblemQuery({ num: globalNum ?? "" }, { skip: !globalNum });
 
-  const isLoading = pgLoading || pLoading;
+  const isLoading = pgLoading || pLoading || psLoading;
   if (isLoading) {
     return <ProblemSetDoPageSkeleton />;
   }
 
-  if (pError || pgError) {
+  if (pError || pgError || psError) {
     return <PageError>Error loading problem!</PageError>;
   }
 
-  if (!progress) {
-    redirect(`/learn/sets/${psetNum}`);
+  if (!pset) {
+    return <PageError>Problem set not found</PageError>;
   }
 
-  if (currentIndex < 0 || currentIndex >= progress.problemOrder.length) {
+  if (currentIndex < 0 || currentIndex >= problemOrder.length) {
     return <PageError>Problem not found in the problem order</PageError>;
   }
 
@@ -65,15 +80,16 @@ export function ProblemSetDoPage({
     <div className="container mx-auto max-w-7xl space-y-2 md:space-y-6">
       <ProblemSetDoPageHeader
         currentIndex={currentIndex}
-        problemOrder={progress.problemOrder}
-        problemSetName={progress.problemSet.name}
+        problemOrder={problemOrder}
+        problemSetName={progress?.problemSet?.name || pset.name}
         pSetClientUrl={`/learn/sets/${psetNum}`}
       />
       <GoProblem
         problem={problem}
-        problemSetProgressId={progress.id}
+        problemSetProgressId={progress?.id}
+        noProgress={!progress}
         initialSuccess={
-          progress.problemOrder[currentIndex]?.status === "solved"
+          progress?.problemOrder[currentIndex]?.status === "solved"
         }
       />
     </div>

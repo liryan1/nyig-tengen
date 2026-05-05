@@ -1,7 +1,11 @@
 "use client";
 
 import { BoardEditTool } from "@/hooks/useGo";
-import { getPixelSize } from "@/lib/go/display";
+import {
+  getPixelSize,
+  GoBoardCutoff,
+  makeCutoffSquare,
+} from "@/lib/go/display";
 import { indicesToCoord } from "@/lib/go/goGame";
 import { BoardState, StoneColor } from "@/lib/go/interface";
 import { cn } from "@/lib/utils";
@@ -45,6 +49,15 @@ interface GoBoardControlProps {
    * @param col - column of the intersection
    */
   onMove?: (row: number, col: number) => void;
+  /**
+   * Optional cutoff region to display only part of the board
+   */
+  cutoff?: GoBoardCutoff;
+  /**
+   * Whether to force the aspect ratio to be square
+   * @default true
+   */
+  aspectIsSquare?: boolean;
 }
 
 export function GoBoardControl({
@@ -55,12 +68,39 @@ export function GoBoardControl({
   cellSize = 35,
   boardSize = 19,
   readonly = false,
+  cutoff: initialCutoff,
+  aspectIsSquare = true,
 }: GoBoardControlProps) {
   const { stones } = boardState;
   const { boardPixelSize, stoneSize, margin } = getPixelSize({
     boardSize,
     cellSize,
   });
+
+  let viewBox: string | undefined;
+  let viewWidth = boardPixelSize;
+  let viewHeight = boardPixelSize;
+
+  let cutoff = initialCutoff;
+  if (cutoff && aspectIsSquare) {
+    cutoff = makeCutoffSquare(cutoff, boardSize);
+  }
+
+  if (cutoff) {
+    const { minX, maxX, minY, maxY } = cutoff;
+    const vx = minX * cellSize;
+    const vy = minY * cellSize;
+    const vw = (maxX - minX) * cellSize + margin * 2;
+    const vh = (maxY - minY) * cellSize + margin * 2;
+    viewBox = `${vx} ${vy} ${vw} ${vh}`;
+    viewWidth = vw;
+    viewHeight = vh;
+  }
+
+  const startX = cutoff ? cutoff.minX : 0;
+  const endX = cutoff ? cutoff.maxX : boardSize - 1;
+  const startY = cutoff ? cutoff.minY : 0;
+  const endY = cutoff ? cutoff.maxY : boardSize - 1;
 
   const handleIntersectionClick = (
     event: React.MouseEvent<SVGCircleElement, MouseEvent>,
@@ -110,32 +150,37 @@ export function GoBoardControl({
 
   return (
     <svg
-      width={boardPixelSize}
-      height={boardPixelSize}
+      width={viewWidth}
+      height={viewHeight}
+      viewBox={viewBox}
       className={cn("select-none inline-block absolute", className)}
     >
-      {Array.from({ length: boardSize }, (_, col) => (
-        <React.Fragment key={col}>
-          {Array.from({ length: boardSize }, (_, row) => {
-            const cx = margin + col * cellSize;
-            const cy = margin + row * cellSize;
-            return (
-              <circle
-                key={`move-${row}-${col}`}
-                cx={cx}
-                cy={cy}
-                r={stoneSize / 2}
-                fill="transparent"
-                stroke="black"
-                strokeWidth="0px"
-                onMouseEnter={(e) => handleEmptySpaceHoverEnter(e, row, col)}
-                onMouseLeave={(e) => handleEmptySpaceHoverLeave(e, row, col)}
-                onClick={(e) => handleIntersectionClick(e, row, col)}
-              />
-            );
-          })}
-        </React.Fragment>
-      ))}
+      {Array.from({ length: endX - startX + 1 }, (_, i) => {
+        const col = startX + i;
+        return (
+          <React.Fragment key={col}>
+            {Array.from({ length: endY - startY + 1 }, (_, j) => {
+              const row = startY + j;
+              const cx = margin + col * cellSize;
+              const cy = margin + row * cellSize;
+              return (
+                <circle
+                  key={`move-${row}-${col}`}
+                  cx={cx}
+                  cy={cy}
+                  r={stoneSize / 2}
+                  fill="transparent"
+                  stroke="black"
+                  strokeWidth="0px"
+                  onMouseEnter={(e) => handleEmptySpaceHoverEnter(e, row, col)}
+                  onMouseLeave={(e) => handleEmptySpaceHoverLeave(e, row, col)}
+                  onClick={(e) => handleIntersectionClick(e, row, col)}
+                />
+              );
+            })}
+          </React.Fragment>
+        );
+      })}
     </svg>
   );
 }

@@ -1,5 +1,6 @@
 import { StatefulPagination } from "@/components/nav/StatefulPagination";
-import { getBoardSize, getRootBoardState } from "@/lib/go/parser";
+import { getBoardCutoff, makeCutoffSquare } from "@/lib/go/display";
+import { fromSgf, getBoardSize } from "@/lib/go/parser";
 import { ProblemOrderItem, PSetProblem } from "@/lib/rtk/slices/problemSets";
 import { cn } from "@/lib/utils";
 import { SubmissionStatus } from "@prisma/client";
@@ -73,7 +74,15 @@ export function ProblemGrid({
           // Each board’s display area width equals containerWidth divided by the number of columns.
           const boardAreaWidth = containerWidth / columns;
           const boardSize = getBoardSize(problem.initial);
-          const cellSize = boardAreaWidth / (boardSize + 1);
+          const root = fromSgf(problem.initial);
+          let cutoff = getBoardCutoff([root], boardSize);
+          if (cutoff) {
+            cutoff = makeCutoffSquare(cutoff, boardSize);
+          }
+          const effectiveSize = cutoff
+            ? cutoff.maxX - cutoff.minX + 1
+            : boardSize;
+          const cellSize = boardAreaWidth / (effectiveSize + 1);
           // Determine the problem’s original index (for progress icon lookup).
           const problemIndex = startIndex + i;
           return (
@@ -86,6 +95,7 @@ export function ProblemGrid({
                 className="hover:shadow-lg"
                 sgf={problem.initial}
                 cellSize={cellSize}
+                cutoff={cutoff}
                 icon={
                   problemOrder && getIcon(problemOrder[problemIndex]?.status)
                 }

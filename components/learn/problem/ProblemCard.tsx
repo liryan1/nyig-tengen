@@ -28,6 +28,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
   const { cellSize, boardPixelSize } = useCellSize({
     boardContainerRef,
     boardSize,
+    cutoff: goProblemResponse.cutoff,
   });
 
   const successRate =
@@ -65,7 +66,11 @@ export function ProblemCard({ goProblemResponse }: Props) {
           style={{ width: `${boardPixelSize}px` }}
           href={`/learn/problems/${num}`}
         >
-          <ReadonlyGoBoard cellSize={cellSize} sgf={initial} />
+          <ReadonlyGoBoard
+            cellSize={cellSize}
+            sgf={initial}
+            cutoff={goProblemResponse.cutoff}
+          />
         </Link>
       </CardContent>
       <CardFooter className="flex items-center justify-between text-xs text-muted-foreground !p-0 !sm:px-1 !py-1 select-none">

@@ -146,12 +146,11 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
     ) || 0;
 
   const handleProblemClick = (pNum: string) => {
-    if (!pset?.userProgress) {
-      return router.push(`/learn/problems/${pNum}`);
-    }
-    const index = pset.userProgress.problemOrder.findIndex(
-      (p) => p.problemNum === pNum,
+    const order = pset?.userProgress?.problemOrder || pset.problems;
+    const index = order.findIndex((p: any) =>
+      "problemNum" in p ? p.problemNum === pNum : p.num === pNum,
     );
+    if (index === -1) return router.push(`/learn/problems/${pNum}`);
     return router.push(`/learn/sets/${num}/${index + 1}`);
   };
 
