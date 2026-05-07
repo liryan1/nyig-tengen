@@ -27,8 +27,10 @@ export const CHALLEGE_ANSWER_LABEL = {
   [ChallengeAnswer.ALIVE]: "Alive",
 };
 
-export interface ChallengeAttemptProblem
-  extends Pick<ChallengeProblem, "num" | "sgf" | "correctAnswer"> {}
+export interface ChallengeAttemptProblem extends Pick<
+  ChallengeProblem,
+  "num" | "sgf" | "correctAnswer"
+> {}
 
 export async function getRandomProblems(
   count: number = PROBLEMS_BATCH_SIZE,

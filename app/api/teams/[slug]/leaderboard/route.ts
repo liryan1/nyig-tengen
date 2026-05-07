@@ -11,7 +11,7 @@ export async function GET(req: Request, { params }: Params) {
   try {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "20");
+    const limit = parseInt(searchParams.get("limit") || "10");
     const skip = (page - 1) * limit;
 
     const [session, { slug }] = await Promise.all([
@@ -30,6 +30,7 @@ export async function GET(req: Request, { params }: Params) {
         teamProblemSets: { select: { problemSetNum: true } },
         memberships: {
           select: {
+            assignedName: true,
             user: {
               select: {
                 id: true,
@@ -39,14 +40,6 @@ export async function GET(req: Request, { params }: Params) {
             role: true,
             createdAt: true,
           },
-          orderBy: {
-            createdAt: "asc",
-          },
-          take: limit,
-          skip: skip,
-        },
-        _count: {
-          select: { memberships: true },
         },
       },
     });
@@ -59,7 +52,7 @@ export async function GET(req: Request, { params }: Params) {
     const teamPSetNums = team.teamProblemSets.map((tps) => tps.problemSetNum);
     const memberUserIds = team.memberships.map((m) => m.user.id);
 
-    // Batch fetch stats for the members on the current page
+    // Fetch stats for ALL members to allow global sorting
     const [solvedStats, completedStats] = await Promise.all([
       db.submission.groupBy({
         by: ["userId"],
@@ -88,20 +81,34 @@ export async function GET(req: Request, { params }: Params) {
       completedStats.map((c) => [c.userId, c._count._all]),
     );
 
-    const members = team.memberships.map((m) => ({
+    const allMembers = team.memberships.map((m) => ({
       id: m.user.id,
       name: m.user.name,
+      assignedName: m.assignedName,
       role: m.role,
       joinedAt: m.createdAt.toISOString(),
       problemsSolved: solvedMap.get(m.user.id) || 0,
       setsCompleted: completedMap.get(m.user.id) || 0,
     }));
 
+    // Sort by problemsSolved (desc), then setsCompleted (desc), then name (asc)
+    allMembers.sort((a, b) => {
+      if (b.problemsSolved !== a.problemsSolved) {
+        return b.problemsSolved - a.problemsSolved;
+      }
+      if (b.setsCompleted !== a.setsCompleted) {
+        return b.setsCompleted - a.setsCompleted;
+      }
+      return a.name.localeCompare(b.name);
+    });
+
+    const paginatedMembers = allMembers.slice(skip, skip + limit);
+
     return NextResponse.json(
       {
         currentPage: page,
-        totalPages: Math.ceil(team._count.memberships / limit),
-        members,
+        totalPages: Math.ceil(allMembers.length / limit),
+        members: paginatedMembers,
       },
       { status: 200 },
     );

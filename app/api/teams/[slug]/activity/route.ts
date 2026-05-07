@@ -22,7 +22,12 @@ export async function GET(req: Request, { params }: Params) {
         where: { teamSlug: slug },
         take: 5,
         orderBy: { createdAt: "desc" },
-        include: { user: { select: { name: true } } },
+        select: {
+          id: true,
+          assignedName: true,
+          createdAt: true,
+          user: { select: { name: true } },
+        },
       }),
       db.teamProblemSet.findMany({
         where: { teamSlug: slug },
@@ -36,7 +41,7 @@ export async function GET(req: Request, { params }: Params) {
       ...recentMembers.map((m) => ({
         id: `member-${m.id}`,
         type: "member_joined" as const,
-        user: { name: m.user.name },
+        user: { name: m.assignedName || m.user.name },
         createdAt: m.createdAt.toISOString(),
       })),
       ...recentProblemSets.map((ps) => ({

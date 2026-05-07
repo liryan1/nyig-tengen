@@ -38,10 +38,11 @@ export const TeamPage = () => {
   // Let's assume for MVP that if they have a session, we'll try to load their stats.
   // The stats endpoint will return null if they aren't a member.
 
-  const isTeamAdmin = team.owner.id === session?.user?.id;
+  const isTeamAdmin =
+    team.myRole === TeamRole.OWNER || team.myRole === TeamRole.ADMIN;
 
   return (
-    <div className="container mx-auto max-w-7xl space-y-6 mb-6">
+    <div className="container mx-auto max-w-7xl space-y-4 md:space-y-6 mb-6 px-1 md:px-6">
       <TeamHero
         team={team}
         isTeamAdmin={isTeamAdmin}
@@ -52,7 +53,7 @@ export const TeamPage = () => {
 
       <TeamQuickLinks slug={slug as string} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <div className="lg:col-span-2">
           <TeamLeaderboard
             slug={slug as string}

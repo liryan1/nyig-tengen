@@ -81,6 +81,10 @@ export async function GET(req: Request, { params }: Params) {
             name: true,
           },
         },
+        memberships: {
+          where: { userId },
+          select: { role: true },
+        },
         _count: {
           select: {
             memberships: true,
@@ -104,6 +108,7 @@ export async function GET(req: Request, { params }: Params) {
         id: team.owner.id,
         name: team.owner.name,
       },
+      myRole: team.memberships[0]?.role || null,
       memberCount: team._count.memberships,
       problemCount: team._count.teamProblems,
       problemSetCount: team._count.teamProblemSets,

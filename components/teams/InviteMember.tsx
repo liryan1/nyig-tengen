@@ -63,8 +63,12 @@ export function InviteMember({ teamSlug }: InviteMemberProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">
-          Invite <CirclePlusIcon />
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full h-8 md:h-10 text-xs md:text-sm"
+        >
+          Invite <CirclePlusIcon className="h-3.5 w-3.5 md:h-4 md:w-4" />
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-lg p-4">

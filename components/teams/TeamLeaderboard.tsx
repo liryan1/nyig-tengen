@@ -40,7 +40,7 @@ export const TeamLeaderboard = ({
 
   return (
     <Card className="h-full flex flex-col">
-      <CardHeader>
+      <CardHeader className="p-0 px-6 pt-6">
         <CardTitle className="text-lg">Leaderboard</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 p-0 px-6">
@@ -61,26 +61,30 @@ export const TeamLeaderboard = ({
                 <TableCell className="flex items-center gap-2">
                   <Avatar className="h-7 w-7">
                     <AvatarFallback className="text-[10px]">
-                      {member.name.charAt(0).toUpperCase()}
+                      {(member.assignedName || member.name)
+                        .charAt(0)
+                        .toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium leading-none flex items-center gap-1">
-                      {member.name}
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-medium leading-none flex items-center gap-1.5 truncate">
+                      {member.assignedName || member.name}
                       {member.id === currentUserId && (
                         <Badge
                           variant="secondary"
-                          className="h-4 px-1 text-[10px]"
+                          className="h-3.5 px-1 text-[9px] font-bold"
                         >
                           YOU
                         </Badge>
                       )}
                     </span>
-                    <span className="text-[10px] text-muted-foreground">
+                    <span className="text-[10px] text-muted-foreground truncate">
+                      {member.assignedName ? `(${member.name}) ` : ""}
                       {member.role}
                     </span>
                   </div>
                 </TableCell>
+
                 <TableCell className="text-right font-mono text-xs">
                   {member.problemsSolved}
                 </TableCell>

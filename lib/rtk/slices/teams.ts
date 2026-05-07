@@ -15,6 +15,7 @@ export interface TeamResponse {
     id: string;
     name: string;
   };
+  myRole?: TeamRole | null;
   members?: {
     id: string;
     name: string;
@@ -41,6 +42,7 @@ export interface TeamStatsMeResponse {
 export interface TeamLeaderboardEntry {
   id: string;
   name: string;
+  assignedName?: string | null;
   role: TeamRole;
   joinedAt: string;
   problemsSolved: number;
@@ -59,6 +61,22 @@ export interface TeamActivityItem {
   user?: { name: string };
   contentName?: string;
   createdAt: string;
+}
+
+export interface TeamMemberResponse {
+  id: string;
+  name: string;
+  assignedName?: string | null;
+  image?: string;
+  role: TeamRole;
+  joinedAt: string;
+}
+
+export interface GetTeamMembersResponse {
+  currentPage: number;
+  totalPages: number;
+  totalCount: number;
+  members: TeamMemberResponse[];
 }
 
 export interface MyTeamsResponse {
@@ -127,20 +145,52 @@ const teamsApiSlice = apiSlice.injectEndpoints({
       providesTags: (result, error, arg) => [{ type: TEAMS_TAG, id: arg }],
     }),
 
-    getTeamStatsMe: builder.query<TeamStatsMeResponse, string>({
-      query: (slug) => `teams/${slug}/stats/me`,
+    getTeamStatsMe: builder.query<
+      TeamStatsMeResponse,
+      { slug: string; period?: string }
+    >({
+      query: ({ slug, period = "all" }) =>
+        `teams/${slug}/stats/me?period=${period}`,
     }),
 
     getTeamLeaderboard: builder.query<
       TeamLeaderboardResponse,
       { slug: string; page?: number; limit?: number }
     >({
-      query: ({ slug, page = 1, limit = 20 }) =>
+      query: ({ slug, page = 1, limit = 10 }) =>
         `teams/${slug}/leaderboard?page=${page}&limit=${limit}`,
     }),
 
     getTeamActivity: builder.query<TeamActivityItem[], string>({
       query: (slug) => `teams/${slug}/activity`,
+    }),
+
+    getTeamMembers: builder.query<
+      GetTeamMembersResponse,
+      { slug: string; page?: number; limit?: number; search?: string }
+    >({
+      query: ({ slug, page = 1, limit = 20, search = "" }) =>
+        `teams/${slug}/members?page=${page}&limit=${limit}&search=${encodeURIComponent(search)}`,
+      providesTags: (result, error, arg) => [{ type: TEAMS_TAG, id: arg.slug }],
+    }),
+
+    updateTeamMember: builder.mutation<
+      void,
+      {
+        slug: string;
+        userId: string;
+        role?: TeamRole;
+        assignedName?: string | null;
+      }
+    >({
+      query: ({ slug, userId, ...body }) => ({
+        url: `teams/${slug}/members/${userId}`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: TEAMS_TAG, id: arg.slug },
+      ],
     }),
 
     getMyTeams: builder.query<MyTeamsResponse[], void>({
@@ -237,6 +287,8 @@ export const {
   useGetTeamStatsMeQuery,
   useGetTeamLeaderboardQuery,
   useGetTeamActivityQuery,
+  useGetTeamMembersQuery,
+  useUpdateTeamMemberMutation,
   useCreateTeamMutation,
   useUpdateTeamMutation,
 

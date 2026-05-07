@@ -9,6 +9,9 @@ type Params = { params: Promise<{ slug: string }> };
 
 export async function GET(req: Request, { params }: Params) {
   try {
+    const { searchParams } = new URL(req.url);
+    const period = searchParams.get("period") || "week";
+
     const [session, { slug }] = await Promise.all([
       getServerSession(authOptions),
       params,
@@ -33,12 +36,30 @@ export async function GET(req: Request, { params }: Params) {
     const teamProblemNums = team.teamProblems.map((tp) => tp.problemNum);
     const teamPSetNums = team.teamProblemSets.map((tps) => tps.problemSetNum);
 
+    const now = new Date();
+    let startDate = null;
+
+    if (period === "today") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (period === "week") {
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+      startDate = new Date(now.getFullYear(), now.getMonth(), diff);
+    } else if (period === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if (period === "year") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+    }
+
+    const dateFilter = startDate ? { gte: startDate } : undefined;
+
     const [solvedCount, completedSets] = await Promise.all([
       db.submission.count({
         where: {
           userId,
           status: SubmissionStatus.solved,
           problemNum: { in: teamProblemNums },
+          createdAt: dateFilter,
         },
       }),
       db.problemSetProgress.count({
@@ -46,15 +67,17 @@ export async function GET(req: Request, { params }: Params) {
           userId,
           status: "completed",
           problemSetNum: { in: teamPSetNums },
+          updatedAt: dateFilter,
         },
       }),
     ]);
 
-    // Get top ranked set for this user in this team
+    // Get top ranked set for this user in this team within the period
     const topRankedSet = await db.problemSetLeaderboardEntry.findFirst({
       where: {
         userId,
         problemSetNum: { in: teamPSetNums },
+        updatedAt: dateFilter,
       },
       orderBy: {
         score: "desc",
