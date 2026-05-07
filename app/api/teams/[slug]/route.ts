@@ -37,7 +37,7 @@ export async function GET(req: Request, { params }: Params) {
             },
             visibility: Visibility.PRIVATE,
           },
-          select: getProblemSelect(userId),
+          select: { id: true },
         }),
         db.problemSet.findMany({
           where: {
@@ -46,7 +46,7 @@ export async function GET(req: Request, { params }: Params) {
             },
             visibility: Visibility.PRIVATE,
           },
-          select: getProblemSetSelect(userId),
+          select: { id: true },
         }),
       ]);
 
@@ -57,18 +57,12 @@ export async function GET(req: Request, { params }: Params) {
       };
       const personalData: TeamResponse = {
         id: "me",
+        slug: "me",
         name: "My Personal Team",
         description: "Your private problems and collections",
         memberCount: 1,
-        members: [you],
         problemCount: problems.length,
-        problems: problems.map((problem) =>
-          mapProblemResponse(problem, userId),
-        ),
         problemSetCount: problemSets.length,
-        problemSets: problemSets.map((pset) =>
-          mapProblemSetResponse(pset, userId),
-        ),
         owner: you,
       };
       return NextResponse.json(personalData, { status: 200 });
@@ -78,34 +72,20 @@ export async function GET(req: Request, { params }: Params) {
       where: { slug },
       select: {
         id: true,
+        slug: true,
+        name: true,
+        description: true,
         owner: {
           select: {
             id: true,
             name: true,
           },
         },
-        memberships: {
+        _count: {
           select: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            role: true,
-            createdAt: true,
-          },
-        },
-        name: true,
-        description: true,
-        teamProblems: {
-          select: {
-            problem: { select: getProblemSelect(userId) },
-          },
-        },
-        teamProblemSets: {
-          select: {
-            problemSet: { select: getProblemSetSelect(userId) },
+            memberships: true,
+            teamProblems: true,
+            teamProblemSets: true,
           },
         },
       },
@@ -115,48 +95,21 @@ export async function GET(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Team not found" }, { status: 404 });
     }
 
-    const userIsInTeam = team.memberships.find((m) => m.user.id === userId);
-    const memberCount = team.memberships.length;
-    const problemCount = team.teamProblems.length;
-    const problemSetCount = team.teamProblemSets.length;
-
     const publicResponse: TeamResponse = {
-      id: slug,
+      id: team.id,
+      slug: team.slug,
       name: team.name,
       description: team.description || undefined,
       owner: {
         id: team.owner.id,
         name: team.owner.name,
       },
-      members: [],
-      problems: [],
-      problemSets: [],
-      memberCount,
-      problemCount,
-      problemSetCount,
+      memberCount: team._count.memberships,
+      problemCount: team._count.teamProblems,
+      problemSetCount: team._count.teamProblemSets,
     };
 
-    if (!userIsInTeam) {
-      return NextResponse.json(publicResponse, { status: 200 });
-    }
-
-    return NextResponse.json(
-      {
-        ...publicResponse,
-        members: team.memberships.map((membership) => ({
-          ...membership.user,
-          role: membership.role,
-          joinedAt: membership.createdAt,
-        })),
-        problems: team.teamProblems.map((problem) =>
-          mapProblemResponse(problem.problem, userId),
-        ),
-        problemSets: team.teamProblemSets.map((pset) =>
-          mapProblemSetResponse(pset.problemSet, userId),
-        ),
-      },
-      { status: 200 },
-    );
+    return NextResponse.json(publicResponse, { status: 200 });
   } catch (e) {
     logStack(e);
     return NextResponse.json(

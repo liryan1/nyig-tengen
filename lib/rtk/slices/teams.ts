@@ -5,6 +5,7 @@ import { ProblemSetResponse } from "./problemSets";
 
 export interface TeamResponse {
   id: string;
+  slug: string;
   name: string;
   description?: string;
   memberCount: number;
@@ -14,11 +15,50 @@ export interface TeamResponse {
     id: string;
     name: string;
   };
-  members: { id: string; name: string; role: TeamRole; joinedAt?: string }[];
-  problems: GoProblemResponse[];
-  problemSets: ProblemSetResponse[];
+  members?: {
+    id: string;
+    name: string;
+    role: TeamRole;
+    joinedAt?: string;
+  }[];
+  problems?: GoProblemResponse[];
+  problemSets?: ProblemSetResponse[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface TeamStatsMeResponse {
+  problemsSolved: number;
+  totalTeamProblems: number;
+  setsCompleted: number;
+  totalTeamSets: number;
+  topRankedSet?: {
+    name: string;
+    rank: number;
+  };
+}
+
+export interface TeamLeaderboardEntry {
+  id: string;
+  name: string;
+  role: TeamRole;
+  joinedAt: string;
+  problemsSolved: number;
+  setsCompleted: number;
+}
+
+export interface TeamLeaderboardResponse {
+  currentPage: number;
+  totalPages: number;
+  members: TeamLeaderboardEntry[];
+}
+
+export interface TeamActivityItem {
+  id: string;
+  type: "member_joined" | "problem_added" | "pset_added";
+  user?: { name: string };
+  contentName?: string;
+  createdAt: string;
 }
 
 export interface MyTeamsResponse {
@@ -85,6 +125,22 @@ const teamsApiSlice = apiSlice.injectEndpoints({
     getTeam: builder.query<TeamResponse, string>({
       query: (slug) => `teams/${slug}`,
       providesTags: (result, error, arg) => [{ type: TEAMS_TAG, id: arg }],
+    }),
+
+    getTeamStatsMe: builder.query<TeamStatsMeResponse, string>({
+      query: (slug) => `teams/${slug}/stats/me`,
+    }),
+
+    getTeamLeaderboard: builder.query<
+      TeamLeaderboardResponse,
+      { slug: string; page?: number; limit?: number }
+    >({
+      query: ({ slug, page = 1, limit = 20 }) =>
+        `teams/${slug}/leaderboard?page=${page}&limit=${limit}`,
+    }),
+
+    getTeamActivity: builder.query<TeamActivityItem[], string>({
+      query: (slug) => `teams/${slug}/activity`,
     }),
 
     getMyTeams: builder.query<MyTeamsResponse[], void>({
@@ -178,6 +234,9 @@ export const {
   useGetTeamsQuery,
   useGetMyTeamsQuery,
   useGetTeamQuery,
+  useGetTeamStatsMeQuery,
+  useGetTeamLeaderboardQuery,
+  useGetTeamActivityQuery,
   useCreateTeamMutation,
   useUpdateTeamMutation,
 

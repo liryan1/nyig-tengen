@@ -25,6 +25,30 @@ export const truncateString = (str: string, maxLength: number = 15) => {
   return str.slice(0, maxLength) + "...";
 };
 
+export function formatRelativeTime(date: Date): string {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+  if (diffInSeconds < 60) return "just now";
+
+  const units = [
+    { name: "year", seconds: 31536000 },
+    { name: "month", seconds: 2592000 },
+    { name: "day", seconds: 86400 },
+    { name: "hour", seconds: 3600 },
+    { name: "minute", seconds: 60 },
+  ];
+
+  for (const unit of units) {
+    const interval = Math.floor(diffInSeconds / unit.seconds);
+    if (interval >= 1) {
+      return `${interval} ${unit.name}${interval > 1 ? "s" : ""} ago`;
+    }
+  }
+
+  return date.toLocaleDateString();
+}
+
 // Generic debounce method
 // https://www.joshwcomeau.com/snippets/javascript/debounce/
 export const debounce = (fn: Function, ms: number) => {

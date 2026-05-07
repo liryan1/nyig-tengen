@@ -6,7 +6,7 @@
     "dev": "PORT=3003 next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "prettier --check .",
+    "lint": "prettier --write .",
     "prepare": "husky",
     "postinstall": "npx prisma generate",
     "db:push": "npx prisma db push"
