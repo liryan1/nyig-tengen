@@ -155,10 +155,10 @@ const teamsApiSlice = apiSlice.injectEndpoints({
 
     getTeamLeaderboard: builder.query<
       TeamLeaderboardResponse,
-      { slug: string; page?: number; limit?: number }
+      { slug: string; page?: number; limit?: number; period?: string }
     >({
-      query: ({ slug, page = 1, limit = 10 }) =>
-        `teams/${slug}/leaderboard?page=${page}&limit=${limit}`,
+      query: ({ slug, page = 1, limit = 10, period = "week" }) =>
+        `teams/${slug}/leaderboard?page=${page}&limit=${limit}&period=${period}`,
     }),
 
     getTeamActivity: builder.query<TeamActivityItem[], string>({

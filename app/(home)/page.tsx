@@ -21,7 +21,7 @@ export default async function Home() {
           </div>
         </div>
 
-        {session?.user.id ? (
+        {session?.user?.id ? (
           <div className="flex items-center justify-center gap-1 sm:gap-2 text-sm sm:text-xl">
             <MdWavingHand className="text-indigo-600 h-5 w-5" />
             Welcome, {session.user.name}

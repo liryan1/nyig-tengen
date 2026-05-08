@@ -11,6 +11,8 @@ import { TeamImpact } from "./TeamImpact";
 import { TeamQuickLinks } from "./TeamQuickLinks";
 import { TeamLeaderboard } from "./TeamLeaderboard";
 import { TeamActivity } from "./TeamActivity";
+import { Suspense } from "react";
+import { Skeleton } from "../ui/skeleton";
 
 export const TeamPage = () => {
   const { slug } = useParams();
@@ -55,10 +57,12 @@ export const TeamPage = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         <div className="lg:col-span-2">
-          <TeamLeaderboard
-            slug={slug as string}
-            currentUserId={session?.user?.id}
-          />
+          <Suspense fallback={<Skeleton className="h-[400px] w-full" />}>
+            <TeamLeaderboard
+              slug={slug as string}
+              currentUserId={session?.user?.id}
+            />
+          </Suspense>
         </div>
         <div className="lg:col-span-1">
           <TeamActivity slug={slug as string} />

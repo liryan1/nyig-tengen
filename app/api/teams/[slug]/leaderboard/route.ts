@@ -12,6 +12,7 @@ export async function GET(req: Request, { params }: Params) {
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
+    const period = searchParams.get("period") || "week";
     const skip = (page - 1) * limit;
 
     const [session, { slug }] = await Promise.all([
@@ -52,6 +53,22 @@ export async function GET(req: Request, { params }: Params) {
     const teamPSetNums = team.teamProblemSets.map((tps) => tps.problemSetNum);
     const memberUserIds = team.memberships.map((m) => m.user.id);
 
+    const now = new Date();
+    let startDate = null;
+    if (period === "today") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (period === "week") {
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+      startDate = new Date(now.getFullYear(), now.getMonth(), diff);
+    } else if (period === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if (period === "year") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+    }
+
+    const dateFilter = startDate ? { gte: startDate } : undefined;
+
     // Fetch stats for ALL members to allow global sorting
     const [solvedStats, completedStats] = await Promise.all([
       db.submission.groupBy({
@@ -60,6 +77,7 @@ export async function GET(req: Request, { params }: Params) {
           userId: { in: memberUserIds },
           status: SubmissionStatus.solved,
           problemNum: { in: teamProblemNums },
+          createdAt: dateFilter,
         },
         _count: { _all: true },
       }),
@@ -69,6 +87,7 @@ export async function GET(req: Request, { params }: Params) {
           userId: { in: memberUserIds },
           status: "completed",
           problemSetNum: { in: teamPSetNums },
+          updatedAt: dateFilter,
         },
         _count: { _all: true },
       }),

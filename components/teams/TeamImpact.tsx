@@ -14,13 +14,30 @@ import {
 } from "@/components/ui/select";
 
 import { useQueryState } from "nuqs";
+import { Loader2 } from "lucide-react";
+import { Suspense } from "react";
 
 export const TeamImpact = ({ slug }: { slug: string }) => {
+  return (
+    <Suspense fallback={<Skeleton className="h-48 w-full" />}>
+      <TeamImpactContent slug={slug} />
+    </Suspense>
+  );
+};
+
+const TeamImpactContent = ({ slug }: { slug: string }) => {
   const [period, setPeriod] = useQueryState("period", {
-    defaultValue: "week",
+    defaultValue: "all",
     shallow: false,
   });
-  const { data: stats, isLoading } = useGetTeamStatsMeQuery({ slug, period });
+  const {
+    data: stats,
+    isLoading,
+    isFetching,
+  } = useGetTeamStatsMeQuery({
+    slug,
+    period: "all",
+  });
 
   if (isLoading) {
     return (
@@ -45,12 +62,17 @@ export const TeamImpact = ({ slug }: { slug: string }) => {
       : 0;
 
   return (
-    <div className="space-y-3 md:space-y-4">
+    <div className="space-y-3 md:space-y-4 relative">
       <div className="flex items-center justify-between">
-        <h2 className="text-lg md:text-xl font-semibold tracking-tight">
-          My Impact
-        </h2>
-        <Select value={period} onValueChange={setPeriod}>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg md:text-xl font-semibold tracking-tight">
+            My Impact
+          </h2>
+          {isFetching && (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          )}
+        </div>
+        <Select value="all" onValueChange={setPeriod} disabled>
           <SelectTrigger className="w-[120px] md:w-[140px] h-8 md:h-9 text-xs md:text-sm">
             <SelectValue placeholder="Period" />
           </SelectTrigger>
@@ -64,7 +86,9 @@ export const TeamImpact = ({ slug }: { slug: string }) => {
         </Select>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+      <div
+        className={`grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 transition-opacity duration-200 ${isFetching ? "opacity-60" : "opacity-100"}`}
+      >
         <Card className="shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 md:p-4 pb-1 md:pb-2">
             <CardTitle className="text-xs md:text-sm font-medium">
