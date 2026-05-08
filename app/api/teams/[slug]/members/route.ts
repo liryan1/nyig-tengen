@@ -39,12 +39,32 @@ export async function GET(req: Request, { params }: Params) {
 
     const where = {
       teamSlug: slug,
-      user: {
-        name: {
-          contains: search,
-          mode: "insensitive" as const,
+      OR: [
+        {
+          assignedName: {
+            contains: search,
+            mode: "insensitive" as const,
+          },
         },
-      },
+        {
+          user: {
+            OR: [
+              {
+                name: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+              {
+                email: {
+                  contains: search,
+                  mode: "insensitive" as const,
+                },
+              },
+            ],
+          },
+        },
+      ],
     };
 
     const [members, totalCount] = await Promise.all([
@@ -58,6 +78,7 @@ export async function GET(req: Request, { params }: Params) {
             select: {
               id: true,
               name: true,
+              email: true,
               image: true,
             },
           },
@@ -79,6 +100,7 @@ export async function GET(req: Request, { params }: Params) {
         members: members.map((m) => ({
           id: m.user.id,
           name: m.user.name,
+          email: m.user.email,
           image: m.user.image,
           role: m.role,
           assignedName: m.assignedName,

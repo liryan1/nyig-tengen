@@ -42,7 +42,7 @@ export async function POST(req: Request, { params }: Params) {
       where: { teamSlug: slug, userId: session.user.id },
     });
     if (membership) {
-      // If the user is already part of the team, delete the invite and return a 203 response
+      // If the user is already part of the team, update the invite and return a 203 response
       await db.teamInvite.update({
         where: { id: invite.id },
         data: { status: action },
@@ -53,23 +53,32 @@ export async function POST(req: Request, { params }: Params) {
       );
     }
 
-    await db.$transaction([
-      ...(action === InviteStatus.ACCEPTED
-        ? [
-            db.teamMembership.create({
-              data: {
-                userId: session.user.id,
-                teamSlug: slug,
-                role: TeamRole.MEMBER,
-              },
-            }),
-          ]
-        : []),
-      db.teamInvite.update({
+    if (action === InviteStatus.ACCEPTED) {
+      await db.$transaction([
+        db.teamMembership.create({
+          data: {
+            userId: session.user.id,
+            teamSlug: slug,
+            role: TeamRole.MEMBER,
+          },
+        }),
+        // Clean up ANY other pending invites/requests for this user in this team
+        db.teamInvite.updateMany({
+          where: {
+            teamSlug: slug,
+            userId: session.user.id,
+            status: InviteStatus.PENDING,
+          },
+          data: { status: InviteStatus.ACCEPTED },
+        }),
+      ]);
+    } else {
+      await db.teamInvite.update({
         where: { id: invite.id },
         data: { status: action },
-      }),
-    ]);
+      });
+    }
+
     return NextResponse.json(
       { message: `Invite ${action}ed` },
       { status: 200 },

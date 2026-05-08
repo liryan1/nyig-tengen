@@ -29,7 +29,7 @@ export async function POST(req: Request, { params }: Params) {
     // Check if the user is already a member of the team
     const existingMembership = await db.teamMembership.findFirst({
       where: {
-        team: { slug },
+        teamSlug: slug,
         userId: session.user.id,
       },
     });
@@ -40,16 +40,45 @@ export async function POST(req: Request, { params }: Params) {
       );
     }
 
-    // Create a pending join request.
-    await db.teamInvite.create({
-      data: {
+    // Check if there is already a pending request or invite
+    const existingInvite = await db.teamInvite.findFirst({
+      where: {
         teamSlug: slug,
         userId: session.user.id,
-        createdById: session.user.id,
-        status: InviteStatus.PENDING,
-        type: InviteType.REQUEST,
       },
     });
+
+    if (existingInvite) {
+      if (existingInvite.status === InviteStatus.PENDING) {
+        return NextResponse.json(
+          { message: "You already have a pending request or invitation" },
+          { status: 400 },
+        );
+      }
+
+      // If it was DECLINED or something else, update it to PENDING REQUEST
+      await db.teamInvite.update({
+        where: { id: existingInvite.id },
+        data: {
+          status: InviteStatus.PENDING,
+          type: InviteType.REQUEST,
+          createdById: session.user.id,
+          updatedAt: new Date(),
+        },
+      });
+    } else {
+      // Create a new pending join request.
+      await db.teamInvite.create({
+        data: {
+          teamSlug: slug,
+          userId: session.user.id,
+          createdById: session.user.id,
+          status: InviteStatus.PENDING,
+          type: InviteType.REQUEST,
+        },
+      });
+    }
+
     return NextResponse.json({ status: 201 });
   } catch (error) {
     logStack(error);

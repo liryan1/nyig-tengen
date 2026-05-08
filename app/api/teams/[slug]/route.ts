@@ -85,6 +85,14 @@ export async function GET(req: Request, { params }: Params) {
           where: { userId },
           select: { role: true },
         },
+        invites: {
+          where: {
+            userId,
+            status: "PENDING",
+            type: { in: ["REQUEST", "INVITE"] },
+          },
+          select: { id: true, type: true },
+        },
         _count: {
           select: {
             memberships: true,
@@ -109,6 +117,8 @@ export async function GET(req: Request, { params }: Params) {
         name: team.owner.name,
       },
       myRole: team.memberships[0]?.role || null,
+      hasPendingRequest: team.invites.length > 0,
+      pendingInviteType: team.invites[0]?.type || null,
       memberCount: team._count.memberships,
       problemCount: team._count.teamProblems,
       problemSetCount: team._count.teamProblemSets,

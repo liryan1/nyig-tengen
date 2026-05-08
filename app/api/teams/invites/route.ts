@@ -21,14 +21,14 @@ export async function GET(req: Request) {
           {
             OR: [
               { userId: userId, type: InviteType.INVITE },
-              // TODO: uncomment after team search & request to join team feature
-              // { team: { ownerId: userId }, type: InviteType.REQUEST },
+              { team: { ownerId: userId }, type: InviteType.REQUEST },
             ],
           },
         ],
       },
       orderBy: { createdAt: "desc" },
       select: {
+        id: true,
         team: {
           select: {
             name: true,

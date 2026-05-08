@@ -16,6 +16,8 @@ export interface TeamResponse {
     name: string;
   };
   myRole?: TeamRole | null;
+  hasPendingRequest?: boolean;
+  pendingInviteType?: InviteType | null;
   members?: {
     id: string;
     name: string;
@@ -66,6 +68,7 @@ export interface TeamActivityItem {
 export interface TeamMemberResponse {
   id: string;
   name: string;
+  email: string;
   assignedName?: string | null;
   image?: string;
   role: TeamRole;
@@ -188,9 +191,63 @@ const teamsApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
         body,
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: TEAMS_TAG, id: arg.slug },
-      ],
+      async onQueryStarted(
+        { slug, userId, ...patch },
+        { dispatch, queryFulfilled, getState },
+      ) {
+        const patchResults: any[] = [];
+        const state = getState() as any;
+
+        // 1. Optimistically update getTeamMembers (multiple possible entries)
+        const queries = state.api?.queries || {};
+        for (const queryKey in queries) {
+          if (
+            queryKey.startsWith("getTeamMembers(") &&
+            queryKey.includes(`"slug":"${slug}"`)
+          ) {
+            try {
+              const argStr = queryKey.match(/getTeamMembers\((.*)\)/)?.[1];
+              if (argStr) {
+                const arg = JSON.parse(argStr);
+                const patchResult = dispatch(
+                  teamsApiSlice.util.updateQueryData(
+                    "getTeamMembers",
+                    arg,
+                    (draft) => {
+                      const member = draft.members.find((m) => m.id === userId);
+                      if (member) {
+                        if (patch.role) member.role = patch.role;
+                        if (patch.assignedName !== undefined)
+                          member.assignedName = patch.assignedName;
+                      }
+                    },
+                  ),
+                );
+                patchResults.push(patchResult);
+              }
+            } catch (e) {
+              console.error("Failed to patch getTeamMembers cache", e);
+            }
+          }
+        }
+
+        // 2. Optimistically update getTeam (only if it affects current user's role)
+        const currentUserId = state.auth?.user?.id;
+        const getTeamPatch = dispatch(
+          teamsApiSlice.util.updateQueryData("getTeam", slug, (draft) => {
+            if (patch.role && userId === currentUserId) {
+              draft.myRole = patch.role;
+            }
+          }),
+        );
+        patchResults.push(getTeamPatch);
+
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResults.forEach((patchResult) => patchResult.undo());
+        }
+      },
     }),
 
     getMyTeams: builder.query<MyTeamsResponse[], void>({
@@ -221,9 +278,20 @@ const teamsApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
         body,
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: TEAMS_TAG, id: arg.slug },
-      ],
+      async onQueryStarted({ slug, ...patch }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          teamsApiSlice.util.updateQueryData("getTeam", slug, (draft) => {
+            if (patch.name) draft.name = patch.name;
+            if (patch.description !== undefined)
+              draft.description = patch.description;
+          }),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patchResult.undo();
+        }
+      },
     }),
 
     inviteMembers: builder.mutation<
@@ -254,6 +322,10 @@ const teamsApiSlice = apiSlice.injectEndpoints({
         url: `teams/${slug}/request`,
         method: "POST",
       }),
+      invalidatesTags: (result, error, slug) => [
+        { type: TEAMS_TAG, id: slug },
+        TEAMS_TAG,
+      ],
     }),
 
     respondToJoinRequest: builder.mutation<
@@ -267,6 +339,7 @@ const teamsApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: (result, error, arg) => [
         { type: TEAMS_TAG, id: arg.slug },
+        TEAM_INVITES_TAG,
       ],
     }),
 

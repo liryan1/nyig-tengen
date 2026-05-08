@@ -24,6 +24,62 @@ export async function GET(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    const now = new Date();
+    let startDate = null;
+    if (period === "today") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    } else if (period === "week") {
+      const day = now.getDay();
+      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+      startDate = new Date(now.getFullYear(), now.getMonth(), diff);
+    } else if (period === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+    } else if (period === "year") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+    }
+
+    const dateFilter = startDate ? { gte: startDate } : undefined;
+
+    if (slug === "me") {
+      const [solvedCount, completedCount] = await Promise.all([
+        db.submission.count({
+          where: {
+            userId,
+            status: SubmissionStatus.solved,
+            problem: { authorId: userId, visibility: "PRIVATE" },
+            createdAt: dateFilter,
+          },
+        }),
+        db.problemSetProgress.count({
+          where: {
+            userId,
+            status: "completed",
+            problemSet: { authorId: userId, visibility: "PRIVATE" },
+            updatedAt: dateFilter,
+          },
+        }),
+      ]);
+
+      return NextResponse.json(
+        {
+          currentPage: 1,
+          totalPages: 1,
+          members: [
+            {
+              id: userId,
+              name: session.user.name ?? "You",
+              assignedName: null,
+              role: "OWNER",
+              joinedAt: new Date().toISOString(),
+              problemsSolved: solvedCount,
+              setsCompleted: completedCount,
+            },
+          ],
+        },
+        { status: 200 },
+      );
+    }
+
     const team = await db.team.findUnique({
       where: { slug },
       select: {
@@ -53,23 +109,6 @@ export async function GET(req: Request, { params }: Params) {
     const teamPSetNums = team.teamProblemSets.map((tps) => tps.problemSetNum);
     const memberUserIds = team.memberships.map((m) => m.user.id);
 
-    const now = new Date();
-    let startDate = null;
-    if (period === "today") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    } else if (period === "week") {
-      const day = now.getDay();
-      const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-      startDate = new Date(now.getFullYear(), now.getMonth(), diff);
-    } else if (period === "month") {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-    } else if (period === "year") {
-      startDate = new Date(now.getFullYear(), 0, 1);
-    }
-
-    const dateFilter = startDate ? { gte: startDate } : undefined;
-
-    // Fetch stats for ALL members to allow global sorting
     const [solvedStats, completedStats] = await Promise.all([
       db.submission.groupBy({
         by: ["userId"],
@@ -110,7 +149,6 @@ export async function GET(req: Request, { params }: Params) {
       setsCompleted: completedMap.get(m.user.id) || 0,
     }));
 
-    // Sort by problemsSolved (desc), then setsCompleted (desc), then name (asc)
     allMembers.sort((a, b) => {
       if (b.problemsSolved !== a.problemsSolved) {
         return b.problemsSolved - a.problemsSolved;

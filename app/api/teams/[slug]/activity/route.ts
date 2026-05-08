@@ -17,6 +17,10 @@ export async function GET(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
+    if (slug === "me") {
+      return NextResponse.json([], { status: 200 });
+    }
+
     const [recentMembers, recentProblemSets] = await Promise.all([
       db.teamMembership.findMany({
         where: { teamSlug: slug },

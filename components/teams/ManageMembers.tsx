@@ -134,6 +134,7 @@ export const ManageMembers = ({
             <TableHeader>
               <TableRow>
                 <TableHead className="px-4 md:px-6">Member</TableHead>
+                <TableHead className="hidden lg:table-cell">Email</TableHead>
                 <TableHead className="hidden md:table-cell">Joined</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead className="w-[50px] md:w-[80px] text-right px-4 md:px-6"></TableHead>
@@ -142,14 +143,14 @@ export const ManageMembers = ({
             <TableBody>
               {isLoading || isFetching ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-32 text-center">
+                  <TableCell colSpan={5} className="h-32 text-center">
                     <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
                   </TableCell>
                 </TableRow>
               ) : data?.members.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={5}
                     className="h-32 text-center text-muted-foreground text-sm"
                   >
                     No members found.
@@ -244,12 +245,15 @@ export const ManageMembers = ({
                                 </>
                               )}
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-col">
                               {member.assignedName && (
-                                <span className="text-[10px] text-muted-foreground italic truncate">
-                                  Original: {member.name}
+                                <span className="text-[10px] text-muted-foreground truncate italic">
+                                  Name: {member.name}
                                 </span>
                               )}
+                              <span className="lg:hidden text-[10px] text-muted-foreground truncate max-w-[150px]">
+                                {member.email}
+                              </span>
                               <span className="md:hidden text-[10px] text-muted-foreground">
                                 Joined{" "}
                                 {new Date(member.joinedAt).toLocaleDateString()}
@@ -257,6 +261,9 @@ export const ManageMembers = ({
                             </div>
                           </div>
                         </div>
+                      </TableCell>
+                      <TableCell className="hidden lg:table-cell text-sm text-muted-foreground">
+                        {member.email}
                       </TableCell>
                       <TableCell className="hidden md:table-cell text-sm text-muted-foreground">
                         {new Date(member.joinedAt).toLocaleDateString()}

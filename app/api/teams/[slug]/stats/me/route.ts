@@ -21,21 +21,6 @@ export async function GET(req: Request, { params }: Params) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const team = await db.team.findUnique({
-      where: { slug },
-      select: {
-        teamProblems: { select: { problemNum: true } },
-        teamProblemSets: { select: { problemSetNum: true } },
-      },
-    });
-
-    if (!team) {
-      return NextResponse.json({ message: "Team not found" }, { status: 404 });
-    }
-
-    const teamProblemNums = team.teamProblems.map((tp) => tp.problemNum);
-    const teamPSetNums = team.teamProblemSets.map((tps) => tps.problemSetNum);
-
     const now = new Date();
     let startDate = null;
 
@@ -52,6 +37,64 @@ export async function GET(req: Request, { params }: Params) {
     }
 
     const dateFilter = startDate ? { gte: startDate } : undefined;
+
+    if (slug === "me") {
+      const [
+        solvedCount,
+        totalPrivateProblems,
+        completedSets,
+        totalPrivateSets,
+      ] = await Promise.all([
+        db.submission.count({
+          where: {
+            userId,
+            status: SubmissionStatus.solved,
+            problem: { authorId: userId, visibility: "PRIVATE" },
+            createdAt: dateFilter,
+          },
+        }),
+        db.problem.count({
+          where: { authorId: userId, visibility: "PRIVATE" },
+        }),
+        db.problemSetProgress.count({
+          where: {
+            userId,
+            status: "completed",
+            problemSet: { authorId: userId, visibility: "PRIVATE" },
+            updatedAt: dateFilter,
+          },
+        }),
+        db.problemSet.count({
+          where: { authorId: userId, visibility: "PRIVATE" },
+        }),
+      ]);
+
+      return NextResponse.json(
+        {
+          problemsSolved: solvedCount,
+          totalTeamProblems: totalPrivateProblems,
+          setsCompleted: completedSets,
+          totalTeamSets: totalPrivateSets,
+          topRankedSet: null,
+        },
+        { status: 200 },
+      );
+    }
+
+    const team = await db.team.findUnique({
+      where: { slug },
+      select: {
+        teamProblems: { select: { problemNum: true } },
+        teamProblemSets: { select: { problemSetNum: true } },
+      },
+    });
+
+    if (!team) {
+      return NextResponse.json({ message: "Team not found" }, { status: 404 });
+    }
+
+    const teamProblemNums = team.teamProblems.map((tp) => tp.problemNum);
+    const teamPSetNums = team.teamProblemSets.map((tps) => tps.problemSetNum);
 
     const [solvedCount, completedSets] = await Promise.all([
       db.submission.count({
@@ -72,7 +115,6 @@ export async function GET(req: Request, { params }: Params) {
       }),
     ]);
 
-    // Get top ranked set for this user in this team within the period
     const topRankedSet = await db.problemSetLeaderboardEntry.findFirst({
       where: {
         userId,
@@ -89,9 +131,6 @@ export async function GET(req: Request, { params }: Params) {
       },
     });
 
-    // In a real scenario, we'd calculate the rank among all users for that specific problemSetNum.
-    // For simplicity in MVP, we just return the best score's pset name.
-    // If we wanted the actual rank:
     let rank = 0;
     if (topRankedSet) {
       const betterEntries = await db.problemSetLeaderboardEntry.count({

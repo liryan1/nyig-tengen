@@ -59,19 +59,42 @@ export async function POST(req: Request, { params }: Params) {
       );
     }
 
-    await db.$transaction(
-      userIds.map((u) =>
-        db.teamInvite.create({
-          data: {
+    // Use a transaction to ensure clean re-invitation state
+    await db.$transaction(async (tx) => {
+      for (const u of userIds) {
+        // Find any existing invite (PENDING, DECLINED, etc.)
+        const existingInvite = await tx.teamInvite.findFirst({
+          where: {
             teamSlug: slug,
             userId: u.userId,
-            createdById: session.user.id,
-            type: InviteType.INVITE,
-            status: InviteStatus.PENDING,
           },
-        }),
-      ),
-    );
+        });
+
+        if (existingInvite) {
+          // Update the existing invite to PENDING status, effectively re-inviting the user
+          await tx.teamInvite.update({
+            where: { id: existingInvite.id },
+            data: {
+              status: InviteStatus.PENDING,
+              type: InviteType.INVITE,
+              createdById: session.user.id,
+              updatedAt: new Date(),
+            },
+          });
+        } else {
+          // Create a new invite if none exists
+          await tx.teamInvite.create({
+            data: {
+              teamSlug: slug,
+              userId: u.userId,
+              createdById: session.user.id,
+              type: InviteType.INVITE,
+              status: InviteStatus.PENDING,
+            },
+          });
+        }
+      }
+    });
 
     return NextResponse.json(
       { message: `Successfully invited ${users.length} users` },
@@ -97,7 +120,7 @@ async function getValidUserId(
     return { userId: "", error: `User with '${email}' not found` };
   }
 
-  // Check if the user is already a member of the team or have an existing invite
+  // Check if the user is already a member of the team or have an existing PENDING invite
   const [existingMembership, existingInvite] = await Promise.all([
     db.teamMembership.findFirst({
       where: {
@@ -113,6 +136,7 @@ async function getValidUserId(
       },
     }),
   ]);
+
   if (existingMembership) {
     return {
       userId: user.id,

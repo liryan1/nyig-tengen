@@ -27,19 +27,7 @@ export const TeamPage = () => {
     return <PageError>Team not found or error loading team.</PageError>;
   }
 
-  const isTeamMember = team.id === "me" || (session?.user?.id ? true : false);
-  // Note: Backend refactoring means we don't get the full members list here.
-  // We'll assume the user is a member if they can see the dashboard,
-  // or we could add a `userRole` field to the team response if needed.
-  // For now, let's assume the user is a member if it's their personal team or if they are in the team.
-  // Real check should probably be done on the server or via a dedicated membership check.
-
-  // Re-evaluating isTeamMember:
-  // Since the refactored endpoint is public-ish but restricted,
-  // we might need to know if the current user is a member to show "My Impact".
-  // Let's assume for MVP that if they have a session, we'll try to load their stats.
-  // The stats endpoint will return null if they aren't a member.
-
+  const isTeamMember = team.id === "me" || !!team.myRole;
   const isTeamAdmin =
     team.myRole === TeamRole.OWNER || team.myRole === TeamRole.ADMIN;
 
@@ -48,10 +36,10 @@ export const TeamPage = () => {
       <TeamHero
         team={team}
         isTeamAdmin={isTeamAdmin}
-        isTeamMember={session?.user?.id ? true : false}
+        isTeamMember={isTeamMember}
       />
 
-      {session?.user?.id && <TeamImpact slug={slug as string} />}
+      {isTeamMember && <TeamImpact slug={slug as string} />}
 
       <TeamQuickLinks slug={slug as string} />
 

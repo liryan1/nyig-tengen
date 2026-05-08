@@ -24,7 +24,7 @@ export async function GET(req: NextRequest, { params }: Params) {
         select: { userId: true },
       }),
       db.teamInvite.findMany({
-        where: { teamSlug: slug },
+        where: { teamSlug: slug, status: "PENDING" },
         select: { userId: true },
       }),
     ]);

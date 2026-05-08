@@ -20,27 +20,64 @@ export async function GET(req: Request) {
 
     const [teams, totalTeams] = await Promise.all([
       db.team.findMany({
+        where: {
+          status: "ACTIVE",
+        },
         include: {
+          owner: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
           memberships: {
-            include: {
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  image: true,
-                },
-              },
+            where: { userId },
+            select: { role: true },
+          },
+          invites: {
+            where: {
+              userId,
+              status: "PENDING",
+              type: { in: ["REQUEST", "INVITE"] },
+            },
+            select: { id: true, type: true },
+          },
+          _count: {
+            select: {
+              memberships: true,
+              teamProblems: true,
+              teamProblemSets: true,
             },
           },
         },
         skip,
         take: limit,
+        orderBy: { createdAt: "desc" },
       }),
-      db.team.count(),
+      db.team.count({ where: { status: "ACTIVE" } }),
     ]);
 
+    const mappedTeams = teams.map((team) => ({
+      id: team.id,
+      slug: team.slug,
+      name: team.name,
+      description: team.description || undefined,
+      memberCount: team._count.memberships,
+      problemCount: team._count.teamProblems,
+      problemSetCount: team._count.teamProblemSets,
+      owner: {
+        id: team.owner.id,
+        name: team.owner.name,
+      },
+      myRole: team.memberships[0]?.role || null,
+      hasPendingRequest: team.invites.length > 0,
+      pendingInviteType: team.invites[0]?.type || null,
+      createdAt: team.createdAt.toISOString(),
+      updatedAt: team.updatedAt.toISOString(),
+    }));
+
     return NextResponse.json({
-      teams,
+      teams: mappedTeams,
       currentPage: page,
       limit,
       totalPages: Math.ceil(totalTeams / limit),

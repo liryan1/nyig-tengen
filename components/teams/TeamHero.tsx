@@ -1,11 +1,24 @@
-"use client";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TeamResponse } from "@/lib/rtk/slices/teams";
-import { UserPlus2, Users, FolderOpen, Puzzle, Settings2 } from "lucide-react";
+import {
+  useRequestToJoinTeamMutation,
+  useRespondToInviteMutation,
+  TeamResponse,
+} from "@/lib/rtk/slices/teams";
+import {
+  UserPlus2,
+  Users,
+  FolderOpen,
+  Puzzle,
+  Settings2,
+  CheckCircle2,
+  Clock,
+  CheckIcon,
+} from "lucide-react";
 import { InviteMember } from "./InviteMember";
 import Link from "next/link";
+import { toast } from "sonner";
+import { InviteStatus, InviteType } from "@prisma/client";
 
 interface TeamHeroProps {
   team: TeamResponse;
@@ -33,6 +46,32 @@ export const TeamHero = ({
   isTeamAdmin,
   isTeamMember,
 }: TeamHeroProps) => {
+  const [requestToJoin, { isLoading: isRequesting }] =
+    useRequestToJoinTeamMutation();
+  const [respondToInvite, { isLoading: isResponding }] =
+    useRespondToInviteMutation();
+
+  const handleJoinRequest = async () => {
+    try {
+      await requestToJoin(team.slug).unwrap();
+      toast.success("Join request sent successfully!");
+    } catch (error: any) {
+      toast.error(error.data?.message || "Failed to send join request.");
+    }
+  };
+
+  const handleAcceptInvite = async () => {
+    try {
+      await respondToInvite({
+        slug: team.slug,
+        action: InviteStatus.ACCEPTED,
+      }).unwrap();
+      toast.success("Joined team successfully!");
+    } catch (error: any) {
+      toast.error(error.data?.message || "Failed to join team.");
+    }
+  };
+
   return (
     <div className="relative overflow-hidden rounded-xl border bg-card text-card-foreground shadow-sm">
       <div
@@ -54,14 +93,35 @@ export const TeamHero = ({
               </div>
             </Link>
             <div>
-              <Link
-                href={`/teams/${team.slug}`}
-                className="hover:underline underline-offset-4 decoration-primary/30"
-              >
-                <h1 className="text-xl md:text-3xl font-bold tracking-tight inline-block">
-                  {team.name}
-                </h1>
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/teams/${team.slug}`}
+                  className="hover:underline underline-offset-4 decoration-primary/30"
+                >
+                  <h1 className="text-xl md:text-3xl font-bold tracking-tight inline-block">
+                    {team.name}
+                  </h1>
+                </Link>
+                {isTeamMember && (
+                  <Badge
+                    variant="secondary"
+                    className="hidden md:flex items-center gap-1"
+                  >
+                    <CheckCircle2 className="h-3 w-3" /> Member
+                  </Badge>
+                )}
+                {team.hasPendingRequest && (
+                  <Badge
+                    variant="outline"
+                    className="hidden md:flex items-center gap-1"
+                  >
+                    <Clock className="h-3 w-3" />{" "}
+                    {team.pendingInviteType === InviteType.INVITE
+                      ? "Invited"
+                      : "Requested"}
+                  </Badge>
+                )}
+              </div>
               <p className="text-xs md:text-sm text-muted-foreground max-w-2xl line-clamp-2 md:line-clamp-none">
                 {team.description}
               </p>
@@ -82,16 +142,45 @@ export const TeamHero = ({
             </div>
           </div>
           <div className="flex flex-wrap gap-2 w-full sm:w-auto">
-            {!isTeamMember && (
+            {!isTeamMember && !team.hasPendingRequest && (
               <Button
                 variant="default"
                 size="sm"
                 className="flex-1 sm:flex-none h-8 md:h-10 text-xs md:text-sm"
+                onClick={handleJoinRequest}
+                disabled={isRequesting}
               >
                 <UserPlus2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
                 Request to Join
               </Button>
             )}
+            {!isTeamMember &&
+              team.hasPendingRequest &&
+              team.pendingInviteType === InviteType.INVITE && (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="flex-1 sm:flex-none h-8 md:h-10 text-xs md:text-sm bg-emerald-600 hover:bg-emerald-700"
+                  onClick={handleAcceptInvite}
+                  disabled={isResponding}
+                >
+                  <CheckIcon className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  Accept Invitation
+                </Button>
+              )}
+            {!isTeamMember &&
+              team.hasPendingRequest &&
+              team.pendingInviteType === InviteType.REQUEST && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex-1 sm:flex-none h-8 md:h-10 text-xs md:text-sm cursor-not-allowed"
+                  disabled
+                >
+                  <Clock className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  Pending Approval
+                </Button>
+              )}
             {isTeamAdmin && (
               <>
                 <Link
