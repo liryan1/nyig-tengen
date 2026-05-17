@@ -272,7 +272,7 @@ export const ManageMembers = ({
                         {/* Only owners can change roles, but not their own */}
                         {canManage && !isSelf ? (
                           <Select
-                            value={currentRole}
+                            value={currentRole || ""}
                             onValueChange={(val) =>
                               handleRoleChange(member.id, val as TeamRole)
                             }

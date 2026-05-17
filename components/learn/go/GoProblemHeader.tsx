@@ -21,6 +21,7 @@ type GoProblemHeaderProps = {
   meta: GoProblemMeta;
   initialColor?: StoneColor;
   className?: string;
+  problemSetName?: string;
 };
 
 export function GoProblemHeader({
@@ -28,6 +29,7 @@ export function GoProblemHeader({
   meta,
   initialColor = 1,
   className,
+  problemSetName,
 }: GoProblemHeaderProps) {
   const router = useRouter();
   const { rank, description, author, stats, userSolved, endorser } = meta;
@@ -88,16 +90,16 @@ export function GoProblemHeader({
   return (
     <div className={cn("flex flex-col space-y-2 p-2 sm:p-4", className)}>
       <div>
-        <div className="flex justify-between items-center">
-          <div className="flex gap-0.5 items-center">
+        <div className="flex justify-between items-center gap-4">
+          <div className="flex gap-0.5 items-center min-w-0">
             <InfoBarItem
               label="Author"
               trigger={
-                <span className="text-xs sm:text-lg text-muted-foreground">
+                <span className="text-xs sm:text-lg text-muted-foreground truncate">
                   <Link href="#" className="flex items-center gap-0.5">
                     {author.name}
                     {isAuthorAdmin && (
-                      <PiCrownSimple className="h-4 w-4 sm:h-5 sm:w-5" />
+                      <PiCrownSimple className="h-4 w-4 sm:h-5 sm:w-5 shrink-0" />
                     )}
                   </Link>
                 </span>
@@ -109,9 +111,18 @@ export function GoProblemHeader({
               />
             )}
           </div>
+
+          {problemSetName && (
+            <div className="hidden md:block text-sm md:text-lg font-medium text-muted-foreground truncate flex-1 text-center">
+              {problemSetName}
+            </div>
+          )}
+
           <InfoBarItem
             label={`${stoneColor} to play`}
-            trigger={<CircleIcon size={24} fill={stoneColor} />}
+            trigger={
+              <CircleIcon size={24} fill={stoneColor} className="shrink-0" />
+            }
           />
         </div>
       </div>

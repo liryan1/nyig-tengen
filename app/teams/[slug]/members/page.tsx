@@ -1,42 +1,31 @@
-"use client";
+import { db } from "@/lib/db";
+import { Metadata } from "next";
+import TeamMembersClient from "./TeamMembersClient";
 
-import { useGetTeamQuery } from "@/lib/rtk/slices/teams";
-import { useParams } from "next/navigation";
-import { useSession } from "next-auth/react";
-import { TeamHero } from "@/components/teams/TeamHero";
-import { ManageMembers } from "@/components/teams/ManageMembers";
-import { TeamPageSkeleton } from "@/components/loading/TeamSkeleton";
-import { PageError } from "@/components/labels/Error";
-import { TeamRole } from "@prisma/client";
+type Props = {
+  params: Promise<{ slug: string }>;
+};
 
-export default function TeamMembersPage() {
-  const { slug } = useParams();
-  const { data: session } = useSession();
-  const { data: team, isLoading, isError } = useGetTeamQuery(slug as string);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const team = await db.team.findUnique({
+    where: { slug },
+    select: { name: true },
+  });
 
-  if (isLoading) {
-    return <TeamPageSkeleton />;
+  if (!team) {
+    return {
+      title: "Team Not Found",
+    };
   }
 
-  if (isError || !team) {
-    return <PageError>Team not found or error loading team.</PageError>;
-  }
+  return {
+    title: `Members | ${team.name}`,
+    description: `Manage members for ${team.name}.`,
+  };
+}
 
-  const isTeamAdmin =
-    team.myRole === TeamRole.OWNER || team.myRole === TeamRole.ADMIN;
-
-  if (!isTeamAdmin) {
-    return <PageError>You do not have permission to manage members.</PageError>;
-  }
-
-  return (
-    <div className="container mx-auto max-w-7xl space-y-4 md:space-y-6 mb-6 px-4 md:px-6">
-      <TeamHero team={team} isTeamAdmin={isTeamAdmin} isTeamMember={true} />
-      <ManageMembers
-        slug={slug as string}
-        myRole={team.myRole}
-        currentUserId={session?.user?.id}
-      />
-    </div>
-  );
+export default async function TeamMembersPage({ params }: Props) {
+  const { slug } = await params;
+  return <TeamMembersClient slug={slug} />;
 }

@@ -40,12 +40,13 @@ export async function GET(req: Request, { params }: Params) {
 
     if (slug === "me") {
       const [
-        solvedCount,
+        solvedGroups,
         totalPrivateProblems,
-        completedSets,
+        completedGroups,
         totalPrivateSets,
       ] = await Promise.all([
-        db.submission.count({
+        db.submission.groupBy({
+          by: ["problemNum"],
           where: {
             userId,
             status: SubmissionStatus.solved,
@@ -56,7 +57,8 @@ export async function GET(req: Request, { params }: Params) {
         db.problem.count({
           where: { authorId: userId, visibility: "PRIVATE" },
         }),
-        db.problemSetProgress.count({
+        db.problemSetProgress.groupBy({
+          by: ["problemSetNum"],
           where: {
             userId,
             status: "completed",
@@ -71,9 +73,9 @@ export async function GET(req: Request, { params }: Params) {
 
       return NextResponse.json(
         {
-          problemsSolved: solvedCount,
+          problemsSolved: solvedGroups.length,
           totalTeamProblems: totalPrivateProblems,
-          setsCompleted: completedSets,
+          setsCompleted: completedGroups.length,
           totalTeamSets: totalPrivateSets,
           topRankedSet: null,
         },
@@ -96,8 +98,9 @@ export async function GET(req: Request, { params }: Params) {
     const teamProblemNums = team.teamProblems.map((tp) => tp.problemNum);
     const teamPSetNums = team.teamProblemSets.map((tps) => tps.problemSetNum);
 
-    const [solvedCount, completedSets] = await Promise.all([
-      db.submission.count({
+    const [solvedGroups, completedGroups] = await Promise.all([
+      db.submission.groupBy({
+        by: ["problemNum"],
         where: {
           userId,
           status: SubmissionStatus.solved,
@@ -105,7 +108,8 @@ export async function GET(req: Request, { params }: Params) {
           createdAt: dateFilter,
         },
       }),
-      db.problemSetProgress.count({
+      db.problemSetProgress.groupBy({
+        by: ["problemSetNum"],
         where: {
           userId,
           status: "completed",
@@ -114,6 +118,9 @@ export async function GET(req: Request, { params }: Params) {
         },
       }),
     ]);
+
+    const solvedCount = solvedGroups.length;
+    const completedSets = completedGroups.length;
 
     const topRankedSet = await db.problemSetLeaderboardEntry.findFirst({
       where: {

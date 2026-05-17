@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 interface StartButtonProps extends ButtonProps {
   sNum?: string;
+  setName?: string;
   problemOrder?: ProblemOrderItem[];
   onCreatePSetProgress: ReturnType<typeof useCreatePSetProgressMutation>[0];
   isLoading?: boolean;
@@ -32,6 +33,7 @@ interface StartButtonProps extends ButtonProps {
 
 export function StartButton({
   sNum,
+  setName,
   problemOrder,
   onCreatePSetProgress,
   isLoading,
@@ -112,9 +114,13 @@ export function StartButton({
       </Button>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-md p-4">
-          <DialogTitle className="hidden">Start Problem Set {sNum}</DialogTitle>
+          <DialogTitle className="hidden">
+            Start {setName || `Problem Set ${sNum}`}
+          </DialogTitle>
           <DialogContent>
-            <DialogHeader>Start Problem Set {sNum}</DialogHeader>
+            <DialogHeader>
+              Start {setName || `Problem Set ${sNum}`}
+            </DialogHeader>
             <div className="text-muted-foreground text-sm">
               Ready to take on the challenge?
             </div>

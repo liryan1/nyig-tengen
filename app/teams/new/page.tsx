@@ -1,7 +1,13 @@
 import { authOptions } from "@/app/api/auth/authOptions";
 import { TeamForm } from "@/components/forms/TeamForm";
+import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
+
+export const metadata: Metadata = {
+  title: "Create Team",
+  description: "Create a new Go team on NYIG Tengen.",
+};
 
 async function CreateTeamPage() {
   const session = await getServerSession(authOptions);

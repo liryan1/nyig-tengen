@@ -137,7 +137,10 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
     }
   };
 
-  const userSolved = pset?.userCompletions;
+  const userSolvedCount = pset?.userCompletions;
+  const userSolved =
+    pset?.userCompleted ??
+    (userSolvedCount !== undefined && userSolvedCount > 0);
 
   const currentSolvedCount =
     pset?.userProgress?.problemOrder?.reduce(
@@ -224,10 +227,10 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-lg md:text-2xl font-semibold">{name}</span>
-              {userSolved !== undefined && userSolved > 0 && (
+              {userSolvedCount !== undefined && userSolvedCount > 0 && (
                 <div className="flex items-center text-muted-foreground">
                   <TrophyIcon className="text-yellow-500" />
-                  <span className="text-md font-base">{userSolved}</span>
+                  <span className="text-md font-base">{userSolvedCount}</span>
                 </div>
               )}
             </div>
@@ -274,6 +277,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
                 isLoading={isLoading}
                 isError={isError}
                 sNum={sNum}
+                setName={name}
                 problemOrder={pset?.userProgress?.problemOrder}
               />
             </div>
@@ -295,7 +299,7 @@ export function ProblemSetPage({ sNum }: { sNum?: string }) {
               views,
               likes: pset.likes,
               rate: completedCount,
-              userSolved: userSolved !== undefined && userSolved > 0,
+              userSolved: userSolved,
             }}
             toggleLike={debounce(toggleLike, 300)}
             toggleStar={debounce(toggleStar, 300)}

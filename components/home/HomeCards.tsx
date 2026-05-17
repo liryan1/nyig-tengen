@@ -4,6 +4,7 @@ import {
   LayersIcon,
   MoveRightIcon,
   Target,
+  UsersIcon,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -44,12 +45,22 @@ const cards = [
     link: "/challenge",
     linkText: "Start challenge",
   },
+  {
+    titleIcon: <UsersIcon className="h-6 w-6 text-amber-600" />,
+    cardClassName:
+      "bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200",
+    title: "Teams",
+    description:
+      "Progress is better with friends. Join a team or create your own to track your growth, compete on leaderboards, and master Go together.",
+    link: "/teams",
+    linkText: "Explore teams",
+  },
 ];
 
 export function HomeCards() {
   return (
     <div className="space-y-3 sm:space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch mb-6">
         {cards.map((card, index) => (
           <Card
             key={index}
@@ -62,7 +73,7 @@ export function HomeCards() {
               </CardTitle>
             </CardHeader>
 
-            <CardContent className="text-gray-700 text-xs flex-1">
+            <CardContent className="text-gray-700 text-xs sm:text-sm">
               {card.description}
             </CardContent>
 

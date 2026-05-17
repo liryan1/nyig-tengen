@@ -113,7 +113,7 @@ export function ProblemFilter() {
         </Select>
       </div>
       <div>
-        <Select value={sort} onValueChange={setSort}>
+        <Select value={sort || ""} onValueChange={setSort}>
           <SelectTrigger className="w-36">
             <div className="flex items-center gap-1">
               <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
@@ -128,7 +128,7 @@ export function ProblemFilter() {
       </div>
       <div>
         <Select
-          value={starred?.toString()}
+          value={starred?.toString() || ""}
           onValueChange={(value) => setStarred(value === "true")}
         >
           <SelectTrigger className="w-36">

@@ -31,7 +31,7 @@ import { Visibility } from "@prisma/client";
 import { CircleAlertIcon, SendHorizonalIcon } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -101,15 +101,20 @@ export function ProblemForm({ problem }: Props) {
 
   const actionWord = problem ? "Update" : "Create";
 
-  let initialForm = iForm;
-  if (problem) {
-    initialForm = {
-      rank: problem.rank,
-      description: problem.description || "",
-      visibility: problem.visibility,
-      teamSlugs: problem.teams?.map((t) => ({ label: t.team, value: t.slug })),
-    };
-  }
+  const initialForm = useMemo(() => {
+    if (problem) {
+      return {
+        rank: problem.rank,
+        description: problem.description || "",
+        visibility: problem.visibility,
+        teamSlugs: problem.teams?.map((t) => ({
+          label: t.team,
+          value: t.slug,
+        })),
+      };
+    }
+    return iForm;
+  }, [problem]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -209,7 +214,7 @@ export function ProblemForm({ problem }: Props) {
                 <FormLabel>Difficulty</FormLabel>
                 <FormControl>
                   <Select
-                    value={field.value.toString()}
+                    value={field.value?.toString() || ""}
                     onValueChange={field.onChange}
                   >
                     <SelectTrigger className="w-32">
@@ -237,7 +242,10 @@ export function ProblemForm({ problem }: Props) {
                 <FormItem>
                   <FormLabel>Visibility</FormLabel>
                   <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
                       <SelectTrigger className="w-40">
                         <SelectValue placeholder="Select visibility" />
                       </SelectTrigger>

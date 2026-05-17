@@ -41,8 +41,9 @@ export async function GET(req: Request, { params }: Params) {
     const dateFilter = startDate ? { gte: startDate } : undefined;
 
     if (slug === "me") {
-      const [solvedCount, completedCount] = await Promise.all([
-        db.submission.count({
+      const [solvedGroups, completedGroups] = await Promise.all([
+        db.submission.groupBy({
+          by: ["problemNum"],
           where: {
             userId,
             status: SubmissionStatus.solved,
@@ -50,7 +51,8 @@ export async function GET(req: Request, { params }: Params) {
             createdAt: dateFilter,
           },
         }),
-        db.problemSetProgress.count({
+        db.problemSetProgress.groupBy({
+          by: ["problemSetNum"],
           where: {
             userId,
             status: "completed",
@@ -71,8 +73,8 @@ export async function GET(req: Request, { params }: Params) {
               assignedName: null,
               role: "OWNER",
               joinedAt: new Date().toISOString(),
-              problemsSolved: solvedCount,
-              setsCompleted: completedCount,
+              problemsSolved: solvedGroups.length,
+              setsCompleted: completedGroups.length,
             },
           ],
         },
@@ -111,33 +113,34 @@ export async function GET(req: Request, { params }: Params) {
 
     const [solvedStats, completedStats] = await Promise.all([
       db.submission.groupBy({
-        by: ["userId"],
+        by: ["userId", "problemNum"],
         where: {
           userId: { in: memberUserIds },
           status: SubmissionStatus.solved,
           problemNum: { in: teamProblemNums },
           createdAt: dateFilter,
         },
-        _count: { _all: true },
       }),
       db.problemSetProgress.groupBy({
-        by: ["userId"],
+        by: ["userId", "problemSetNum"],
         where: {
           userId: { in: memberUserIds },
           status: "completed",
           problemSetNum: { in: teamPSetNums },
           updatedAt: dateFilter,
         },
-        _count: { _all: true },
       }),
     ]);
 
-    const solvedMap = new Map(
-      solvedStats.map((s) => [s.userId, s._count._all]),
-    );
-    const completedMap = new Map(
-      completedStats.map((c) => [c.userId, c._count._all]),
-    );
+    const solvedMap = new Map<string, number>();
+    solvedStats.forEach((s) => {
+      solvedMap.set(s.userId, (solvedMap.get(s.userId) || 0) + 1);
+    });
+
+    const completedMap = new Map<string, number>();
+    completedStats.forEach((c) => {
+      completedMap.set(c.userId, (completedMap.get(c.userId) || 0) + 1);
+    });
 
     const allMembers = team.memberships.map((m) => ({
       id: m.user.id,

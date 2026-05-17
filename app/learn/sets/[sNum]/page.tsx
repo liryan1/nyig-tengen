@@ -1,9 +1,31 @@
 import { ProblemSetPage } from "@/components/learn/pages/ProblemSetPage";
 import { db } from "@/lib/db";
+import { Metadata } from "next";
 
-type Params = { params: Promise<{ sNum: string }> };
+type Props = { params: Promise<{ sNum: string }> };
 
-async function ProblemSetIdPage({ params }: Params) {
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { sNum } = await params;
+  const pset = await db.problemSet.findUnique({
+    where: { num: sNum },
+    select: { name: true, description: true },
+  });
+
+  if (!pset) {
+    return {
+      title: "Problem Set Not Found",
+    };
+  }
+
+  return {
+    title: pset.name,
+    description:
+      pset.description ||
+      `Improve your Go skills with the ${pset.name} problem set.`,
+  };
+}
+
+async function ProblemSetIdPage({ params }: Props) {
   const { sNum } = await params;
 
   await db.problemSetStats.upsert({

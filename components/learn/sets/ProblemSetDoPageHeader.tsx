@@ -25,7 +25,6 @@ export function ProblemSetDoPageHeader({
 
   return (
     <div className="space-y-2 sm:space-y-6 overflow-x-auto">
-      <div className="font-semibold text-lg md:text-2xl">{problemSetName}</div>
       <div className="flex items-center justify-between">
         <Link href={prevLink} className="flex items-center gap-1">
           <Button size="sm" color="secondary" disabled={!hasPrev}>

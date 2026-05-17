@@ -47,6 +47,8 @@ export function ProblemSetDoPage({
     pset?.problems?.map((p) => ({ problemNum: p.num })) ||
     [];
 
+  const solvedCount = problemOrder.filter((p) => p.status === "solved").length;
+
   const globalNum = problemOrder?.[currentIndex]?.problemNum;
 
   const {
@@ -90,6 +92,22 @@ export function ProblemSetDoPage({
         noProgress={!progress}
         initialSuccess={
           progress?.problemOrder[currentIndex]?.status === "solved"
+        }
+        nextProblemUrl={
+          currentIndex + 1 < problemOrder.length
+            ? `/learn/sets/${psetNum}/${currentIndex + 2}`
+            : undefined
+        }
+        currentProblemIndex={currentIndex}
+        problemSetInfo={
+          pset
+            ? {
+                name: progress?.problemSet?.name || pset.name,
+                total: problemOrder.length,
+                solved: solvedCount,
+                num: psetNum,
+              }
+            : undefined
         }
       />
     </div>

@@ -89,33 +89,41 @@ export async function GET(req: Request) {
     ]);
 
     const psetNums = problemSets.map((p) => p.num);
-    const [userLikes, userStars, userProgress] = await Promise.all([
-      userId
-        ? db.problemSetLike.findMany({
-            where: { userId, problemSetNum: { in: psetNums } },
-            select: { problemSetNum: true },
-          })
-        : [],
-      userId
-        ? db.problemSetStar.findMany({
-            where: { userId, problemSetNum: { in: psetNums } },
-            select: { problemSetNum: true },
-          })
-        : [],
-      userId
-        ? db.problemSetProgress.findMany({
-            where: {
-              userId,
-              status: "inprogress",
-              problemSetNum: { in: psetNums },
-            },
-            select: { id: true, problemOrder: true, problemSetNum: true },
-          })
-        : [],
-    ]);
+    const [userLikes, userStars, userProgress, userCompletions] =
+      await Promise.all([
+        userId
+          ? db.problemSetLike.findMany({
+              where: { userId, problemSetNum: { in: psetNums } },
+              select: { problemSetNum: true },
+            })
+          : [],
+        userId
+          ? db.problemSetStar.findMany({
+              where: { userId, problemSetNum: { in: psetNums } },
+              select: { problemSetNum: true },
+            })
+          : [],
+        userId
+          ? db.problemSetProgress.findMany({
+              where: {
+                userId,
+                status: "inprogress",
+                problemSetNum: { in: psetNums },
+              },
+              select: { id: true, problemOrder: true, problemSetNum: true },
+            })
+          : [],
+        userId
+          ? db.problemSetLeaderboardEntry.findMany({
+              where: { userId, problemSetNum: { in: psetNums } },
+              select: { problemSetNum: true },
+            })
+          : [],
+      ]);
 
     const likedNums = new Set(userLikes.map((l) => l.problemSetNum));
     const starredNums = new Set(userStars.map((s) => s.problemSetNum));
+    const completedNums = new Set(userCompletions.map((c) => c.problemSetNum));
     const progressMap = new Map(userProgress.map((p) => [p.problemSetNum, p]));
 
     return NextResponse.json(
@@ -130,6 +138,7 @@ export async function GET(req: Request) {
             userId,
             likedNums.has(pset.num),
             starredNums.has(pset.num),
+            completedNums.has(pset.num),
             progressMap.get(pset.num),
           ),
         ),

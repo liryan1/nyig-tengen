@@ -1,10 +1,7 @@
-import { BreadcrumbNav } from "./BreadcrumbNav";
-import { ThemeToggle } from "./ThemeToggle";
 import { Separator } from "../../ui/separator";
 import { SidebarTrigger } from "../../ui/sidebar";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { ExternalLinkIcon } from "lucide-react";
+import { BreadcrumbNav } from "./BreadcrumbNav";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function AppSidebarHeader() {
   return (
@@ -14,19 +11,7 @@ export function AppSidebarHeader() {
         <Separator orientation="vertical" className="mr-1 sm:mr-2 h-4" />
         <BreadcrumbNav />
       </div>
-      <div className="flex items-center gap-2">
-        <Link
-          href="https://ny-go.org/classes"
-          target="_blank"
-          className="flex items-center gap-2"
-        >
-          <Button variant="outline" size="sm">
-            Classes
-            <ExternalLinkIcon />
-          </Button>
-        </Link>
-        <ThemeToggle />
-      </div>
+      <ThemeToggle />
     </header>
   );
 }

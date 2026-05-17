@@ -73,6 +73,7 @@ export function PSetCreateForm() {
       name: "",
       description: "",
       sgf: "",
+      visibility: Visibility.PUBLIC,
     },
   });
   const selectedVisibility = form.watch("visibility");
@@ -174,7 +175,10 @@ export function PSetCreateForm() {
             <FormItem>
               <FormLabel>Visibility</FormLabel>
               <FormControl>
-                <Select value={field.value} onValueChange={field.onChange}>
+                <Select
+                  value={field.value || ""}
+                  onValueChange={field.onChange}
+                >
                   <SelectTrigger className="w-40">
                     <SelectValue placeholder="Select visibility" />
                   </SelectTrigger>

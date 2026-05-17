@@ -1,11 +1,17 @@
 import { HomeCards } from "@/components/home/HomeCards";
 import { Button } from "@/components/ui/button";
 import { isUserAdmin } from "@/lib/utils";
-import { CrownIcon, LogInIcon } from "lucide-react";
+import { CrownIcon, ExternalLinkIcon, LogInIcon } from "lucide-react";
+import { Metadata } from "next";
 import { getServerSession } from "next-auth";
 import Link from "next/link";
 import { MdWavingHand } from "react-icons/md";
 import { authOptions } from "../api/auth/authOptions";
+
+export const metadata: Metadata = {
+  title: "Home",
+  description: "Expand the Go Universe with NYIG Tengen.",
+};
 
 export default async function Home() {
   const session = await getServerSession(authOptions);
@@ -19,6 +25,11 @@ export default async function Home() {
           <div className="text-muted-foreground text-sm sm:text-xl">
             &mdash; Expand the Go Universe &mdash;
           </div>
+          <Button asChild>
+            <Link href="https://ny-go.org">
+              NYIG Home <ExternalLinkIcon />
+            </Link>
+          </Button>
         </div>
 
         {session?.user?.id ? (
@@ -30,12 +41,12 @@ export default async function Home() {
           </div>
         ) : (
           <div className="flex items-center justify-center">
-            <Link href="/login" className="flex items-center gap-2">
-              <Button variant="outline">
+            <Button asChild variant="outline">
+              <Link href="/login" className="flex items-center gap-2">
                 Sign in
                 <LogInIcon />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         )}
         <HomeCards />

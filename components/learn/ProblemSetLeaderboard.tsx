@@ -17,6 +17,8 @@ import { ChevronDown, ChevronUp, InfoIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import { LeaderboardTableRow } from "../LeaderboardTableRow";
 
+const DEFAULT_ROWS_SHOWN = 5;
+
 type ProblemSetLeaderboardProps = {
   leaderboard?: LeaderboardResponse[];
   maxScore: number;
@@ -44,7 +46,7 @@ export function ProblemSetLeaderboard({
 
   const total = rowsWithRank.length;
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
-  const topCollapsed = rowsWithRank.slice(0, 3);
+  const topCollapsed = rowsWithRank.slice(0, DEFAULT_ROWS_SHOWN);
   const safePage = Math.min(Math.max(page, 1), totalPages);
   const pageStart = (safePage - 1) * pageSize;
   const pageRows = rowsWithRank.slice(pageStart, pageStart + pageSize);
@@ -121,9 +123,10 @@ export function ProblemSetLeaderboard({
               </TableBody>
             </Table>
 
-            {!expanded && total > 3 && (
+            {!expanded && total > DEFAULT_ROWS_SHOWN && (
               <p className="my-1 mr-1 text-xs text-muted-foreground text-right">
-                Showing top 3 of {total}. Click “Show all” to view more.
+                Showing top {DEFAULT_ROWS_SHOWN} of {total}. Click “Show all” to
+                view more.
               </p>
             )}
           </>

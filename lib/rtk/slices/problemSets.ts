@@ -17,6 +17,7 @@ export interface ProblemSetResponse {
   likes: number;
   userLiked?: boolean;
   userStarred?: boolean;
+  userCompleted?: boolean;
   userProgress?: { id: string; problemOrder: ProblemOrderItem[] };
   completedCount?: number;
   problemCount: number;

@@ -41,6 +41,7 @@ export function ProblemSetCard({
     likes,
     userLiked,
     userStarred,
+    userCompleted,
     createdAt,
     completedCount,
   } = problemSet;
@@ -67,6 +68,7 @@ export function ProblemSetCard({
             isLoading={psetCreateLoading}
             isError={psetCreateError}
             sNum={problemSet.num}
+            setName={problemSet.name}
             problemOrder={problemSet.userProgress?.problemOrder}
             size="sm"
           />
@@ -84,6 +86,7 @@ export function ProblemSetCard({
             views,
             likes,
             rate: completedCount,
+            userSolved: userCompleted,
           }}
         />
       </div>

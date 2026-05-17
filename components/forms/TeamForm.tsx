@@ -19,6 +19,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Spinner } from "../labels/Spinner";
 import { Input } from "../ui/input";
+import { useMemo } from "react";
 
 const formSchema = z.object({
   name: z.string().min(1).max(30),
@@ -41,13 +42,15 @@ export function TeamForm({ team }: TeamFormProps) {
   const actionWord = team ? "Update" : "Create";
   const [create, { isLoading }] = useCreateTeamMutation();
 
-  let initialForm = iForm;
-  if (team) {
-    initialForm = {
-      name: team.name,
-      description: team.description || "",
-    };
-  }
+  const initialForm = useMemo(() => {
+    if (team) {
+      return {
+        name: team.name,
+        description: team.description || "",
+      };
+    }
+    return iForm;
+  }, [team]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

@@ -37,6 +37,7 @@ The monorepo is organized into several key projects:
 
 ## Development Conventions
 
+- **Code:** No extra state variables unless absolutely required. Minimize tailwind styling. Use existing components and helpers where possible. Use shadcn-ui components. Do not use lifecycle methods unless absolutely necessary.
 - **Monorepo Structure:** The project is a monorepo with multiple independent but related projects.
 - **Shared Models:** The `@nyig/models` library is used to share data structures and ensure consistency across the different services.
 - **Code Style:** Prettier is used for code formatting, and ESLint for linting. `lint-staged` is configured to run Prettier on pre-commit.
@@ -44,39 +45,7 @@ The monorepo is organized into several key projects:
 - **ESLint:** The ESLint configuration is defined in `eslint.config.mjs` and extends the `next` configuration. The following rules are disabled:
   - `@typescript-eslint/no-explicit-any`
   - `react-hooks/exhaustive-deps`
-- **Git Ignore:** The `.gitignore` file is configured to ignore the following files and directories:
-  - `/scripts`
-  - `/node_modules`
-  - `/.next/`
-  - `/out/`
-  - `/build`
-  - `.env*`
-  - `.DS_Store`
-  - `*.pem`
-  - `npm-debug.log*`
-  - `yarn-debug.log*`
-  - `yarn-error.log*`
-  - `.pnpm-debug.log*`
-  - `.vercel`
-  - `*.tsbuildinfo`
-  - `next-env.d.ts`
 - **Pre-commit Hook:** The `.husky/pre-commit` file is configured to run Prettier on all staged files.
-- **TypeScript Configuration:** The TypeScript configuration is defined in `tsconfig.json`. It includes the following settings:
-  - `target`: `es6`
-  - `lib`: `["dom", "dom.iterable", "esnext"]`
-  - `allowJs`: `true`
-  - `skipLibCheck`: `true`
-  - `strict`: `true`
-  - `noEmit`: `true`
-  - `esModuleInterop`: `true`
-  - `module`: `esnext`
-  - `moduleResolution`: `bundler`
-  - `resolveJsonModule`: `true`
-  - `isolatedModules`: `true`
-  - `jsx`: `react-jsx`
-  - `incremental`: `true`
-  - `plugins`: `[{ "name": "next" }]`
-  - `paths`: `{ "@/*": ["./*"] }`
 
 ## Getting Started
 

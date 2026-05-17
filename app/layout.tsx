@@ -17,7 +17,10 @@ const font = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "NYIG Tengen",
+  title: {
+    template: "Tengen | %s",
+    default: "NYIG Tengen",
+  },
   description:
     "Creating a broad and growing framework for the Game of Go in North America - a unique website for Go.",
   authors: [{ name: "Ryan Li", url: "https://github.com/liryan1" }],

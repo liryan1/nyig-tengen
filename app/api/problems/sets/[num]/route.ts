@@ -137,6 +137,7 @@ export async function GET(req: Request, { params }: Params) {
         problems,
         userProgress,
         userCompletions,
+        userCompleted: userCompletions > 0,
         createdAt: problemSet.createdAt,
         ...(wantLeaderboard ? { leaderboard } : {}),
       },

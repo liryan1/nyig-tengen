@@ -31,6 +31,7 @@ export const mapProblemSetResponse = (
   userId?: string,
   userLiked: boolean = false,
   userStarred: boolean = false,
+  userCompleted: boolean = false,
   userProgress: any = null,
 ): ProblemSetResponse => {
   return {
@@ -44,6 +45,7 @@ export const mapProblemSetResponse = (
     completedCount: pset.problemSetStats?.completed,
     userLiked,
     userStarred,
+    userCompleted,
     problemCount: pset.problemCount,
     averageRank: pset.averageRank,
     createdAt: pset.createdAt,

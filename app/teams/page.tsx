@@ -1,4 +1,10 @@
 import { FindTeams } from "@/components/teams/FindTeams";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Teams",
+  description: "Browse and join Go teams on NYIG Tengen.",
+};
 
 function AllTeamsPage() {
   return (
