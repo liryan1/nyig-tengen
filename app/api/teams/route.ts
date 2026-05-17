@@ -4,52 +4,55 @@ import { getServerSession } from "next-auth";
 import { NextResponse } from "next/server";
 import { authOptions } from "../auth/authOptions";
 import slugify from "slugify";
+import { Prisma } from "@prisma/client";
 
 export async function GET(req: Request) {
   try {
     const session = await getServerSession(authOptions);
     const userId = session?.user?.id;
-    if (!userId) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") ?? "1");
     const limit = parseInt(searchParams.get("limit") ?? "50");
     const skip = (page - 1) * limit;
 
+    const include: Prisma.TeamInclude = {
+      owner: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      _count: {
+        select: {
+          memberships: true,
+          teamProblems: true,
+          teamProblemSets: true,
+        },
+      },
+    };
+
+    if (userId) {
+      include.memberships = {
+        where: { userId },
+        select: { role: true },
+      };
+      include.invites = {
+        where: {
+          userId,
+          status: "PENDING",
+          type: { in: ["REQUEST", "INVITE"] },
+        },
+        select: { id: true, type: true },
+      };
+    }
+
     const [teams, totalTeams] = await Promise.all([
       db.team.findMany({
         where: {
           status: "ACTIVE",
         },
-        include: {
-          owner: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-          memberships: {
-            where: { userId },
-            select: { role: true },
-          },
-          invites: {
-            where: {
-              userId,
-              status: "PENDING",
-              type: { in: ["REQUEST", "INVITE"] },
-            },
-            select: { id: true, type: true },
-          },
-          _count: {
-            select: {
-              memberships: true,
-              teamProblems: true,
-              teamProblemSets: true,
-            },
-          },
-        },
+        include,
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
@@ -69,9 +72,9 @@ export async function GET(req: Request) {
         id: team.owner.id,
         name: team.owner.name,
       },
-      myRole: team.memberships[0]?.role || null,
-      hasPendingRequest: team.invites.length > 0,
-      pendingInviteType: team.invites[0]?.type || null,
+      myRole: team.memberships?.[0]?.role || null,
+      hasPendingRequest: (team.invites?.length ?? 0) > 0,
+      pendingInviteType: team.invites?.[0]?.type || null,
       createdAt: team.createdAt.toISOString(),
       updatedAt: team.updatedAt.toISOString(),
     }));

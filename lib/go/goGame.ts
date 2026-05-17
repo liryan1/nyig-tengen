@@ -78,14 +78,16 @@ function getNeighbors(coord: string, size: number): string[] {
 }
 
 export class GoGame {
-  private readonly initialRoot: SgfNode = {
-    addBlack: [],
-    addWhite: [],
-    removeStones: [],
-    labels: {},
-    children: [],
-    moveColor: 0,
-  };
+  private getInitialRoot(): SgfNode {
+    return {
+      addBlack: [],
+      addWhite: [],
+      removeStones: [],
+      labels: {},
+      children: [],
+      moveColor: 0,
+    };
+  }
   public root: SgfNode;
   public boardSize;
 
@@ -101,7 +103,7 @@ export class GoGame {
     boardSize?: number;
     root?: SgfNode;
   }) {
-    this.root = root ?? this.initialRoot;
+    this.root = root ?? this.getInitialRoot();
     this.boardSize = boardSize;
   }
 
@@ -217,7 +219,7 @@ export class GoGame {
     // Check and clean root node
     if (hasInvalidCoords(this.root)) {
       // If root node has invalid coordinates, reset it
-      this.root = this.initialRoot;
+      this.root = this.getInitialRoot();
     } else {
       // Clean the rest of the tree
       traverseAndClean(this.root);
@@ -517,20 +519,33 @@ export class GoGame {
       editNode.addBlack = [...addBlack, ...(editNode.addBlack ?? [])];
       editNode.addWhite =
         editNode.addWhite?.filter((coord) => !addBlack.includes(coord)) ?? [];
+      editNode.removeStones =
+        editNode.removeStones?.filter((coord) => !addBlack.includes(coord)) ??
+        [];
     }
 
     if (addWhite) {
       editNode.addWhite = [...addWhite, ...(editNode.addWhite ?? [])];
       editNode.addBlack =
         editNode.addBlack?.filter((coord) => !addWhite.includes(coord)) ?? [];
+      editNode.removeStones =
+        editNode.removeStones?.filter((coord) => !addWhite.includes(coord)) ??
+        [];
     }
 
     if (removeStones) {
-      editNode.removeStones = removeStones.filter(
+      // Filter out stones that are already being added in this same node
+      const stonesToRemoveFromPrevious = removeStones.filter(
         (coord) =>
           !editNode.addBlack?.includes(coord) &&
           !editNode.addWhite?.includes(coord),
       );
+
+      editNode.removeStones = [
+        ...stonesToRemoveFromPrevious,
+        ...(editNode.removeStones ?? []),
+      ];
+
       editNode.addBlack =
         editNode.addBlack?.filter((coord) => !removeStones.includes(coord)) ??
         [];
@@ -539,7 +554,7 @@ export class GoGame {
         [];
     }
 
-    if (labels) editNode.labels = { ...labels, ...editNode.labels };
+    if (labels) editNode.labels = { ...editNode.labels, ...labels };
 
     return editNode;
   }

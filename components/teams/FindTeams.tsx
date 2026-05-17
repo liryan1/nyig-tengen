@@ -28,6 +28,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 import {
   Users,
   BookOpen,
@@ -36,13 +37,17 @@ import {
   CheckIcon,
   CheckCircle2,
   Clock,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { InviteStatus } from "@prisma/client";
+import { cn } from "@/lib/utils";
 
 const ITEMS_PER_PAGE = 10;
 
 export const FindTeams = () => {
+  const { data: session } = useSession();
+  const isLoggedIn = !!session?.user;
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const { data, isLoading, isError } = useGetTeamsQuery({
@@ -113,6 +118,24 @@ export const FindTeams = () => {
         </div>
       </div>
 
+      {!isLoggedIn && (
+        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle
+                className="h-5 w-5 text-amber-400"
+                aria-hidden="true"
+              />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-amber-700">
+                You must be logged in to view team pages or request to join.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[...Array(4)].map((_, i) => (
@@ -134,6 +157,7 @@ export const FindTeams = () => {
               onJoin={() => handleJoinRequest(team.slug)}
               onAccept={() => handleAcceptInvite(team.slug)}
               isRequesting={isRequesting || isResponding}
+              isLoggedIn={isLoggedIn}
             />
           ))}
         </div>
@@ -186,11 +210,13 @@ const TeamCard = ({
   onJoin,
   onAccept,
   isRequesting,
+  isLoggedIn,
 }: {
   team: TeamResponse;
   onJoin: () => void;
   onAccept: () => void;
   isRequesting: boolean;
+  isLoggedIn: boolean;
 }) => {
   const badge = team.myRole ? (
     <Badge variant="secondary" className="flex items-center gap-1">
@@ -206,9 +232,15 @@ const TeamCard = ({
     <Card className="flex flex-col h-full overflow-hidden">
       <CardHeader>
         <CardTitle className="text-xl flex items-center justify-between">
-          <Link href={`/teams/${team.slug}`} className="hover:underline">
-            {team.name}
-          </Link>
+          {isLoggedIn ? (
+            <Link href={`/teams/${team.slug}`} className="hover:underline">
+              {team.name}
+            </Link>
+          ) : (
+            <span className="text-muted-foreground cursor-not-allowed">
+              {team.name}
+            </span>
+          )}
           {badge}
         </CardTitle>
         <CardDescription className="line-clamp-2 min-h-[3rem]">
@@ -232,13 +264,20 @@ const TeamCard = ({
         </div>
       </CardContent>
       <CardFooter className="flex gap-2">
-        <Link href={`/teams/${team.slug}`} className="flex-1">
-          <Button variant="outline" className="w-full">
+        <Link
+          href={`/teams/${team.slug}`}
+          className={cn("flex-1", !isLoggedIn && "pointer-events-none")}
+        >
+          <Button variant="outline" className="w-full" disabled={!isLoggedIn}>
             View Page
           </Button>
         </Link>
         {!team.myRole && !team.hasPendingRequest && (
-          <Button className="flex-1" onClick={onJoin} disabled={isRequesting}>
+          <Button
+            className="flex-1"
+            onClick={onJoin}
+            disabled={isRequesting || !isLoggedIn}
+          >
             Join Team
           </Button>
         )}
@@ -248,7 +287,7 @@ const TeamCard = ({
             <Button
               className="flex-1 bg-emerald-600 hover:bg-emerald-700"
               onClick={onAccept}
-              disabled={isRequesting}
+              disabled={isRequesting || !isLoggedIn}
             >
               <CheckIcon className="h-3.5 w-3.5 mr-1" />
               Accept

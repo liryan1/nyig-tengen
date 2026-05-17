@@ -1,6 +1,51 @@
 import { describe, it, expect } from "vitest";
-import { getBoardCutoff, makeCutoffSquare } from "./display";
-import { SgfNode } from "./goGame";
+import {
+  getBoardCutoff,
+  makeCutoffSquare,
+  getRank,
+  parseRank,
+  getPixelSize,
+} from "@/lib/go/display";
+import { SgfNode } from "@/lib/go/goGame";
+
+describe("getRank", () => {
+  it("formats ranks correctly", () => {
+    expect(getRank(-1)).toBe("1k");
+    expect(getRank(0)).toBe("1d");
+    expect(getRank(5)).toBe("6d");
+    expect(getRank(-30)).toBe("30k");
+  });
+
+  it("handles decimal for average rank", () => {
+    expect(getRank(0.5, true)).toBe("1.5d");
+    expect(getRank(-1.5, true)).toBe("1.5k");
+  });
+});
+
+describe("parseRank", () => {
+  it("parses strings back to numbers", () => {
+    expect(parseRank("1k")).toBe(-1);
+    expect(parseRank("1d")).toBe(0);
+    expect(parseRank("3k")).toBe(-3);
+    expect(parseRank("2.5d")).toBe(1.5);
+  });
+
+  it("uses fallback for invalid strings", () => {
+    expect(parseRank("invalid", -5)).toBe(-5);
+  });
+});
+
+describe("getPixelSize", () => {
+  it("calculates correct dimensions", () => {
+    const { stoneSize, margin, boardPixelSize } = getPixelSize({
+      cellSize: 20,
+      boardSize: 19,
+    });
+    expect(stoneSize).toBeCloseTo(18.4);
+    expect(margin).toBe(20);
+    expect(boardPixelSize).toBe(18 * 20 + 20 * 2);
+  });
+});
 
 describe("getBoardCutoff", () => {
   it("returns undefined when no stones found or showing whole board", () => {
