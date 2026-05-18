@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CooldownButton } from "@/components/CooldownButton";
 import { continueIcon, infoIcon, successIcon } from "@/components/labels/icons";
 import { Spinner } from "@/components/labels/Spinner";
@@ -14,6 +15,7 @@ import { useAppDispatch } from "@/lib/rtk/slices/hooks";
 import { useSubmitMutation } from "@/lib/rtk/slices/problems";
 import { UserRole } from "@prisma/client";
 import {
+  AlertCircle,
   ArrowRightIcon,
   MoveRightIcon,
   PartyPopper,
@@ -417,10 +419,15 @@ export function GoProblem({
           <div className="relative p-2 text-sm sm:text-base min-h-20 max-h-20 sm:min-h-24 sm:max-h-24 sm:space-y-2 overflow-hidden">
             {message}
             {noProgress && !sResult?.problemSetCompleted && (
-              <div className="flex items-center gap-1 text-destructive font-medium">
-                {infoIcon}
-                Not attempting. Progress will not be saved.
-              </div>
+              <Alert
+                variant="destructive"
+                className="flex h-10 items-center gap-2 px-3 py-0 [&>svg]:static [&>svg]:translate-y-0 [&>svg+div]:translate-y-0 [&>svg~*]:pl-0"
+              >
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <AlertDescription className="font-medium leading-none">
+                  Not attempting. Progress will not be saved.
+                </AlertDescription>
+              </Alert>
             )}
             {isLoading && (
               <div className="space-y-2">
@@ -429,9 +436,15 @@ export function GoProblem({
               </div>
             )}
             {sError && (
-              <div className="flex justify-center items-center p-10 text-xl text-red-500">
-                Failed to submit solution. Please try again later.
-              </div>
+              <Alert
+                variant="destructive"
+                className="flex items-center gap-2 px-3 py-2 [&>svg]:static [&>svg]:translate-y-0 [&>svg+div]:translate-y-0 [&>svg~*]:pl-0"
+              >
+                <AlertCircle className="h-4 w-4 shrink-0" />
+                <AlertDescription className="font-medium">
+                  Failed to submit solution. Please try again later.
+                </AlertDescription>
+              </Alert>
             )}
             <GoBoardMenu
               className="hidden sm:flex absolute right-1 bottom-1 aspect-square gap-0"

@@ -18,6 +18,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CircleAlertIcon, FolderUpIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -78,10 +79,15 @@ export function UploadSGFButton({
           <DialogTitle>Upload SGF File</DialogTitle>
         </DialogHeader>
         {notEmpty && (
-          <div className="text-sm flex items-center gap-1 text-red-500">
-            <CircleAlertIcon />
-            Warning: This will overwrite all existing data.
-          </div>
+          <Alert
+            variant="destructive"
+            className="flex items-center gap-2 py-2 px-3 [&>svg]:static [&>svg]:translate-y-0 [&>svg+div]:translate-y-0 [&>svg~*]:pl-0"
+          >
+            <CircleAlertIcon className="h-4 w-4 shrink-0" />
+            <AlertDescription className="font-medium">
+              Warning: This will overwrite all existing data.
+            </AlertDescription>
+          </Alert>
         )}
         <p className="text-sm text-muted-foreground">
           One single branch on the root node. Each variation is a solution to

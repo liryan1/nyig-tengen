@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/pagination";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Users,
   BookOpen,
@@ -38,6 +39,7 @@ import {
   CheckCircle2,
   Clock,
   AlertCircle,
+  TriangleAlert,
 } from "lucide-react";
 import { toast } from "sonner";
 import { InviteStatus } from "@prisma/client";
@@ -94,8 +96,16 @@ export const FindTeams = () => {
 
   if (isError) {
     return (
-      <div className="text-center py-10">
-        <p className="text-red-500">Error loading teams. Please try again.</p>
+      <div className="flex justify-center py-10">
+        <Alert
+          variant="destructive"
+          className="max-w-md flex items-center gap-3 py-3 [&>svg]:static [&>svg]:translate-y-0 [&>svg+div]:translate-y-0 [&>svg~*]:pl-0"
+        >
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <AlertDescription className="font-medium">
+            Error loading teams. Please try again.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
@@ -119,21 +129,12 @@ export const FindTeams = () => {
       </div>
 
       {!isLoggedIn && (
-        <div className="bg-amber-50 border-l-4 border-amber-400 p-4 rounded-r-lg">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <AlertCircle
-                className="h-5 w-5 text-amber-400"
-                aria-hidden="true"
-              />
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-amber-700">
-                You must be logged in to view team pages or request to join.
-              </p>
-            </div>
-          </div>
-        </div>
+        <Alert className="bg-amber-50 border-amber-400 text-amber-700 flex items-center gap-3 py-3 [&>svg]:static [&>svg]:translate-y-0 [&>svg+div]:translate-y-0 [&>svg~*]:pl-0 [&>svg]:text-current">
+          <AlertCircle className="h-5 w-5 shrink-0" />
+          <AlertDescription className="font-medium">
+            You must be logged in to view team pages or request to join.
+          </AlertDescription>
+        </Alert>
       )}
 
       {isLoading ? (

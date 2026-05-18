@@ -14,7 +14,13 @@ import {
   useChallengeSubmitMutation,
   useStartChallengeQuery,
 } from "@/lib/rtk/slices/challenge";
-import { FileWarningIcon, Loader2, PlayCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  FileWarningIcon,
+  Loader2,
+  PlayCircle,
+  AlertCircle,
+} from "lucide-react";
 import { useState } from "react";
 import Confetti from "react-confetti-boom";
 import { toast } from "sonner";
@@ -136,18 +142,27 @@ export function ChallengeScreen() {
           />
 
           {isError && (
-            <div className="absolute flex items-center justify-center bg-background/50 backdrop-blur-sm">
+            <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm p-4">
               <Card className="w-full max-w-sm">
-                <CardContent className="flex items-center gap-3 p-6 text-destructive">
-                  <FileWarningIcon className="h-5 w-5" />
-                  Failed to start challenge
+                <CardContent className="p-6">
+                  <Alert
+                    variant="destructive"
+                    className="flex items-center gap-2 py-3 px-3 [&>svg]:static [&>svg]:translate-y-0 [&>svg+div]:translate-y-0 [&>svg~*]:pl-0"
+                  >
+                    <AlertCircle className="h-5 w-5 shrink-0" />
+                    <AlertDescription className="font-medium">
+                      Failed to start challenge
+                    </AlertDescription>
+                  </Alert>
                 </CardContent>
-                <CardContent className="text-muted-foreground text-sm">
+                <CardContent className="text-muted-foreground text-sm pt-0">
                   Please refresh the page or click the button below to try
                   again.
                 </CardContent>
                 <CardFooter>
-                  <Button onClick={refetch}>Try again</Button>
+                  <Button onClick={refetch} className="w-full">
+                    Try again
+                  </Button>
                 </CardFooter>
               </Card>
             </div>
