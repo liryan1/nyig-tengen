@@ -6,10 +6,61 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function sanitizeHtml(input: string): string {
-  // Use a regular expression to remove all HTML tags.
-  const sanitized = input.replace(/<\/?[^>]+(>|$)/g, "");
-  return sanitized.trim(); // Trim whitespace for clean output.
+export function clamp(n: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, n));
+}
+
+export function ordinal(n: number) {
+  const j = n % 10,
+    k = n % 100;
+  if (j === 1 && k !== 11) return "st";
+  if (j === 2 && k !== 12) return "nd";
+  if (j === 3 && k !== 13) return "rd";
+  return "th";
+}
+
+export function formatDuration(msInput: number) {
+  const totalSec = Math.floor(msInput / 1000);
+  const totalMin = Math.floor(totalSec / 60);
+  const m = totalMin % 60;
+  const totalH = Math.floor(totalMin / 60);
+  const h = totalH % 24;
+  const d = Math.floor(totalH / 24);
+  const s = totalSec % 60;
+
+  const parts: string[] = [];
+  if (d > 0) parts.push(`${d} days`);
+  if (h > 0) parts.push(`${h} hours`);
+  if (m > 0) parts.push(`${m} mins`);
+  if (parts.length === 0) parts.push(`${s} seconds`);
+
+  return parts.join(" ");
+}
+
+export function getVisiblePages(currentPage: number, totalPages: number) {
+  const delta = 2;
+  const range = [];
+  for (
+    let i = Math.max(2, currentPage - delta);
+    i <= Math.min(totalPages - 1, currentPage + delta);
+    i++
+  ) {
+    range.push(i);
+  }
+
+  if (currentPage - delta > 2) {
+    range.unshift("...");
+  }
+  if (currentPage + delta < totalPages - 1) {
+    range.push("...");
+  }
+
+  range.unshift(1);
+  if (totalPages > 1) {
+    range.push(totalPages);
+  }
+
+  return range;
 }
 
 export function formatLargeNumber(num: number): string {

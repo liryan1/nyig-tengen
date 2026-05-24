@@ -137,7 +137,6 @@ The credentials provider is defined in `app/api/auth/[...nextauth]/credentials.t
 The `lib/utils.ts` file contains a number of utility functions that are used throughout the application. These include:
 
 - `cn`: A function that merges Tailwind CSS classes.
-- `sanitizeHtml`: A function that removes HTML tags from a string.
 - `formatLargeNumber`: A function that formats a large number into a more readable format (e.g., 1000 -> 1k).
 - `truncateString`: A function that truncates a string to a specified length.
 - `debounce`: A function that debounces a function.

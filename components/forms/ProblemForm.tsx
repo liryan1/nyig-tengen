@@ -41,6 +41,12 @@ import { GoProblemSkeleton } from "../loading/GoProblemSkeleton";
 import { MultiSelect } from "../ui/multiselect";
 import { useSession } from "next-auth/react";
 
+import {
+  VisibilityFields,
+  visibilityRefinement,
+  visibilityRefinementMessage,
+} from "./VisibilityFields";
+
 const GoProblemEditor = dynamic(
   () => import("@/components/learn/go/GoProblemEditor"),
   { ssr: false, loading: () => <GoProblemSkeleton /> },
@@ -61,13 +67,7 @@ const formSchema = z
       )
       .optional(),
   })
-  .refine(
-    (data) => data.visibility !== Visibility.TEAM || !!data.teamSlugs?.length,
-    {
-      message: "Team is required when visibility is TEAM",
-      path: ["teamSlugs"],
-    },
-  );
+  .refine(visibilityRefinement, visibilityRefinementMessage);
 
 type FormValues = z.infer<typeof formSchema>;
 
@@ -85,9 +85,6 @@ export function ProblemForm({ problem }: Props) {
   const { data } = useSession();
   const userId = data?.user?.id;
   const router = useRouter();
-  const { data: teams, isLoading: tLoading } = useGetMyTeamsQuery();
-  const teamOptions =
-    teams?.map((team) => ({ value: team.slug, label: team.name })) || [];
 
   // Board state management
   const initialSgf = problem?.correct || problem?.initial;
@@ -97,7 +94,7 @@ export function ProblemForm({ problem }: Props) {
 
   const [create, { isLoading: cLoading }] = useCreateProblemMutation();
   const [update, { isLoading: uLoading }] = useUpdateProblemMutation();
-  const isLoading = cLoading || uLoading || tLoading;
+  const isLoading = cLoading || uLoading;
 
   const actionWord = problem ? "Update" : "Create";
 
@@ -120,9 +117,6 @@ export function ProblemForm({ problem }: Props) {
     resolver: zodResolver(formSchema),
     values: initialForm,
   });
-
-  // Watch visibility value to conditionally render the team select
-  const selectedVisibility = form.watch("visibility");
 
   const onSubmit = async (values: FormValues) => {
     if (!userId) {
@@ -235,55 +229,7 @@ export function ProblemForm({ problem }: Props) {
           />
 
           <div className="flex flex-wrap gap-4">
-            <FormField
-              control={form.control}
-              name="visibility"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Visibility</FormLabel>
-                  <FormControl>
-                    <Select
-                      value={field.value || ""}
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-40">
-                        <SelectValue placeholder="Select visibility" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.values(Visibility)
-                          .filter((v) => v !== Visibility.DELETED)
-                          .map((o) => (
-                            <SelectItem key={o} value={o}>
-                              {o.toLowerCase()}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {selectedVisibility === Visibility.TEAM && (
-              <FormField
-                control={form.control}
-                name="teamSlugs"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Select Teams</FormLabel>
-                    <FormControl className="flex-1">
-                      <MultiSelect
-                        placeholder="Select teams"
-                        options={teamOptions}
-                        selected={field.value}
-                        onChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <VisibilityFields form={form} />
           </div>
         </div>
 

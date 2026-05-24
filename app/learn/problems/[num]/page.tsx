@@ -1,5 +1,6 @@
 import { GoProblemPage } from "@/components/learn/pages/GoProblemPage";
 import { db } from "@/lib/db";
+import { getRank } from "@/lib/go/display";
 import { Metadata } from "next";
 
 type Props = {
@@ -19,9 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
-  // Format rank: negative for k, positive for d
-  const rankStr =
-    problem.rank < 0 ? `${Math.abs(problem.rank)}k` : `${problem.rank}d`;
+  const rankStr = getRank(problem.rank);
 
   return {
     title: `Problem #${num} (${rankStr})`,

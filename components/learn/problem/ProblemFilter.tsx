@@ -9,8 +9,7 @@ import {
 } from "@/components/ui/select";
 import { DualRangeSlider } from "@/components/ui/slider";
 import { getRank } from "@/lib/go/display";
-import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
-import { ArrowUpDown, Star, Trash2, UsersIcon } from "lucide-react";
+import { ArrowUpDown, Star, Trash2 } from "lucide-react";
 import {
   createParser,
   parseAsBoolean,
@@ -19,8 +18,9 @@ import {
   useQueryStates,
   type Options,
 } from "nuqs";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { ProblemCreatorInput } from "./ProblemCreatorInput";
+import { TeamFilter } from "../TeamFilter";
 
 const parseRank = createParser({
   parse(queryValue) {
@@ -36,8 +36,6 @@ const parseRank = createParser({
 const options: Options = { throttleMs: 800 };
 
 export function ProblemFilter() {
-  const { data: myTeams } = useGetMyTeamsQuery();
-
   const [rankRange, setRankRange] = useQueryStates(
     {
       rank_min: parseRank.withDefault(-30),
@@ -67,20 +65,6 @@ export function ProblemFilter() {
     setTeam(null);
   }, [setRankRange, setCreatorId, setSort, setStarred, setTeam]);
 
-  const teamOptions = useMemo(() => {
-    const teams = (myTeams || []).map((t) => (
-      <SelectItem key={t.slug} value={t.slug}>
-        {t.name}
-      </SelectItem>
-    ));
-    return [
-      <SelectItem key="public" value="public">
-        Public
-      </SelectItem>,
-      ...teams,
-    ];
-  }, [myTeams]);
-
   return (
     <div className="flex flex-wrap gap-x-2 sm:gap-x-4 gap-y-2 justify-center">
       <div className="w-80">
@@ -101,17 +85,7 @@ export function ProblemFilter() {
         />
       </div>
       <ProblemCreatorInput value={creatorId} onSelect={setCreatorId} />
-      <div>
-        <Select value={team || "public"} onValueChange={setTeam}>
-          <SelectTrigger className="w-40">
-            <div className="flex items-center gap-1">
-              <UsersIcon className="h-4 w-4 text-muted-foreground" />
-              <SelectValue placeholder="Visibility" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>{teamOptions}</SelectContent>
-        </Select>
-      </div>
+      <TeamFilter value={team} onValueChange={setTeam} />
       <div>
         <Select value={sort || ""} onValueChange={setSort}>
           <SelectTrigger className="w-36">

@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { PiCrownSimple } from "react-icons/pi";
-import { SucessRate } from "./problem/SucessRate";
+import { SuccessRate } from "./problem/SuccessRate";
 import {
   Tooltip,
   TooltipContent,
@@ -167,7 +167,7 @@ export function InfoBar({
             disabled={readonly}
             label="Attempt success"
             trigger={
-              <SucessRate
+              <SuccessRate
                 successRate={rate}
                 userSolved={userSolved}
                 convertToPercent={convertRateToPercent}

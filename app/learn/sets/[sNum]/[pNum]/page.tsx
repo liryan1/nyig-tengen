@@ -6,28 +6,19 @@ type Props = { params: Promise<{ sNum: string; pNum: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { sNum, pNum } = await params;
-  const [pset, problem] = await Promise.all([
-    db.problemSet.findUnique({
-      where: { num: sNum },
-      select: { name: true },
-    }),
-    db.problem.findUnique({
-      where: { num: pNum },
-      select: { rank: true },
-    }),
-  ]);
+  const pset = await db.problemSet.findUnique({
+    where: { num: sNum },
+    select: { name: true },
+  });
 
-  if (!pset || !problem) {
+  if (!pset) {
     return {
       title: "Problem Not Found",
     };
   }
 
-  const rankStr =
-    problem.rank < 0 ? `${Math.abs(problem.rank)}k` : `${problem.rank}d`;
-
   return {
-    title: `Problem #${pNum} (${rankStr}) | ${pset.name}`,
+    title: `${pset.name} #${pNum}`,
     description: `Solving problem #${pNum} in the ${pset.name} problem set.`,
   };
 }

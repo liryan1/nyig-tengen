@@ -2,11 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   formatLargeNumber,
   formatRelativeTime,
-  sanitizeHtml,
   truncateString,
 } from "@/lib/utils";
 
-describe("lib/utils", () => {
+describe("utils", () => {
   describe("formatLargeNumber", () => {
     const cases = [
       { input: 0, expected: "0" },
@@ -90,20 +89,6 @@ describe("lib/utils", () => {
 
     it.each(cases)("returns '$expected' for $desc", ({ input, expected }) => {
       expect(formatRelativeTime(input)).toBe(expected);
-    });
-  });
-
-  describe("sanitizeHtml", () => {
-    it("removes basic HTML tags", () => {
-      expect(sanitizeHtml("<p>Hello <b>world</b></p>")).toBe("Hello world");
-    });
-
-    it("handles self-closing tags", () => {
-      expect(sanitizeHtml("Hello<br/> world")).toBe("Hello world");
-    });
-
-    it("trims whitespace", () => {
-      expect(sanitizeHtml("  <p>text</p>  ")).toBe("text");
     });
   });
 

@@ -14,7 +14,7 @@ import { PiCrownSimple } from "react-icons/pi";
 import { Card, CardContent, CardFooter, CardTitle } from "../../ui/card";
 import { ReadonlyGoBoard } from "../go/board/ReadonlyGoBoard";
 import { EndorsedTooltip } from "./EndorsedTooltip";
-import { SucessRate } from "./SucessRate";
+import { SuccessRate } from "./SuccessRate";
 
 type Props = {
   goProblemResponse: GoProblemResponse;
@@ -93,7 +93,7 @@ export function ProblemCard({ goProblemResponse }: Props) {
             />
           </span>
         </div>
-        <SucessRate
+        <SuccessRate
           successRate={successRate}
           userSolved={userSolved}
           convertToPercent

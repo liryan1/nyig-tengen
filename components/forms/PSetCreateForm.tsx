@@ -22,14 +22,10 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Visibility } from "@prisma/client";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { MultiSelect } from "../ui/multiselect";
-import { useGetMyTeamsQuery } from "@/lib/rtk/slices/teams";
+  VisibilityFields,
+  visibilityRefinement,
+  visibilityRefinementMessage,
+} from "./VisibilityFields";
 
 const FormSchema = z
   .object({
@@ -49,23 +45,13 @@ const FormSchema = z
       )
       .optional(),
   })
-  .refine(
-    (data) => data.visibility !== Visibility.TEAM || !!data.teamSlugs?.length,
-    {
-      message: "Team is required when visibility is TEAM",
-      path: ["teamSlugs"],
-    },
-  );
+  .refine(visibilityRefinement, visibilityRefinementMessage);
 
 type FormValues = z.infer<typeof FormSchema>;
 
 export function PSetCreateForm() {
   const router = useRouter();
-  const [create, { isLoading: cLoading, isError }] = useCreatePSetMutation();
-  const { data: teams, isLoading: tLoading } = useGetMyTeamsQuery();
-  const isLoading = cLoading || tLoading;
-  const teamOptions =
-    teams?.map((team) => ({ value: team.slug, label: team.name })) || [];
+  const [create, { isLoading }] = useCreatePSetMutation();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(FormSchema),
@@ -76,7 +62,6 @@ export function PSetCreateForm() {
       visibility: Visibility.PUBLIC,
     },
   });
-  const selectedVisibility = form.watch("visibility");
 
   const onSubmit = async (values: FormValues) => {
     const teamSlugs = values.teamSlugs?.map((s) => s.value);
@@ -168,55 +153,7 @@ export function PSetCreateForm() {
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="visibility"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Visibility</FormLabel>
-              <FormControl>
-                <Select
-                  value={field.value || ""}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Select visibility" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {Object.values(Visibility)
-                      .filter((v) => v !== Visibility.DELETED)
-                      .map((o) => (
-                        <SelectItem key={o} value={o}>
-                          {o.toLowerCase()}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        {selectedVisibility === Visibility.TEAM && (
-          <FormField
-            control={form.control}
-            name="teamSlugs"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Select Teams</FormLabel>
-                <FormControl>
-                  <MultiSelect
-                    placeholder="Select teams"
-                    options={teamOptions}
-                    selected={field.value}
-                    onChange={field.onChange}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+        <VisibilityFields form={form} />
 
         <Button type="submit" disabled={isLoading}>
           Create

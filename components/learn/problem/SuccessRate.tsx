@@ -1,7 +1,7 @@
 import { SUCCESS_COLOR } from "@/lib/color";
 import { CircleCheckBigIcon } from "lucide-react";
 
-export function SucessRate({
+export function SuccessRate({
   userSolved,
   successRate,
   convertToPercent,

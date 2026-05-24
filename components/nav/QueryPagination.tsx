@@ -9,6 +9,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { getVisiblePages } from "@/lib/utils";
 import { usePathname, useSearchParams } from "next/navigation";
 
 interface PaginationProps {
@@ -31,32 +32,6 @@ export function QueryPagination({
     return `${pathname}?${params.toString()}`;
   };
 
-  const getVisiblePages = () => {
-    const delta = 2;
-    const range = [];
-    for (
-      let i = Math.max(2, currentPage - delta);
-      i <= Math.min(totalPages - 1, currentPage + delta);
-      i++
-    ) {
-      range.push(i);
-    }
-
-    if (currentPage - delta > 2) {
-      range.unshift("...");
-    }
-    if (currentPage + delta < totalPages - 1) {
-      range.push("...");
-    }
-
-    range.unshift(1);
-    if (totalPages !== 1) {
-      range.push(totalPages);
-    }
-
-    return range;
-  };
-
   return (
     <Pagination className={className}>
       <PaginationContent>
@@ -67,7 +42,7 @@ export function QueryPagination({
           />
         </PaginationItem>
 
-        {getVisiblePages().map((pageNumber, idx) => (
+        {getVisiblePages(currentPage, totalPages).map((pageNumber, idx) => (
           <PaginationItem key={idx}>
             {pageNumber === "..." ? (
               <PaginationEllipsis />

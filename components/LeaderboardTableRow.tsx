@@ -1,6 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
+import {
+  cn,
+  truncateString,
+  clamp,
+  ordinal,
+  formatDuration,
+  formatRelativeTime,
+} from "@/lib/utils";
 import { Trophy } from "lucide-react";
 
 export function LeaderboardTableRow({
@@ -51,7 +58,7 @@ export function LeaderboardTableRow({
         <div className="min-w-0">
           <div className="flex items-center sm:gap-2">
             <span className="font-medium text-xs sm:text-base">
-              {truncate(name)}
+              {truncateString(name)}
             </span>
             <Badge
               variant="secondary"
@@ -76,7 +83,7 @@ export function LeaderboardTableRow({
                 timeStyle: "short",
               })}
             >
-              {relativeTime(completedAt)}
+              {formatRelativeTime(new Date(completedAt))}
             </Badge>
           </div>
         </div>
@@ -85,59 +92,6 @@ export function LeaderboardTableRow({
       {children}
     </TableRow>
   );
-}
-
-const truncate = (s: string) => {
-  return s.length > 15 ? s.slice(0, 15) + "..." : s;
-};
-
-const formatDuration = (msInput: number) => {
-  const totalSec = Math.floor(msInput / 1000);
-  const totalMin = Math.floor(totalSec / 60);
-  const m = totalMin % 60;
-  const totalH = Math.floor(totalMin / 60);
-  const h = totalH % 24;
-  const d = Math.floor(totalH / 24);
-  const s = totalSec % 60;
-
-  const parts: string[] = [];
-  if (d > 0) parts.push(`${d} days`);
-  if (h > 0) parts.push(`${h} hours`);
-  if (m > 0) parts.push(`${m} mins`);
-  if (parts.length === 0) parts.push(`${s} seconds`);
-
-  return parts.join(" ");
-};
-
-const ordinal = (n: number) => {
-  const j = n % 10,
-    k = n % 100;
-  if (j === 1 && k !== 11) return "st";
-  if (j === 2 && k !== 12) return "nd";
-  if (j === 3 && k !== 13) return "rd";
-  return "th";
-};
-
-function clamp(n: number, min: number, max: number) {
-  return Math.max(min, Math.min(max, n));
-}
-
-function relativeTime(iso: string) {
-  const then = new Date(iso).getTime();
-  const now = Date.now();
-  const diff = Math.max(0, now - then);
-  const s = Math.floor(diff / 1000);
-  if (s < 60) return `${s}s ago`;
-  const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m ago`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}h ago`;
-  const d = Math.floor(h / 24);
-  if (d < 30) return `${d}d ago`;
-  const mo = Math.floor(d / 30);
-  if (mo < 12) return `${mo}mo ago`;
-  const y = Math.floor(mo / 12);
-  return `${y}y ago`;
 }
 
 function rankStyles(rank: number) {
